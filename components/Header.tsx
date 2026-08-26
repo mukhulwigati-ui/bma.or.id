@@ -25,7 +25,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-emerald-950 text-white shadow-md border-b border-emerald-900">
+    <header className="sticky top-0 z-50 w-full bg-white text-stone-800 shadow-xs border-b border-stone-200">
       {/* Container utama dikunci di max-w-md agar sejajar presisi dengan konten app mobile */}
       <div className="max-w-md mx-auto px-4 h-16 flex items-center justify-between gap-3">
         
@@ -33,21 +33,21 @@ export default function Header() {
         <Link href="/" className="flex items-center shrink-0">
           <div className="relative h-8 w-auto flex items-center overflow-hidden">
             <img 
-              src="/images/logo-bdb.png" 
-              alt="Logo bdb.or.id" 
+              src="/images/logo-bma.png" 
+              alt="Logo bma.or.id" 
               className="h-full w-auto object-contain" 
             />
           </div>
         </Link>
 
-        {/* 2. Search Bar Rounded (Pill Shape) dengan Warna Baru */}
+        {/* 2. Search Bar Rounded (Pill Shape) dengan Warna Abu-abu Tipis Elegan */}
         <form onSubmit={handleSearchSubmit} className="relative flex-1">
           <div className="relative flex items-center w-full">
-            <Search className="absolute left-3.5 w-4 h-4 text-stone-500 pointer-events-none stroke-[2.2]" />
+            <Search className="absolute left-3.5 w-4 h-4 text-stone-400 pointer-events-none stroke-[2]" />
             <input
               type="text"
               placeholder="Cari Nama Program"
-              className="w-full bg-stone-100 text-stone-900 text-xs font-medium pl-9 pr-4 py-2 rounded-full placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-[#c59b27]/50 shadow-inner transition-all"
+              className="w-full bg-stone-100/80 text-stone-900 text-xs font-medium pl-9 pr-4 py-2 rounded-full placeholder-stone-400 border border-stone-200/60 focus:outline-none focus:bg-white focus:border-stone-400 focus:ring-2 focus:ring-stone-200 transition-all"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
