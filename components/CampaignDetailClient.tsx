@@ -243,7 +243,7 @@ function DetailHeader({
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#043524] bg-[#073f2e] shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
 
-      <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-3">
+      <div className="mx-auto flex h-14 w-full max-w-[420px] items-center justify-between px-3">
 
         {/* BACK */}
         <button
@@ -251,7 +251,7 @@ function DetailHeader({
           onClick={() =>
             router.back()
           }
-          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20 cursor-pointer"
           aria-label="Kembali"
         >
           <ArrowLeft className="h-4.5 w-4.5" />
@@ -260,11 +260,11 @@ function DetailHeader({
         {/* TITLE */}
         <div className="min-w-0 flex-1 px-3 text-center">
 
-          <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-200/80">
+          <p className="truncate text-[8px] font-bold uppercase tracking-[0.16em] text-emerald-200/80">
             {SITE_DOMAIN}
           </p>
 
-          <h1 className="truncate text-[14px] font-bold tracking-tight text-white sm:text-[15px]">
+          <h1 className="truncate text-[13px] font-bold tracking-tight text-white sm:text-[14px]">
             {title}
           </h1>
 
@@ -276,7 +276,7 @@ function DetailHeader({
           onClick={
             onOpenShare
           }
-          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20 cursor-pointer"
           aria-label="Bagikan"
         >
           <Share2 className="h-4.5 w-4.5" />
@@ -304,9 +304,9 @@ function EmbeddedZakatCalculator({
     setActiveTab,
   ] =
     useState<
-      'penghasilan' |
-      'maal' |
-      'emas'
+      | 'penghasilan'
+      | 'maal'
+      | 'emas'
     >('penghasilan');
 
   const [
@@ -446,7 +446,7 @@ function EmbeddedZakatCalculator({
   };
 
   return (
-    <section className="my-5 overflow-hidden border border-[#d4d4d4] bg-white">
+    <section className="my-4 overflow-hidden border border-slate-200/70 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
       {/* HEADER */}
       <div className="flex items-center gap-3 border-b border-[#06452f] bg-[#073f2e] px-4 py-3.5">
@@ -455,11 +455,11 @@ function EmbeddedZakatCalculator({
 
         <div>
 
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-200/80">
+          <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">
             Fasilitas BMA
           </p>
 
-          <h3 className="text-[14px] font-bold text-white">
+          <h3 className="text-[12px] font-bold text-white">
             Kalkulator Zakat
           </h3>
 
@@ -468,7 +468,7 @@ function EmbeddedZakatCalculator({
       </div>
 
       {/* TABS */}
-      <div className="grid grid-cols-3 border-b border-[#d8e2dc] bg-[#eef4f0]">
+      <div className="grid grid-cols-3 border-b border-slate-200 bg-[#f8f8f6]">
 
         {[
           {
@@ -500,11 +500,11 @@ function EmbeddedZakatCalculator({
                     | 'emas'
                 )
               }
-              className={`border-r border-[#d4d4d4] px-2 py-3 text-[11px] font-bold uppercase tracking-[0.1em] transition last:border-r-0 ${
+              className={`border-r border-slate-200 px-2 py-2.5 text-[9px] font-bold uppercase tracking-[0.1em] transition last:border-r-0 cursor-pointer ${
                 activeTab ===
                 tab.id
-                  ? 'bg-white text-[#073f2e] border-b-[3px] border-b-[#0b6b45]'
-                  : 'text-[#65736b] hover:bg-[#e5eee9]'
+                  ? 'bg-white text-[#073f2e] border-b-[2px] border-b-[#073f2e]'
+                  : 'text-slate-500 hover:bg-slate-100'
               }`}
             >
               {tab.label}
@@ -515,14 +515,14 @@ function EmbeddedZakatCalculator({
       </div>
 
       {/* FORM */}
-      <div className="space-y-4 p-4">
+      <div className="space-y-3.5 p-4">
 
         {activeTab !==
         'emas' ? (
           <>
             <div>
 
-              <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+              <label className="mb-1 block text-[8px] font-bold uppercase tracking-wider text-slate-400">
                 {activeTab ===
                 'maal'
                   ? 'Tabungan / Harta Tersimpan'
@@ -531,7 +531,7 @@ function EmbeddedZakatCalculator({
 
               <div className="relative">
 
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#999999]">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                   Rp
                 </span>
 
@@ -552,7 +552,7 @@ function EmbeddedZakatCalculator({
                     )
                   }
                   placeholder="0"
-                  className="w-full border border-[#cccccc] bg-[#fafafa] py-3 pl-10 pr-3 text-sm font-semibold text-[#444444] outline-none transition focus:border-[#999999] focus:bg-white"
+                  className="w-full border border-slate-200 bg-[#f8f8f6] py-2.5 pl-10 pr-3 text-xs font-semibold text-slate-800 outline-none transition focus:border-[#073f2e] focus:bg-white"
                 />
 
               </div>
@@ -561,7 +561,7 @@ function EmbeddedZakatCalculator({
 
             <div>
 
-              <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+              <label className="mb-1 block text-[8px] font-bold uppercase tracking-wider text-slate-400">
                 {activeTab ===
                 'maal'
                   ? 'Investasi / Aset Likuid'
@@ -570,7 +570,7 @@ function EmbeddedZakatCalculator({
 
               <div className="relative">
 
-                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#999999]">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
                   Rp
                 </span>
 
@@ -591,7 +591,7 @@ function EmbeddedZakatCalculator({
                     )
                   }
                   placeholder="0"
-                  className="w-full border border-[#cccccc] bg-[#fafafa] py-3 pl-10 pr-3 text-sm font-semibold text-[#444444] outline-none transition focus:border-[#999999] focus:bg-white"
+                  className="w-full border border-slate-200 bg-[#f8f8f6] py-2.5 pl-10 pr-3.5 text-xs font-semibold text-slate-800 outline-none transition focus:border-[#073f2e] focus:bg-white"
                 />
 
               </div>
@@ -601,7 +601,7 @@ function EmbeddedZakatCalculator({
         ) : (
           <div>
 
-            <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+            <label className="mb-1 block text-[8px] font-bold uppercase tracking-wider text-slate-400">
               Total Berat Emas
             </label>
 
@@ -623,10 +623,10 @@ function EmbeddedZakatCalculator({
                   )
                 }
                 placeholder="Contoh: 90"
-                className="w-full border border-[#cccccc] bg-[#fafafa] py-3 pl-3 pr-16 text-sm font-semibold text-[#444444] outline-none transition focus:border-[#999999] focus:bg-white"
+                className="w-full border border-slate-200 bg-[#f8f8f6] py-2.5 pl-3 pr-16 text-xs font-semibold text-slate-800 outline-none transition focus:border-[#073f2e] focus:bg-white"
               />
 
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase text-[#888888]">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase text-slate-400">
                 gram
               </span>
 
@@ -636,29 +636,29 @@ function EmbeddedZakatCalculator({
         )}
 
         {/* NISHAB */}
-        <div className="border border-[#d5e1da] bg-[#eef5f1] px-3 py-3">
+        <div className="border border-[#eadfca] bg-[#f7f2e7]/60 p-3">
 
-          <p className="text-[11px] leading-relaxed text-[#777777]">
+          <p className="text-[8px] leading-relaxed text-slate-600">
             {nishabText}
           </p>
 
         </div>
 
         {/* RESULT */}
-        <div className="border border-[#06452f] bg-[#073f2e] p-5 text-center shadow-sm">
+        <div className="border border-[#073f2e]/20 bg-[#073f2e] p-4 text-center shadow-sm">
 
-          <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200/80">
+          <span className="block text-[8px] font-bold uppercase tracking-[0.16em] text-emerald-200/80">
             Estimasi Zakat
           </span>
 
-          <strong className="mt-1.5 block text-2xl font-extrabold text-white">
+          <strong className="mt-1 block text-xl font-extrabold text-white">
             Rp{' '}
             {formatRupiah(
               totalZakat
             )}
           </strong>
 
-          <p className="mt-1.5 text-[11px] text-emerald-100/80">
+          <p className="mt-1 text-[8px] text-emerald-100/80">
             {isWajib
               ? 'Perhitungan telah mencapai batas nishab.'
               : 'Nilai belum mencapai batas nishab.'}
@@ -677,14 +677,14 @@ function EmbeddedZakatCalculator({
                 )
               )
             }
-            className="mt-4 w-full border border-[#d3b300] bg-[#ffd600] py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-[#26352d] transition hover:bg-[#f0ca00] disabled:cursor-not-allowed disabled:border-[#9aa69f] disabled:bg-[#9aa69f] disabled:text-white"
+            className="mt-3 w-full bg-[#d7b66a] hover:bg-[#c8a658] py-2.5 text-[8px] font-bold uppercase tracking-[0.15em] text-[#073f2e] transition disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 cursor-pointer shadow-sm"
           >
             Gunakan Nominal Ini
           </button>
 
         </div>
 
-        <p className="text-center text-[11px] leading-relaxed text-[#999999]">
+        <p className="text-center text-[8px] leading-relaxed text-slate-400">
           Kalkulator merupakan estimasi awal. Ketentuan zakat tetap memperhatikan nishab, haul, dan kondisi harta.
         </p>
 
@@ -736,12 +736,12 @@ const DonationFormFields = ({
     );
 
   return (
-    <div className="space-y-5 text-left">
+    <div className="space-y-4 text-left">
 
       {/* NOMINAL */}
       <div>
 
-        <label className="mb-2 block text-[11px] font-bold text-[#454545]">
+        <label className="mb-2 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
           Pilih Nominal Donasi
         </label>
 
@@ -766,10 +766,10 @@ const DonationFormFields = ({
                       )
                     )
                   }
-                  className={`border px-2 py-3 text-[10px] font-bold transition ${
+                  className={`border px-2 py-2.5 text-[10px] font-bold transition cursor-pointer ${
                     selected
-                      ? 'border-[#0b6b45] bg-[#e8f2ec] text-[#073f2e]'
-                      : 'border-[#d4ddd8] bg-white text-[#59665f] hover:bg-[#f0f5f2]'
+                      ? 'border-[#073f2e] bg-[#f0f8f4] text-[#073f2e]'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
                   }`}
                 >
                   Rp{' '}
@@ -789,13 +789,13 @@ const DonationFormFields = ({
       {/* CUSTOM NOMINAL */}
       <div>
 
-        <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+        <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
           Masukkan Donasi Lainnya
         </label>
 
         <div className="relative">
 
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-[#999999]">
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
             Rp
           </span>
 
@@ -823,7 +823,7 @@ const DonationFormFields = ({
                   : ''
               );
             }}
-            className="w-full border border-[#cccccc] bg-[#fafafa] py-3 pl-10 pr-3.5 text-sm font-bold text-[#444444] outline-none transition focus:border-[#999999] focus:bg-white"
+            className="w-full border border-slate-200 bg-[#f8f8f6] py-3 pl-10 pr-3.5 text-xs font-bold text-slate-800 outline-none transition focus:border-[#073f2e] focus:bg-white"
           />
 
         </div>
@@ -833,7 +833,7 @@ const DonationFormFields = ({
       {/* PAYMENT */}
       <div>
 
-        <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+        <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
           Metode Pembayaran
         </label>
 
@@ -848,7 +848,7 @@ const DonationFormFields = ({
               e.target.value
             )
           }
-          className="w-full border border-[#cccccc] bg-[#fafafa] px-3.5 py-3 text-xs font-semibold text-[#555555] outline-none focus:border-[#999999] focus:bg-white"
+          className="w-full border border-slate-200 bg-[#f8f8f6] px-3.5 py-3 text-[10px] font-semibold text-slate-700 outline-none focus:border-[#073f2e] focus:bg-white"
         >
           <option value="qris">
             QRIS — E-Wallet / Mobile Banking
@@ -873,7 +873,7 @@ const DonationFormFields = ({
 
       </div>
 
-      <div className="border-t border-[#dddddd]" />
+      <div className="border-t border-slate-100" />
 
       {/* ====================================================
           LOGIN STATUS
@@ -881,39 +881,39 @@ const DonationFormFields = ({
 
       {isLoggedIn ? (
         hasPhone ? (
-          <div className="flex items-center justify-between gap-3 border border-[#cdded4] bg-[#edf5f0] p-4">
+          <div className="flex items-center justify-between gap-3 border border-emerald-100 bg-[#f0f8f4] p-3.5">
 
             <div className="min-w-0">
 
-              <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#777777]">
+              <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-emerald-700">
                 Akun Terverifikasi
               </span>
 
-              <p className="mt-1 truncate text-[11px] font-bold text-[#444444]">
+              <p className="mt-0.5 truncate text-[11px] font-bold text-slate-800">
                 {profile?.name ||
                   'Dermawan'}
               </p>
 
-              <p className="mt-0.5 truncate text-[10px] text-[#777777]">
+              <p className="mt-0.5 truncate text-[8px] text-slate-500">
                 WhatsApp:{' '}
                 {profile?.phone}
               </p>
 
             </div>
 
-            <ShieldCheck className="h-5 w-5 shrink-0 text-[#666666]" />
+            <ShieldCheck className="h-4.5 w-4.5 shrink-0 text-emerald-600" />
 
           </div>
         ) : (
-          <div className="space-y-3 border border-[#cdded4] bg-[#edf5f0] p-4">
+          <div className="space-y-2.5 border border-amber-100 bg-amber-50/50 p-3.5">
 
             <div>
 
-              <p className="text-[11px] font-bold text-[#444444]">
+              <p className="text-[11px] font-bold text-slate-800">
                 Lengkapi Nomor WhatsApp
               </p>
 
-              <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
+              <p className="mt-0.5 text-[8px] leading-relaxed text-slate-500">
                 Nomor digunakan untuk informasi transaksi, kuitansi, dan laporan program.
               </p>
 
@@ -935,7 +935,7 @@ const DonationFormFields = ({
                       .value
                   )
                 }
-                className="min-w-0 flex-1 border border-[#cccccc] bg-white px-3 py-2.5 text-xs font-semibold text-[#444444] outline-none focus:border-[#999999]"
+                className="min-w-0 flex-1 border border-slate-200 bg-white px-3 py-2 text-[10px] font-semibold text-slate-800 outline-none focus:border-[#073f2e]"
               />
 
               <button
@@ -946,7 +946,7 @@ const DonationFormFields = ({
                 disabled={
                   savingPhone
                 }
-                className="shrink-0 bg-[#073f2e] px-4 py-2.5 text-[11px] font-bold uppercase text-white transition hover:bg-[#052f22] disabled:opacity-50"
+                className="shrink-0 bg-[#073f2e] px-3.5 py-2 text-[8px] font-bold uppercase tracking-wider text-white transition hover:bg-[#052e21] disabled:opacity-50 cursor-pointer"
               >
                 {savingPhone
                   ? 'Menyimpan'
@@ -958,11 +958,11 @@ const DonationFormFields = ({
           </div>
         )
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
 
           <div>
 
-            <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+            <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
               Nama Donatur
             </label>
 
@@ -987,14 +987,14 @@ const DonationFormFields = ({
                   })
                 )
               }
-              className="w-full border border-[#cccccc] bg-[#fafafa] px-3.5 py-3 text-sm text-[#444444] outline-none focus:border-[#999999] focus:bg-white"
+              className="w-full border border-slate-200 bg-[#f8f8f6] px-3.5 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#073f2e] focus:bg-white"
             />
 
           </div>
 
           <div>
 
-            <label className="mb-1.5 block text-[10px] font-semibold text-[#666666]">
+            <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
               Nomor WhatsApp *
             </label>
 
@@ -1019,7 +1019,7 @@ const DonationFormFields = ({
                   })
                 )
               }
-              className="w-full border border-[#cccccc] bg-[#fafafa] px-3.5 py-3 text-sm text-[#444444] outline-none focus:border-[#999999] focus:bg-white"
+              className="w-full border border-slate-200 bg-[#f8f8f6] px-3.5 py-3 text-xs font-semibold text-slate-800 outline-none focus:border-[#073f2e] focus:bg-white"
             />
 
           </div>
@@ -1038,7 +1038,7 @@ const DonationFormFields = ({
           (isLoggedIn &&
             !hasPhone)
         }
-        className="flex w-full items-center justify-center gap-2 bg-[#d9232e] py-4 text-xs font-bold uppercase tracking-[0.13em] text-white shadow-sm transition hover:bg-[#c41f29] active:scale-[0.995] disabled:cursor-not-allowed disabled:bg-[#bdbdbd] sm:text-sm"
+        className="flex w-full items-center justify-center gap-2 bg-[#b83280] py-3.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#a0266d] active:scale-[0.995] disabled:cursor-not-allowed disabled:bg-slate-300 cursor-pointer shadow-md"
       >
 
         {submitting
@@ -1051,7 +1051,7 @@ const DonationFormFields = ({
 
       </button>
 
-      <p className="text-center text-[10px] leading-relaxed text-[#999999]">
+      <p className="text-center text-[8px] leading-relaxed text-slate-400">
         Transaksi diproses melalui sistem pembayaran yang terintegrasi dengan {SITE_DOMAIN}.
       </p>
 
@@ -1408,14 +1408,6 @@ export default function CampaignDetailClient({
         return;
       }
 
-      // ======================================================
-      // PAKASIR PROJECT
-      //
-      // Tidak lagi fallback ke project web lama.
-      // NEXT_PUBLIC_PAKASIR_PROJECT_SLUG wajib diisi
-      // di environment Vercel untuk BMA.
-      // ======================================================
-
       const projectSlug =
         process.env
           .NEXT_PUBLIC_PAKASIR_PROJECT_SLUG;
@@ -1707,7 +1699,7 @@ export default function CampaignDetailClient({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f4f7f5]">
+      <div className="min-h-screen bg-[#f8f8f6]">
 
         <DetailHeader
           title="Program Donasi"
@@ -1718,7 +1710,7 @@ export default function CampaignDetailClient({
           }
         />
 
-        <div className="mx-auto w-full max-w-md space-y-4 px-3 py-5 animate-pulse">
+        <div className="mx-auto w-full max-w-[420px] space-y-3 px-0 pt-2 animate-pulse">
 
           <div className="aspect-[16/10] bg-[#d8d8d8]" />
 
@@ -1740,7 +1732,7 @@ export default function CampaignDetailClient({
 
   if (!program) {
     return (
-      <div className="min-h-screen bg-[#f4f7f5]">
+      <div className="min-h-screen bg-[#f8f8f6]">
 
         <DetailHeader
           title="Program Donasi"
@@ -1751,15 +1743,15 @@ export default function CampaignDetailClient({
           }
         />
 
-        <div className="mx-auto w-full max-w-md px-3 py-12">
+        <div className="mx-auto w-full max-w-[420px] px-0 pt-2">
 
-          <div className="border border-[#d3d3d3] bg-[#e5e5e5] px-5 py-10 text-center">
+          <div className="border border-[#d3d3d3] bg-white px-5 py-10 text-center shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
-            <p className="text-sm font-bold text-[#555555]">
+            <p className="text-xs font-bold text-slate-800">
               Program tidak ditemukan
             </p>
 
-            <p className="mt-2 text-[10px] leading-relaxed text-[#777777]">
+            <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
               Program mungkin telah dipindahkan atau belum diterbitkan.
             </p>
 
@@ -1835,30 +1827,30 @@ export default function CampaignDetailClient({
   // ==========================================================
 
   return (
-    <div className="min-h-screen bg-[#f4f7f5] pb-28">
+    <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
 
-      <DetailHeader
-        title={
-          program.title ||
-          'Program Donasi'
-        }
-        onOpenShare={() =>
-          setIsShareModalOpen(
-            true
-          )
-        }
-      />
+      <div className="w-full max-w-[420px] space-y-3 px-0">
 
-      <div className="mx-auto w-full max-w-md space-y-4 px-3 pt-4">
+        <DetailHeader
+          title={
+            program.title ||
+            'Program Donasi'
+          }
+          onOpenShare={() =>
+            setIsShareModalOpen(
+              true
+            )
+          }
+        />
 
         {/* ====================================================
             MAIN PROGRAM CARD
         ===================================================== */}
 
-        <article className="border border-[#d5d5d5] bg-white">
+        <article className="bg-white border-y border-slate-200/70 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
 
           {/* IMAGE */}
-          <div className="aspect-[16/10] w-full overflow-hidden border-b border-[#dddddd] bg-[#dedede]">
+          <div className="aspect-[16/10] w-full overflow-hidden border-b border-slate-100 bg-slate-100">
 
             <img
               src={
@@ -1878,30 +1870,30 @@ export default function CampaignDetailClient({
           <div className="space-y-4 p-4 sm:p-5">
 
             {program.category && (
-              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#65736b]">
+              <span className="inline-flex items-center bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-[#98752d]">
                 {program.category}
-              </p>
+              </span>
             )}
 
-            <h1 className="text-[22px] font-bold leading-[1.3] tracking-tight text-[#2f3c35] sm:text-2xl">
+            <h1 className="text-[18px] font-bold leading-snug tracking-tight text-slate-800">
               {program.title}
             </h1>
 
            {/* DONATION SUMMARY */}
-<div className="border border-[#06452f] bg-[#073f2e] p-5 shadow-sm">
+<div className="border border-[#073f2e]/20 bg-[#073f2e] p-4 shadow-sm text-white">
 
   {/* LABEL */}
-  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-200/80">
+  <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">
     Dana Terkumpul
   </p>
 
   {/* NOMINAL */}
-  <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
+  <p className="mt-1 text-[22px] font-extrabold tracking-tight text-white">
     Rp {formatRupiah(currentCollected)}
   </p>
 
   {/* TARGET & SISA HARI */}
-  <div className="mt-4 flex items-center justify-between gap-3 text-[11px] text-emerald-100/80">
+  <div className="mt-3 flex items-center justify-between gap-3 text-[9px] text-emerald-100/80">
 
     <span>
       Target{' '}
@@ -1912,8 +1904,8 @@ export default function CampaignDetailClient({
 
     {typeof program.daysLeft === 'number' &&
     program.daysLeft > 0 ? (
-      <span className="flex items-center gap-1.5 font-semibold text-emerald-100">
-        <Clock3 className="h-3.5 w-3.5" />
+      <span className="flex items-center gap-1 font-semibold text-emerald-100">
+        <Clock3 className="h-3.5 w-3.5 text-[#d7b66a]" />
         {program.daysLeft} hari lagi
       </span>
     ) : null}
@@ -1921,10 +1913,10 @@ export default function CampaignDetailClient({
   </div>
 
   {/* PROGRESS BAR */}
-  <div className="mt-4 h-2.5 w-full overflow-hidden bg-white/15">
+  <div className="mt-3 h-1.5 w-full overflow-hidden bg-white/15">
 
     <div
-      className="h-full bg-[#27c463] transition-all duration-500"
+      className="h-full bg-gradient-to-r from-[#d7b66a] to-emerald-400 transition-all duration-500"
       style={{
         width: `${percentage}%`,
       }}
@@ -1933,14 +1925,14 @@ export default function CampaignDetailClient({
   </div>
 
   {/* PROGRESS INFO */}
-  <div className="mt-3 flex items-center justify-between text-[11px]">
+  <div className="mt-2.5 flex items-center justify-between text-[9px]">
 
     <span className="font-semibold text-emerald-100">
       {percentage}% tercapai
     </span>
 
-    <span className="flex items-center gap-1.5 font-semibold text-emerald-100">
-      <Users className="h-4 w-4" />
+    <span className="flex items-center gap-1 font-semibold text-emerald-100">
+      <Users className="h-3.5 w-3.5 text-[#d7b66a]" />
       {donors.length} Donatur
     </span>
 
@@ -1952,7 +1944,7 @@ export default function CampaignDetailClient({
                 TABS
             ================================================== */}
 
-            <div className="grid grid-cols-3 border border-[#d8e2dc] bg-[#eef4f0]">
+            <div className="grid grid-cols-3 border border-slate-200 bg-[#f8f8f6]">
 
               {[
                 {
@@ -1988,11 +1980,11 @@ export default function CampaignDetailClient({
                           | 'laporan'
                       )
                     }
-                    className={`border-r border-[#d4d4d4] px-1 py-3 text-[11px] font-bold transition last:border-r-0 ${
+                    className={`border-r border-slate-200 px-1 py-2.5 text-[9px] font-bold uppercase tracking-wider transition last:border-r-0 cursor-pointer ${
                       activeTab ===
                       tab.id
-                        ? 'border-b-[3px] border-b-[#0b6b45] bg-white text-[#073f2e]'
-                        : 'text-[#65736b] hover:bg-[#e5eee9]'
+                        ? 'border-b-[2px] border-b-[#073f2e] bg-white text-[#073f2e]'
+                        : 'text-slate-500 hover:bg-slate-100'
                     }`}
                   >
                     {tab.label}
@@ -2026,7 +2018,7 @@ export default function CampaignDetailClient({
                 {program.description ? (
                   typeof program.description ===
                   'string' ? (
-                    <p className="text-[15px] leading-[1.85] text-[#4a4a4a]">
+                    <p className="text-[11px] leading-relaxed text-slate-600">
                       {
                         program.description
                       }
@@ -2042,7 +2034,7 @@ export default function CampaignDetailClient({
                     />
                   )
                 ) : (
-                  <p className="py-8 text-center text-xs italic text-[#999999]">
+                  <p className="py-6 text-center text-[9px] italic text-slate-400">
                     Belum ada cerita detail.
                   </p>
                 )}
@@ -2056,7 +2048,7 @@ export default function CampaignDetailClient({
 
             {activeTab ===
               'donatur' && (
-              <div className="space-y-2.5">
+              <div className="space-y-2">
 
                 {donors.length >
                 0 ? (
@@ -2073,12 +2065,12 @@ export default function CampaignDetailClient({
                           key={
                             index
                           }
-                          className="flex items-center justify-between gap-3 border border-[#d7e1db] bg-[#f3f7f5] p-3.5"
+                          className="flex items-center justify-between gap-3 border border-slate-200 bg-[#f8f8f6] p-3"
                         >
 
-                          <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex min-w-0 items-center gap-2.5">
 
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#dcebe2] text-sm font-bold text-[#073f2e]">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#f7f2e7] border border-[#eadfca] text-xs font-bold text-[#a37c32]">
 
                               {String(
                                 donor.name ||
@@ -2094,12 +2086,12 @@ export default function CampaignDetailClient({
 
                             <div className="min-w-0">
 
-                              <p className="truncate text-[11px] font-bold text-[#4a4a4a]">
+                              <p className="truncate text-[10px] font-bold text-slate-800">
                                 {donor.name ||
                                   'Hamba Allah'}
                               </p>
 
-                              <p className="mt-0.5 text-[11px] text-[#999999]">
+                              <p className="mt-0.5 text-[8px] text-slate-400">
                                 {donor.date ||
                                   'Baru saja'}
                               </p>
@@ -2108,7 +2100,7 @@ export default function CampaignDetailClient({
 
                           </div>
 
-                          <p className="shrink-0 text-[11px] font-bold text-[#555555]">
+                          <p className="shrink-0 text-[10px] font-bold text-emerald-600">
                             +Rp{' '}
                             {formatRupiah(
                               Number(
@@ -2122,7 +2114,7 @@ export default function CampaignDetailClient({
                       )
                     )
                 ) : (
-                  <p className="py-8 text-center text-xs text-[#999999]">
+                  <p className="py-6 text-center text-[9px] text-slate-400">
                     Belum ada donatur.
                   </p>
                 )}
@@ -2136,7 +2128,7 @@ export default function CampaignDetailClient({
 
             {activeTab ===
               'laporan' && (
-              <div className="space-y-3">
+              <div className="space-y-2.5">
 
                 {reports.length >
                 0 ? (
@@ -2153,24 +2145,24 @@ export default function CampaignDetailClient({
                           key={
                             index
                           }
-                          className="border border-[#d7e1db] bg-[#f3f7f5] p-4"
+                          className="border border-slate-200 bg-[#f8f8f6] p-3.5"
                         >
 
-                          <div className="flex items-start justify-between gap-3 border-b border-[#dddddd] pb-2.5">
+                          <div className="flex items-start justify-between gap-3 border-b border-slate-200 pb-2">
 
-                            <h4 className="text-[11px] font-bold text-[#444444]">
+                            <h4 className="text-[10px] font-bold text-slate-800">
                               {report.title ||
                                 'Laporan Penyaluran'}
                             </h4>
 
-                            <span className="shrink-0 text-[11px] text-[#999999]">
+                            <span className="shrink-0 text-[8px] text-slate-400">
                               {report.date ||
                                 ''}
                             </span>
 
                           </div>
 
-                          <div className="pt-3 text-sm leading-relaxed text-[#555555]">
+                          <div className="pt-2 text-[9px] leading-relaxed text-slate-600">
 
                             {typeof report.content ===
                             'string' ? (
@@ -2196,7 +2188,7 @@ export default function CampaignDetailClient({
                       )
                     )
                 ) : (
-                  <p className="py-8 text-center text-xs text-[#999999]">
+                  <p className="py-6 text-center text-[9px] text-slate-400">
                     Belum ada pembaruan laporan.
                   </p>
                 )}
@@ -2214,9 +2206,9 @@ export default function CampaignDetailClient({
           FLOATING DONATION BAR
       ====================================================== */}
 
-      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 flex justify-center border-t border-[#d3d3d3] bg-white/95 px-3 py-3 backdrop-blur-sm">
+      <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 flex justify-center border-t border-slate-200 bg-white/95 px-3 py-3 backdrop-blur-sm">
 
-        <div className="pointer-events-auto w-full max-w-md">
+        <div className="pointer-events-auto w-full max-w-[420px]">
 
           <button
             type="button"
@@ -2225,7 +2217,7 @@ export default function CampaignDetailClient({
                 true
               )
             }
-            className="w-full bg-[#d9232e] py-4 text-[13px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_4px_14px_rgba(217,35,46,0.22)] transition hover:bg-[#c51f29] active:scale-[0.995] sm:text-sm"
+            className="w-full bg-[#b83280] py-3.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white shadow-md transition hover:bg-[#a0266d] active:scale-[0.995] cursor-pointer"
           >
             Donasi Sekarang
           </button>
@@ -2239,7 +2231,7 @@ export default function CampaignDetailClient({
       ====================================================== */}
 
       {isMobileFormOpen && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 sm:items-center sm:p-3">
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-3">
 
           <div
             className="absolute inset-0"
@@ -2250,17 +2242,17 @@ export default function CampaignDetailClient({
             }
           />
 
-          <section className="relative z-10 max-h-[92vh] w-full max-w-md overflow-y-auto border border-[#cccccc] bg-white shadow-2xl">
+          <section className="relative z-10 max-h-[92vh] w-full max-w-[420px] overflow-y-auto border border-slate-200 bg-white shadow-2xl">
 
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-4">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-3.5">
 
               <div>
 
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#888888]">
+                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-emerald-200/80">
                   {SITE_DOMAIN}
                 </p>
 
-                <h3 className="text-[15px] font-bold text-white">
+                <h3 className="text-[13px] font-bold text-white">
                   Pilih Nominal Donasi
                 </h3>
 
@@ -2273,7 +2265,7 @@ export default function CampaignDetailClient({
                     false
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                className="flex h-8 w-8 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20 cursor-pointer"
                 aria-label="Tutup"
               >
                 <X className="h-4 w-4" />
@@ -2348,18 +2340,18 @@ export default function CampaignDetailClient({
             }
           />
 
-          <section className="relative z-10 w-full max-w-md border border-[#cccccc] bg-white shadow-2xl">
+          <section className="relative z-10 w-full max-w-[420px] border border-slate-200 bg-white shadow-2xl overflow-hidden">
 
             {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-4">
+            <div className="flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-3.5">
 
               <div>
 
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#888888]">
+                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-emerald-200/80">
                   Bagikan Kebaikan
                 </p>
 
-                <h3 className="text-[15px] font-bold text-white">
+                <h3 className="text-[13px] font-bold text-white">
                   Bagikan Program
                 </h3>
 
@@ -2372,19 +2364,19 @@ export default function CampaignDetailClient({
                     false
                   )
                 }
-                className="flex h-9 w-9 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
+                className="flex h-8 w-8 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20 cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
 
             </div>
 
-            <div className="space-y-5 p-4 sm:p-5">
+            <div className="space-y-4 p-4">
 
               {/* URL */}
               <div>
 
-                <label className="mb-1.5 block text-[11px] font-semibold text-[#777777]">
+                <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-slate-400">
                   Tautan Program
                 </label>
 
@@ -2396,7 +2388,7 @@ export default function CampaignDetailClient({
                     value={
                       shareUrl
                     }
-                    className="min-w-0 flex-1 border border-r-0 border-[#cccccc] bg-[#f5f5f5] px-3 py-2.5 text-[10px] font-mono text-[#666666] outline-none"
+                    className="min-w-0 flex-1 border border-r-0 border-slate-200 bg-[#f8f8f6] px-3 py-2.5 text-[9px] font-mono text-slate-600 outline-none"
                   />
 
                   <button
@@ -2404,7 +2396,7 @@ export default function CampaignDetailClient({
                     onClick={
                       handleCopyLink
                     }
-                    className="flex shrink-0 items-center gap-1.5 bg-[#073f2e] px-3.5 py-2.5 text-[11px] font-bold text-white transition hover:bg-[#052f22]"
+                    className="flex shrink-0 items-center gap-1.5 bg-[#073f2e] px-3.5 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white transition hover:bg-[#052f22] cursor-pointer"
                   >
 
                     {copied ? (
@@ -2436,12 +2428,12 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
+                  className="flex flex-col items-center justify-center border border-slate-200 bg-[#f8f8f6] px-2 py-3 text-slate-700 transition hover:bg-slate-100"
                 >
 
-                  <MessageCircle className="h-5 w-5" />
+                  <MessageCircle className="h-4.5 w-4.5 text-emerald-600" />
 
-                  <span className="mt-1.5 text-[11px] font-bold">
+                  <span className="mt-1.5 text-[9px] font-bold">
                     WhatsApp
                   </span>
 
@@ -2454,17 +2446,17 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
+                  className="flex flex-col items-center justify-center border border-slate-200 bg-[#f8f8f6] px-2 py-3 text-slate-700 transition hover:bg-slate-100"
                 >
 
                   <svg
-                    className="h-5 w-5 fill-current"
+                    className="h-4.5 w-4.5 fill-current text-blue-600"
                     viewBox="0 0 24 24"
                   >
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
 
-                  <span className="mt-1.5 text-[11px] font-bold">
+                  <span className="mt-1.5 text-[9px] font-bold">
                     Facebook
                   </span>
 
@@ -2480,17 +2472,17 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
+                  className="flex flex-col items-center justify-center border border-slate-200 bg-[#f8f8f6] px-2 py-3 text-slate-700 transition hover:bg-slate-100"
                 >
 
                   <svg
-                    className="h-[18px] w-[18px] fill-current"
+                    className="h-4 w-4 fill-current text-slate-800"
                     viewBox="0 0 24 24"
                   >
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
 
-                  <span className="mt-1.5 text-[11px] font-bold">
+                  <span className="mt-1.5 text-[9px] font-bold">
                     Twitter/X
                   </span>
 
@@ -2505,6 +2497,6 @@ export default function CampaignDetailClient({
         </div>
       )}
 
-    </div>
+    </main>
   );
 }
