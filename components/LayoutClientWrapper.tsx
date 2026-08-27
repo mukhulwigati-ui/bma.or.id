@@ -1,180 +1,974 @@
-// app/components/LayoutClientWrapper.tsx
+// components/LayoutClientWrapper.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+
 import { usePathname } from 'next/navigation';
-import Header from "@/components/Header";
-import { X, Download, Smartphone } from 'lucide-react';
+import Header from '@/components/Header';
+
+import {
+  CheckCircle2,
+  Download,
+  Share2,
+  ShieldCheck,
+  Smartphone,
+  X,
+} from 'lucide-react';
+
+// ============================================================
+// IDENTITAS BMA
+// ============================================================
+
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface LayoutClientWrapperProps {
   children: React.ReactNode;
 }
 
-export default function LayoutClientWrapper({ children }: LayoutClientWrapperProps) {
-  const pathname = usePathname();
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
 
-  const isStudioPage = pathname?.startsWith('/studio');
-  const isHomePage = pathname === '/';
+  userChoice: Promise<{
+    outcome:
+      | 'accepted'
+      | 'dismissed';
 
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showPrompt, setShowPrompt] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
-  
-  // Melacak apakah user sudah menutup prompt pada sesi ini
-  const [hasClosedPrompt, setHasClosedPrompt] = useState(false);
+    platform: string;
+  }>;
+}
 
-  useEffect(() => {
-    // 🚀 Deteksi perangkat: Jika diakses melalui PC/Desktop, hentikan proses agar tidak muncul
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    const isMobileDevice = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/.test(userAgent);
-    
-    if (!isMobileDevice) {
-      setShowPrompt(false);
-      return;
-    }
+// ============================================================
+// COMPONENT
+// ============================================================
 
-    // Cek apakah di sesi ini user sudah pernah menutup PWA prompt
-    const closedInSession = sessionStorage.getItem('pwa_prompt_closed');
-    if (closedInSession === 'true') {
-      setHasClosedPrompt(true);
-      return;
-    }
+export default function LayoutClientWrapper({
+  children,
+}: LayoutClientWrapperProps) {
+  const pathname =
+    usePathname();
 
-    if (!isHomePage || isStudioPage || hasClosedPrompt) {
-      setShowPrompt(false);
-      return;
-    }
+  const isStudioPage =
+    pathname?.startsWith(
+      '/studio'
+    );
 
-    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isIOSDevice);
+  const isHomePage =
+    pathname === '/';
 
-    const checkAndShow = () => {
-      // Pastikan modal lain TIDAK sedang terbuka di DOM
-      const activeModals = document.querySelectorAll('.fixed.inset-0.z-50');
-      
-      // Jika tidak ada modal lain yang aktif dan user belum close, tampilkan prompt PWA
-      if (activeModals.length === 0 && !hasClosedPrompt) {
-        setShowPrompt(true);
-      } else {
-        // Jika ada modal lain, tunda pengecekan berikutnya
-        setTimeout(checkAndShow, 1000);
+  // ==========================================================
+  // PWA STATES
+  // ==========================================================
+
+  const [
+    deferredPrompt,
+    setDeferredPrompt,
+  ] =
+    useState<BeforeInstallPromptEvent | null>(
+      null
+    );
+
+  const [
+    showPrompt,
+    setShowPrompt,
+  ] =
+    useState(false);
+
+  const [
+    isIOS,
+    setIsIOS,
+  ] =
+    useState(false);
+
+  const [
+    showIOSGuide,
+    setShowIOSGuide,
+  ] =
+    useState(false);
+
+  const [
+    hasClosedPrompt,
+    setHasClosedPrompt,
+  ] =
+    useState(false);
+
+  const timerRef =
+    useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+
+  const retryTimerRef =
+    useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
+
+  // ==========================================================
+  // HELPER: APAKAH PWA SUDAH BERJALAN STANDALONE?
+  // ==========================================================
+
+  const isRunningStandalone =
+    () => {
+      if (
+        typeof window ===
+        'undefined'
+      ) {
+        return false;
+      }
+
+      const standalone =
+        window.matchMedia(
+          '(display-mode: standalone)'
+        ).matches;
+
+      const iosStandalone =
+        Boolean(
+          (
+            window.navigator as Navigator & {
+              standalone?: boolean;
+            }
+          ).standalone
+        );
+
+      return (
+        standalone ||
+        iosStandalone
+      );
+    };
+
+  // ==========================================================
+  // HELPER: BERSIHKAN TIMER
+  // ==========================================================
+
+  const clearTimers =
+    () => {
+      if (
+        timerRef.current
+      ) {
+        clearTimeout(
+          timerRef.current
+        );
+
+        timerRef.current =
+          null;
+      }
+
+      if (
+        retryTimerRef.current
+      ) {
+        clearTimeout(
+          retryTimerRef.current
+        );
+
+        retryTimerRef.current =
+          null;
       }
     };
 
-    // 🚀 Ditunda selama 10 detik agar tidak langsung muncul mengganggu pengunjung baru di mobile
-    if (isIOSDevice) {
-      const timer = setTimeout(() => {
-        checkAndShow();
-      }, 10000);
-      return () => clearTimeout(timer);
-    }
+  // ==========================================================
+  // PWA PROMPT EFFECT
+  // ==========================================================
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      
-      const timer = setTimeout(() => {
-        checkAndShow();
-      }, 10000);
-
-      return () => clearTimeout(timer);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
-  }, [isHomePage, isStudioPage, hasClosedPrompt]);
-
-  const handleInstallClick = async () => {
-    if (isIOS) {
-      setShowIOSGuide(true);
+  useEffect(() => {
+    if (
+      typeof window ===
+        'undefined' ||
+      typeof document ===
+        'undefined'
+    ) {
       return;
     }
 
-    if (!deferredPrompt) return;
+    clearTimers();
 
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      console.log('PWA installed successfully');
+    // ========================================================
+    // HANYA HOMEPAGE
+    // ========================================================
+
+    if (
+      !isHomePage ||
+      isStudioPage
+    ) {
+      setShowPrompt(
+        false
+      );
+
+      return;
     }
-    setDeferredPrompt(null);
-    setShowPrompt(false);
-    setHasClosedPrompt(true);
-    sessionStorage.setItem('pwa_prompt_closed', 'true');
-  };
 
-  const handleClose = () => {
-    setShowPrompt(false);
-    setShowIOSGuide(false);
-    setHasClosedPrompt(true);
-    sessionStorage.setItem('pwa_prompt_closed', 'true');
-  };
+    // ========================================================
+    // JANGAN TAMPILKAN JIKA SUDAH STANDALONE
+    // ========================================================
+
+    if (
+      isRunningStandalone()
+    ) {
+      setShowPrompt(
+        false
+      );
+
+      return;
+    }
+
+    // ========================================================
+    // DETEKSI DEVICE
+    // ========================================================
+
+    const userAgent =
+      window.navigator.userAgent.toLowerCase();
+
+    const isMobileDevice =
+      /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
+        userAgent
+      );
+
+    if (
+      !isMobileDevice
+    ) {
+      setShowPrompt(
+        false
+      );
+
+      return;
+    }
+
+    // ========================================================
+    // SESSION CLOSED
+    // ========================================================
+
+    const closedInSession =
+      sessionStorage.getItem(
+        'bma_pwa_prompt_closed'
+      );
+
+    if (
+      closedInSession ===
+      'true'
+    ) {
+      setHasClosedPrompt(
+        true
+      );
+
+      setShowPrompt(
+        false
+      );
+
+      return;
+    }
+
+    const isIOSDevice =
+      /iphone|ipad|ipod/i.test(
+        userAgent
+      );
+
+    setIsIOS(
+      isIOSDevice
+    );
+
+    // ========================================================
+    // CEK MODAL LAIN
+    // ========================================================
+
+    const checkAndShow =
+      () => {
+        if (
+          isRunningStandalone()
+        ) {
+          setShowPrompt(
+            false
+          );
+
+          return;
+        }
+
+        const closed =
+          sessionStorage.getItem(
+            'bma_pwa_prompt_closed'
+          );
+
+        if (
+          closed === 'true'
+        ) {
+          return;
+        }
+
+        // Hindari tabrakan dengan modal lain
+        const activeModals =
+          document.querySelectorAll(
+            '[data-app-modal="true"]'
+          );
+
+        if (
+          activeModals.length ===
+          0
+        ) {
+          setShowPrompt(
+            true
+          );
+
+          return;
+        }
+
+        retryTimerRef.current =
+          setTimeout(
+            checkAndShow,
+            1500
+          );
+      };
+
+    // ========================================================
+    // IOS
+    //
+    // iOS tidak memakai beforeinstallprompt.
+    // ========================================================
+
+    if (
+      isIOSDevice
+    ) {
+      timerRef.current =
+        setTimeout(
+          checkAndShow,
+          10000
+        );
+    }
+
+    // ========================================================
+    // ANDROID / CHROME
+    // ========================================================
+
+    const handleBeforeInstallPrompt =
+      (
+        event: Event
+      ) => {
+        event.preventDefault();
+
+        const installEvent =
+          event as BeforeInstallPromptEvent;
+
+        setDeferredPrompt(
+          installEvent
+        );
+
+        clearTimers();
+
+        timerRef.current =
+          setTimeout(
+            checkAndShow,
+            10000
+          );
+      };
+
+    // ========================================================
+    // APP INSTALLED
+    // ========================================================
+
+    const handleAppInstalled =
+      () => {
+        console.log(
+          '✅ PWA BMA berhasil diinstal'
+        );
+
+        setDeferredPrompt(
+          null
+        );
+
+        setShowPrompt(
+          false
+        );
+
+        setShowIOSGuide(
+          false
+        );
+
+        setHasClosedPrompt(
+          true
+        );
+
+        sessionStorage.setItem(
+          'bma_pwa_prompt_closed',
+          'true'
+        );
+
+        clearTimers();
+      };
+
+    window.addEventListener(
+      'beforeinstallprompt',
+      handleBeforeInstallPrompt
+    );
+
+    window.addEventListener(
+      'appinstalled',
+      handleAppInstalled
+    );
+
+    // ========================================================
+    // CLEANUP
+    // ========================================================
+
+    return () => {
+      clearTimers();
+
+      window.removeEventListener(
+        'beforeinstallprompt',
+        handleBeforeInstallPrompt
+      );
+
+      window.removeEventListener(
+        'appinstalled',
+        handleAppInstalled
+      );
+    };
+  }, [
+    isHomePage,
+    isStudioPage,
+  ]);
+
+  // ==========================================================
+  // INSTALL
+  // ==========================================================
+
+  const handleInstallClick =
+    async () => {
+      // ======================================================
+      // IOS
+      // ======================================================
+
+      if (isIOS) {
+        setShowIOSGuide(
+          true
+        );
+
+        return;
+      }
+
+      // ======================================================
+      // ANDROID
+      // ======================================================
+
+      if (
+        !deferredPrompt
+      ) {
+        return;
+      }
+
+      try {
+        await deferredPrompt.prompt();
+
+        const {
+          outcome,
+        } =
+          await deferredPrompt.userChoice;
+
+        if (
+          outcome ===
+          'accepted'
+        ) {
+          console.log(
+            '✅ User menerima instalasi PWA BMA'
+          );
+        } else {
+          console.log(
+            'ℹ️ User membatalkan instalasi PWA BMA'
+          );
+        }
+      } catch (
+        error
+      ) {
+        console.error(
+          'PWA install error:',
+          error
+        );
+      } finally {
+        setDeferredPrompt(
+          null
+        );
+
+        setShowPrompt(
+          false
+        );
+
+        setHasClosedPrompt(
+          true
+        );
+
+        sessionStorage.setItem(
+          'bma_pwa_prompt_closed',
+          'true'
+        );
+      }
+    };
+
+  // ==========================================================
+  // CLOSE
+  // ==========================================================
+
+  const handleClose =
+    () => {
+      clearTimers();
+
+      setShowPrompt(
+        false
+      );
+
+      setShowIOSGuide(
+        false
+      );
+
+      setHasClosedPrompt(
+        true
+      );
+
+      sessionStorage.setItem(
+        'bma_pwa_prompt_closed',
+        'true'
+      );
+    };
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <>
+
+      {/* ======================================================
+          HEADER
+
+          Header tidak ditampilkan di Sanity Studio.
+      ====================================================== */}
+
       {!isStudioPage && (
         <Header />
       )}
-      
+
+      {/* ======================================================
+          MAIN CONTENT
+      ====================================================== */}
+
       <main className="flex-grow">
         {children}
       </main>
 
-      {/* 🚀 BOTTOM NAVIGATION / MENU BAWAH: Di-hidden secara mutlak jika berada di halaman Sanity Studio */}
-      {!isStudioPage && (
-        <nav aria-label="Bottom Navigation" className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-lg">
-          {/* Tempatkan elemen atau komponen bottom navigation Anda di sini */}
-        </nav>
-      )}
+      {/* ======================================================
+          PWA INSTALL MODAL
+      ====================================================== */}
 
-      {/* MODAL PWA PROMPT (HANYA MUNCUL DI MOBILE, SOFT & TOMBOL MERAH) */}
-      {isHomePage && !isStudioPage && showPrompt && !hasClosedPrompt && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4 animate-in fade-in duration-300">
-          <div className="relative w-full max-w-sm bg-white border border-slate-100 shadow-xl p-6 text-left space-y-4 rounded-xl">
-            
+      {isHomePage &&
+        !isStudioPage &&
+        showPrompt &&
+        !hasClosedPrompt && (
+
+          <div
+            data-app-modal="true"
+            className="
+              fixed
+              inset-0
+              z-[100]
+              flex
+              items-center
+              justify-center
+              bg-black/50
+              px-4
+              py-6
+              backdrop-blur-[2px]
+            "
+          >
+
+            {/* BACKDROP */}
             <button
-              onClick={handleClose}
-              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 p-1.5 transition rounded-lg"
-              aria-label="Tutup"
+              type="button"
+              onClick={
+                handleClose
+              }
+              className="absolute inset-0 cursor-default"
+              aria-label="Tutup modal instalasi"
+            />
+
+            {/* =================================================
+                MODAL
+            ================================================== */}
+
+            <section
+              className="
+                relative
+                z-10
+                w-full
+                max-w-sm
+                overflow-hidden
+                border
+                border-[#CFCFC9]
+                bg-white
+                shadow-[0_24px_60px_rgba(0,0,0,0.22)]
+              "
             >
-              <X className="w-4 h-4" />
-            </button>
 
-            <div className="w-12 h-12 bg-red-50 text-red-600 border border-red-100 flex items-center justify-center rounded-lg shadow-xs">
-              <Smartphone className="w-6 h-6" />
-            </div>
+              {/* ===============================================
+                  HEADER KUNING BMA
+              =============================================== */}
 
-            <div className="space-y-1.5 pr-4">
-              <span className="text-[10px] font-bold text-red-600 uppercase tracking-widest block">
-                APLIKASI RESMI
-              </span>
-              <h2 className="text-base sm:text-lg font-bold text-slate-800 tracking-tight">
-                Install Aplikasi Islami.or.id
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                {showIOSGuide
-                  ? "Ketuk ikon Share (Bagikan) di Safari, lalu pilih 'Add to Home Screen' (Tambah ke Layar Utama)."
-                  : "Pasang aplikasi islami.or.id di perangkat Anda untuk akses layanan donasi, infaq, dan zakat yang lebih cepat, praktis, serta optimal."}
-              </p>
-            </div>
-
-            {!showIOSGuide && (
-              <button
-                onClick={handleInstallClick}
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-xs sm:text-sm uppercase tracking-wider py-3 transition shadow-sm hover:shadow flex items-center justify-center gap-2 rounded-lg"
+              <div
+                className="
+                  relative
+                  border-b
+                  border-[#D4B300]
+                  bg-[#FFD600]
+                  px-5
+                  py-5
+                "
               >
-                <Download className="w-4 h-4" /> Install Sekarang 🚀
-              </button>
-            )}
+
+                {/* TOP DARK LINE */}
+                <div className="absolute left-0 top-0 h-[4px] w-full bg-[#2E2E2E]" />
+
+                {/* CLOSE */}
+                <button
+                  type="button"
+                  onClick={
+                    handleClose
+                  }
+                  className="
+                    absolute
+                    right-3
+                    top-3
+                    flex
+                    h-9
+                    w-9
+                    items-center
+                    justify-center
+                    border
+                    border-black/15
+                    bg-white/55
+                    text-[#555555]
+                    transition
+                    hover:bg-white
+                    hover:text-black
+                  "
+                  aria-label="Tutup"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+
+                {/* ICON */}
+                <div
+                  className="
+                    flex
+                    h-12
+                    w-12
+                    items-center
+                    justify-center
+                    border
+                    border-black/15
+                    bg-white/55
+                  "
+                >
+                  <Smartphone className="h-6 w-6 text-[#333333]" />
+                </div>
+
+                {/* BRAND */}
+                <div className="mt-4 pr-10">
+
+                  <p
+                    className="
+                      text-[10px]
+                      font-extrabold
+                      uppercase
+                      tracking-[0.16em]
+                      text-black/55
+                    "
+                  >
+                    Aplikasi Resmi {SITE_SHORT_NAME}
+                  </p>
+
+                  <h2
+                    className="
+                      mt-1
+                      text-[21px]
+                      font-extrabold
+                      leading-tight
+                      tracking-tight
+                      text-[#303030]
+                    "
+                  >
+                    Install {SITE_DOMAIN}
+                  </h2>
+
+                  <p
+                    className="
+                      mt-2
+                      text-[12px]
+                      font-medium
+                      leading-[1.65]
+                      text-[#514B31]
+                    "
+                  >
+                    {SITE_NAME}
+                    {' • '}
+                    {SITE_LOCATION}
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* ===============================================
+                  CONTENT
+              =============================================== */}
+
+              <div className="space-y-5 p-5">
+
+                {showIOSGuide ? (
+                  <>
+                    {/* IOS GUIDE */}
+
+                    <div>
+
+                      <div className="flex items-center gap-2">
+
+                        <Share2 className="h-5 w-5 text-[#555555]" />
+
+                        <h3 className="text-[15px] font-bold text-[#3D3D3D]">
+                          Tambahkan ke Layar Utama
+                        </h3>
+
+                      </div>
+
+                      <p className="mt-3 text-[13px] leading-[1.75] text-[#666666]">
+                        Di Safari, ketuk tombol
+                        {' '}
+                        <strong className="font-bold text-[#444444]">
+                          Bagikan
+                        </strong>
+                        , kemudian pilih
+                        {' '}
+                        <strong className="font-bold text-[#444444]">
+                          Tambah ke Layar Utama
+                        </strong>
+                        {' '}
+                        atau
+                        {' '}
+                        <strong className="font-bold text-[#444444]">
+                          Add to Home Screen
+                        </strong>
+                        .
+                      </p>
+
+                    </div>
+
+                    <div
+                      className="
+                        border
+                        border-[#D8D8D3]
+                        bg-[#EEEEEB]
+                        p-4
+                      "
+                    >
+
+                      <div className="flex items-start gap-3">
+
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#555555]" />
+
+                        <p className="text-[12px] leading-[1.7] text-[#5F5F5F]">
+                          Setelah ditambahkan, ikon
+                          {' '}
+                          <strong className="text-[#3F3F3F]">
+                            BMA
+                          </strong>
+                          {' '}
+                          akan tersedia langsung di layar utama perangkat Anda.
+                        </p>
+
+                      </div>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleClose
+                      }
+                      className="
+                        w-full
+                        border
+                        border-[#CCCCCC]
+                        bg-[#EFEFED]
+                        px-4
+                        py-3.5
+                        text-[12px]
+                        font-bold
+                        uppercase
+                        tracking-[0.12em]
+                        text-[#4A4A4A]
+                        transition
+                        hover:bg-[#E4E4E1]
+                      "
+                    >
+                      Mengerti
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    {/* =========================================
+                        DESCRIPTION
+                    ========================================== */}
+
+                    <div>
+
+                      <h3 className="text-[15px] font-bold text-[#3D3D3D]">
+                        Akses BMA lebih mudah dari HP
+                      </h3>
+
+                      <p
+                        className="
+                          mt-2
+                          text-[13px]
+                          leading-[1.75]
+                          text-[#666666]
+                        "
+                      >
+                        Pasang
+                        {' '}
+                        <strong className="font-bold text-[#444444]">
+                          {SITE_DOMAIN}
+                        </strong>
+                        {' '}
+                        di perangkat Anda untuk mengakses program zakat, infak, sedekah, wakaf, riwayat donasi, dan layanan BMA dengan lebih cepat.
+                      </p>
+
+                    </div>
+
+                    {/* =========================================
+                        BENEFIT
+                    ========================================== */}
+
+                    <div
+                      className="
+                        border-y
+                        border-[#E0E0DC]
+                        bg-[#F5F5F2]
+                      "
+                    >
+
+                      <div className="flex items-start gap-3 border-b border-[#E0E0DC] px-4 py-3.5">
+
+                        <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-[#666666]" />
+
+                        <div>
+
+                          <p className="text-[12px] font-bold text-[#444444]">
+                            Akses Cepat
+                          </p>
+
+                          <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
+                            Buka BMA langsung dari layar utama tanpa mengetik alamat website.
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                      <div className="flex items-start gap-3 px-4 py-3.5">
+
+                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#666666]" />
+
+                        <div>
+
+                          <p className="text-[12px] font-bold text-[#444444]">
+                            Aplikasi Resmi
+                          </p>
+
+                          <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
+                            Terhubung langsung dengan layanan digital resmi {SITE_NAME}.
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    {/* =========================================
+                        INSTALL BUTTON
+                    ========================================== */}
+
+                    <button
+                      type="button"
+                      onClick={
+                        handleInstallClick
+                      }
+                      disabled={
+                        !isIOS &&
+                        !deferredPrompt
+                      }
+                      className="
+                        flex
+                        w-full
+                        items-center
+                        justify-center
+                        gap-2.5
+                        border
+                        border-[#C7A700]
+                        bg-[#FFD600]
+                        px-4
+                        py-4
+                        text-[12px]
+                        font-extrabold
+                        uppercase
+                        tracking-[0.12em]
+                        text-[#292929]
+                        shadow-[0_5px_12px_rgba(120,100,0,0.12)]
+                        transition
+                        hover:bg-[#F2CA00]
+                        disabled:cursor-not-allowed
+                        disabled:border-[#D5D5D0]
+                        disabled:bg-[#E6E6E3]
+                        disabled:text-[#999999]
+                        disabled:shadow-none
+                      "
+                    >
+                      <Download className="h-[18px] w-[18px]" />
+
+                      {isIOS
+                        ? 'Cara Install di iPhone'
+                        : deferredPrompt
+                        ? 'Install Aplikasi BMA'
+                        : 'Belum Tersedia untuk Install'}
+                    </button>
+
+                    {/* =========================================
+                        FOOTER NOTE
+                    ========================================== */}
+
+                    <p
+                      className="
+                        text-center
+                        text-[10px]
+                        leading-relaxed
+                        text-[#999999]
+                      "
+                    >
+                      Instalasi tidak memerlukan unduhan melalui Play Store.
+                    </p>
+
+                  </>
+                )}
+
+              </div>
+
+            </section>
 
           </div>
-        </div>
-      )}
+        )}
+
     </>
   );
 }

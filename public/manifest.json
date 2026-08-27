@@ -1,11 +1,11 @@
 {
-  "name": "bdb.or.id",
-  "short_name": "bdb",
-  "description": "Platform Sedekah, Infaq & Zakat Online Amanah",
+  "name": "bma.or.id | Baitul Maal Al Muttaqin",
+  "short_name": "BMA",
+  "description": "Platform Zakat, Infak, Sedekah, Wakaf, dan Donasi Online Baitul Maal Al Muttaqin Jepara.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#03452F",
-  "theme_color": "#07A73F",
+  "background_color": "#F3F3F1",
+  "theme_color": "#FFD600",
   "icons": [
     {
       "src": "/images/icon-192x192.png",
@@ -26,7 +26,7 @@
       "sizes": "1920x1080",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Tampilan Utama bdb.or.id"
+      "label": "Tampilan Utama bma.or.id | Baitul Maal Al Muttaqin"
     }
   ]
 }
