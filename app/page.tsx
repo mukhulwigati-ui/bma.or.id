@@ -79,13 +79,10 @@ export const metadata: Metadata = {
 
   twitter: {
     card: 'summary_large_image',
-
     title:
       'bma.or.id | Baitul Maal Al Muttaqin',
-
     description:
       'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin.',
-
     images: [
       `${SITE_URL}/images/banner.png`,
     ],
@@ -109,13 +106,11 @@ export const metadata: Metadata = {
 // SANITY CONFIG
 // ============================================================
 const projectId =
-  process.env
-    .NEXT_PUBLIC_SANITY_PROJECT_ID ||
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
   'im4qx3kd';
 
 const dataset =
-  process.env
-    .NEXT_PUBLIC_SANITY_DATASET ||
+  process.env.NEXT_PUBLIC_SANITY_DATASET ||
   'production';
 
 if (!projectId) {
@@ -129,14 +124,9 @@ const serverClient = createClient({
   dataset,
   useCdn: false,
   apiVersion: '2026-08-01',
-
-  // Token hanya dipakai apabila memang tersedia.
-  // Untuk dataset publik, fetch tetap bisa berjalan
-  // tanpa token.
   token:
     process.env.SANITY_API_TOKEN ||
     undefined,
-
   perspective: 'published',
 });
 
@@ -153,10 +143,14 @@ interface ProgramItem {
   id: string;
   title: string;
   slug: string;
-  image?: string;
+
+  // WAJIB STRING
+  image: string;
+
   collectedAmount: number;
   collectedRaw: number;
   targetAmount: number;
+
   daysLeft?: number;
   donors?: any[];
   donorsCount?: number;
@@ -176,21 +170,88 @@ interface HomeSanityData {
 }
 
 // ============================================================
+// NORMALIZER PROGRAM
+// ============================================================
+function normalizePrograms(
+  items: any[] | undefined
+): ProgramItem[] {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .filter(
+      (item) =>
+        item &&
+        item.id &&
+        item.title &&
+        item.slug
+    )
+    .map((item) => ({
+      id: String(item.id),
+      title: String(item.title),
+      slug: String(item.slug),
+
+      // SELALU STRING
+      image:
+        typeof item.image === 'string' &&
+        item.image.trim()
+          ? item.image
+          : '/images/banner.png',
+
+      collectedAmount:
+        Number(
+          item.collectedAmount ?? 0
+        ) || 0,
+
+      collectedRaw:
+        Number(
+          item.collectedRaw ??
+            item.collectedAmount ??
+            0
+        ) || 0,
+
+      targetAmount:
+        Number(
+          item.targetAmount ??
+            50000000
+        ) || 50000000,
+
+      daysLeft:
+        item.daysLeft !== undefined
+          ? Number(item.daysLeft)
+          : undefined,
+
+      donors:
+        Array.isArray(item.donors)
+          ? item.donors
+          : [],
+
+      donorsCount:
+        item.donorsCount !== undefined
+          ? Number(item.donorsCount)
+          : Array.isArray(item.donors)
+          ? item.donors.length
+          : 0,
+    }));
+}
+
+// ============================================================
 // HOMEPAGE
 // ============================================================
 export default async function HomePage() {
   let heroBanners: HeroBanner[] = [];
+
   let mendesakPrograms: ProgramItem[] =
     [];
+
   let unggulanPrograms: ProgramItem[] =
     [];
+
   let pilihanPrograms: ProgramItem[] =
     [];
 
   try {
-    // ========================================================
-    // MASTER QUERY HOMEPAGE
-    // ========================================================
     const query = `{
       "heroBanners":
         *[
@@ -219,7 +280,11 @@ export default async function HomePage() {
           "id": _id,
           title,
           "slug": slug.current,
-          "image": image.asset->url,
+
+          "image": coalesce(
+            image.asset->url,
+            "/images/banner.png"
+          ),
 
           "collectedAmount":
             coalesce(
@@ -257,7 +322,11 @@ export default async function HomePage() {
           "id": _id,
           title,
           "slug": slug.current,
-          "image": image.asset->url,
+
+          "image": coalesce(
+            image.asset->url,
+            "/images/banner.png"
+          ),
 
           "collectedAmount":
             coalesce(
@@ -298,7 +367,11 @@ export default async function HomePage() {
           "id": _id,
           title,
           "slug": slug.current,
-          "image": image.asset->url,
+
+          "image": coalesce(
+            image.asset->url,
+            "/images/banner.png"
+          ),
 
           "collectedAmount":
             coalesce(
@@ -349,11 +422,17 @@ export default async function HomePage() {
               )
           )
           .map((item) => ({
-            _id: item.id,
+            _id:
+              String(item.id),
+
             title:
               item.title || '',
+
             imageUrl:
-              item.imageUrl!,
+              String(
+                item.imageUrl
+              ),
+
             linkUrl:
               item.linkUrl ||
               undefined,
@@ -364,25 +443,19 @@ export default async function HomePage() {
     // PROGRAMS
     // ========================================================
     mendesakPrograms =
-      Array.isArray(
+      normalizePrograms(
         data?.mendesak
-      )
-        ? data.mendesak
-        : [];
+      );
 
     unggulanPrograms =
-      Array.isArray(
+      normalizePrograms(
         data?.unggulan
-      )
-        ? data.unggulan
-        : [];
+      );
 
     pilihanPrograms =
-      Array.isArray(
+      normalizePrograms(
         data?.pilihan
-      )
-        ? data.pilihan
-        : [];
+      );
   } catch (error) {
     console.error(
       'Gagal mengambil data homepage BMA dari Sanity:',
@@ -422,11 +495,11 @@ export default async function HomePage() {
             <div className="min-w-0">
 
               <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#d7b66a]">
-                {SITE_SHORT_NAME} • Jepara
+                {SITE_SHORT_NAME} • {SITE_LOCATION}
               </p>
 
               <h1 className="mt-0.5 text-[13px] font-bold text-white">
-                Baitul Maal Al Muttaqin
+                {SITE_NAME}
               </h1>
 
               <p className="mt-1 text-[8px] leading-relaxed text-slate-300">
@@ -464,8 +537,7 @@ export default async function HomePage() {
                 Temukan program zakat,
                 infak, sedekah, wakaf,
                 pendidikan, dakwah, dan
-                kemanusiaan melalui
-                {' '}
+                kemanusiaan melalui{' '}
                 {SITE_DOMAIN}.
               </p>
 
