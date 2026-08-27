@@ -1,49 +1,38 @@
-// app/donasi-saya/page.tsx
+// app/akun/page.tsx
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  Heart,
-  CheckCircle2,
-  Clock,
-  Search,
-  Download,
-  RefreshCw,
+  History,
+  FileText,
+  Bookmark,
+  Phone,
+  Settings,
+  HelpCircle,
+  LogOut,
+  ChevronRight,
+  Target,
   Sparkles,
-  AlertCircle,
-  ArrowRight,
-  ChevronDown,
   X,
+  Loader2,
+  Eye,
   ShieldCheck,
+  ArrowUpRight,
 } from 'lucide-react';
 
-const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_SHORT_NAME = 'BMA';
-const SITE_DOMAIN = 'bma.or.id';
-const SITE_LOCATION = 'Jepara';
-
-export default function DonasiSayaPage() {
-  const [donations, setDonations] = useState<any[]>([]);
+export default function AkunPage() {
+  const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [donations, setDonations] = useState<any[]>([]);
+  const [referralClicks, setReferralClicks] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<
-    'semua' | 'pending' | 'sukses'
-  >('semua');
-
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>('Semua');
-
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const [sortBy, setSortBy] = useState<
-    'terbaru' | 'terlama' | 'terbesar' | 'terkecil'
-  >('terbaru');
-
-  const [selectedDonation, setSelectedDonation] =
-    useState<any>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newPhone, setNewPhone] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
 
   const supabase = useMemo(
     () =>
@@ -54,66 +43,94 @@ export default function DonasiSayaPage() {
     []
   );
 
+  const router = useRouter();
+
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchAkunData = async () => {
       setLoading(true);
 
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
 
-      if (user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+      if (error || !user) {
+        router.push('/login');
+        return;
+      }
 
-        if (prof) {
-          setProfile(prof);
+      setUser(user);
+
+      let { data: prof } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (!prof) {
+        const meta = user.user_metadata || {};
+
+        prof = {
+          id: user.id,
+          email: user.email,
+          name:
+            meta.full_name ||
+            meta.name ||
+            user.email?.split('@')[0] ||
+            'Dermawan',
+          avatar: meta.avatar_url || meta.picture || '',
+          phone: '',
+        };
+
+        await supabase.from('profiles').upsert(prof);
+      }
+
+      setProfile(prof);
+      setNewPhone(prof.phone || '');
+
+      const { data: donData } = await supabase
+        .from('donations')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (donData) {
+        setDonations(donData);
+      }
+
+      try {
+        const phoneKey = prof?.phone || user.id;
+
+        const { count, error: countErr } = await supabase
+          .from('referral_visits')
+          .select('*', {
+            count: 'exact',
+            head: true,
+          })
+          .eq('ref_code', phoneKey);
+
+        if (!countErr && count !== null) {
+          setReferralClicks(count);
         }
-
-        const { data: donData } = await supabase
-          .from('donations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', {
-            ascending: false,
-          });
-
-        if (donData) {
-          setDonations(donData);
-        }
+      } catch (err) {
+        console.log('Belum ada tabel pelacakan referral.');
       }
 
       setLoading(false);
     };
 
-    fetchDashboardData();
-  }, [supabase]);
+    fetchAkunData();
+  }, [supabase, router]);
 
-  const successfulStatuses = [
-    'success',
-    'paid',
-    'completed',
-  ];
-
-  const totalAmount = donations
-    .filter((d) =>
-      successfulStatuses.includes(
-        (d.status || '').toLowerCase()
-      )
-    )
-    .reduce(
-      (acc, curr) => acc + Number(curr.amount || 0),
-      0
-    );
-
-  const successfulDonationsCount = donations.filter((d) =>
-    successfulStatuses.includes(
+  const successfulDonations = donations.filter((d) =>
+    ['success', 'paid', 'completed'].includes(
       (d.status || '').toLowerCase()
     )
-  ).length;
+  );
+
+  const totalAmount = successfulDonations.reduce(
+    (acc, curr) => acc + Number(curr.amount || 0),
+    0
+  );
 
   const uniqueProgramsCount = new Set(
     donations.map(
@@ -121,880 +138,578 @@ export default function DonasiSayaPage() {
     )
   ).size;
 
-  let donorBadge = {
-    title: 'Sahabat Kebaikan',
+  let levelInfo = {
+    name: 'Dermawan',
     level: 'LEVEL 1',
-    icon: '♡',
+    min: 0,
+    next: 500000,
   };
 
-  if (totalAmount > 2000000) {
-    donorBadge = {
-      title: 'Donatur Istimewa',
+  if (totalAmount >= 5000000) {
+    levelInfo = {
+      name: 'Wakif',
+      level: 'LEVEL 5',
+      min: 5000000,
+      next: 10000000,
+    };
+  } else if (totalAmount >= 2000000) {
+    levelInfo = {
+      name: 'Muhsin',
+      level: 'LEVEL 4',
+      min: 2000000,
+      next: 5000000,
+    };
+  } else if (totalAmount >= 1000000) {
+    levelInfo = {
+      name: 'Pejuang',
       level: 'LEVEL 3',
-      icon: '✦',
+      min: 1000000,
+      next: 2000000,
     };
   } else if (totalAmount >= 500000) {
-    donorBadge = {
-      title: 'Donatur Peduli',
+    levelInfo = {
+      name: 'Sahabat',
       level: 'LEVEL 2',
-      icon: '◆',
+      min: 500000,
+      next: 1000000,
     };
   }
 
-  const filteredDonations = donations
-    .filter((d) => {
-      const status = (
-        d.status || 'pending'
-      ).toLowerCase();
+  const targetBulanan = 500000;
 
-      const title = (
-        d.program_name ||
-        d.programTitle ||
-        ''
-      ).toLowerCase();
+  const progressPercent = Math.min(
+    Math.round((totalAmount / targetBulanan) * 100),
+    100
+  );
 
-      const category = (
-        d.category || ''
-      ).toLowerCase();
+  const handleUpdatePhone = async (
+    e: React.FormEvent
+  ) => {
+    e.preventDefault();
 
-      if (
-        activeTab === 'pending' &&
-        !['pending', 'unpaid'].includes(status)
-      ) {
-        return false;
+    const clean = newPhone.replace(/[^0-9]/g, '');
+
+    if (clean.length < 9) {
+      alert('Masukkan nomor WhatsApp yang valid!');
+      return;
+    }
+
+    setSavingPhone(true);
+
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          phone: clean,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+
+      if (error) {
+        throw error;
       }
 
-      if (
-        activeTab === 'sukses' &&
-        !successfulStatuses.includes(status)
-      ) {
-        return false;
-      }
+      setProfile((prev: any) => ({
+        ...prev,
+        phone: clean,
+      }));
 
-      if (
-        selectedCategory !== 'Semua' &&
-        category !== selectedCategory.toLowerCase()
-      ) {
-        return false;
-      }
+      setIsModalOpen(false);
 
-      if (
-        searchQuery &&
-        !title.includes(searchQuery.toLowerCase())
-      ) {
-        return false;
-      }
+      alert('Nomor WhatsApp berhasil diperbarui!');
+    } catch (err: any) {
+      alert('Gagal memperbarui: ' + err.message);
+    } finally {
+      setSavingPhone(false);
+    }
+  };
 
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'terbaru') {
-        return (
-          new Date(b.created_at).getTime() -
-          new Date(a.created_at).getTime()
-        );
-      }
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
 
-      if (sortBy === 'terlama') {
-        return (
-          new Date(a.created_at).getTime() -
-          new Date(b.created_at).getTime()
-        );
-      }
-
-      if (sortBy === 'terbesar') {
-        return Number(b.amount) - Number(a.amount);
-      }
-
-      if (sortBy === 'terkecil') {
-        return Number(a.amount) - Number(b.amount);
-      }
-
-      return 0;
-    });
+    router.push('/login');
+    router.refresh();
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-11 h-11 bg-[#073f2e] flex items-center justify-center shadow-lg">
-            <RefreshCw className="w-4 h-4 text-white animate-spin" />
+          <div className="w-11 h-11 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+            <Loader2 className="w-5 h-5 text-white animate-spin" />
           </div>
 
-          <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">
-            Memuat riwayat donasi {SITE_SHORT_NAME}
-          </p>
+          <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">
+            Memuat akun
+          </span>
         </div>
       </div>
     );
   }
 
-  const memberSince = profile?.created_at
-    ? new Date(
-        profile.created_at
-      ).toLocaleDateString('id-ID', {
-        month: 'long',
-        year: 'numeric',
-      })
-    : '2026';
-
-  const displayName = profile?.name?.trim() || profile?.email?.split('@')[0] || profile?.full_name || profile?.user_metadata?.full_name || profile?.user_metadata?.name || 'Dermawan BMA';
-
   return (
-    <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
-      <div className="w-full max-w-[420px] space-y-3 px-0">
+    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-4">
+      <div className="max-w-md mx-auto space-y-4">
 
-        {/* =====================================================
-            PREMIUM HEADER
-        ===================================================== */}
-        <section className="relative overflow-hidden bg-[#073f2e] shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
+        {/* =========================================================
+            HEADER PROFILE
+        ========================================================= */}
+        <section className="relative overflow-hidden rounded-[28px] bg-[#102a43] p-5 shadow-[0_18px_45px_rgba(16,42,67,0.16)]">
 
-          <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
+          <div className="absolute -right-14 -top-16 w-44 h-44 rounded-full border border-white/8" />
 
-          <div className="absolute right-5 bottom-[-70px] w-40 h-40 rounded-full border border-[#d8b76c]/10" />
+          <div className="absolute -right-4 -bottom-16 w-32 h-32 rounded-full border border-[#d7b66a]/15" />
 
-          <div className="relative z-10 p-4">
+          <div className="relative z-10 flex items-center gap-4">
 
-            <div className="flex items-start justify-between gap-3">
-
-              <div className="flex items-center gap-3 min-w-0">
-
-                {profile?.avatar ? (
-                  <img
-                    src={profile.avatar}
-                    alt={displayName}
-                    className="w-[58px] h-[58px] rounded-full object-cover border border-[#d7b66a]/50 shadow-xl"
-                  />
-                ) : (
-                  <div className="w-[58px] h-[58px] shrink-0 rounded-full bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
-                )}
-
-                <div className="min-w-0">
-
-                  <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-[#d7b66a]">
-                    {SITE_SHORT_NAME} Donation Center
-                  </p>
-
-                  <h1 className="mt-1 text-[16px] font-bold text-white truncate">
-                    {displayName}
-                  </h1>
-
-                  <p className="mt-0.5 text-[9px] text-slate-200">
-                    Member sejak {memberSince}
-                  </p>
-
-                  <div className="mt-2 inline-flex items-center gap-1.5">
-                    <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
-
-                    <span className="text-[7px] font-semibold uppercase tracking-wider text-[#e6d19d]">
-                      Member {SITE_DOMAIN}
-                    </span>
-                  </div>
-
-                </div>
+            {profile?.avatar ? (
+              <img
+                src={profile.avatar}
+                alt={profile.name}
+                className="w-[62px] h-[62px] rounded-[22px] object-cover border border-[#d7b66a]/50 shadow-xl"
+              />
+            ) : (
+              <div className="w-[62px] h-[62px] rounded-[22px] bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
+                {(profile?.name || 'D')
+                  .charAt(0)
+                  .toUpperCase()}
               </div>
+            )}
 
-              <div className="shrink-0 text-right">
-
-                <div className="inline-flex items-center gap-1.5 bg-white/8 border border-white/15 px-2.5 py-1.5">
-
-                  <span className="text-[#d7b66a] text-[10px]">
-                    {donorBadge.icon}
-                  </span>
-
-                  <span className="text-[8px] font-bold uppercase tracking-wider text-[#e6d19d]">
-                    {donorBadge.level}
-                  </span>
-
-                </div>
-
-                <p className="mt-1 text-[8px] text-slate-200">
-                  {donorBadge.title}
-                </p>
-
-              </div>
-            </div>
-
-            {/* TOTAL DONASI */}
-            <div className="mt-4 pt-4 border-t border-white/10">
-
-              <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-300">
-                Total Donasi Berhasil
+            <div className="min-w-0 flex-1">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.2em] text-[#d7b66a]">
+                Member Area
               </p>
 
-              <div className="mt-1.5 flex items-end justify-between gap-3">
+              <h1 className="mt-1 text-[17px] font-bold text-white truncate">
+                {profile?.name || 'Dermawan Islami'}
+              </h1>
 
-                <p className="text-[24px] leading-none font-bold tracking-tight text-white">
-                  Rp{' '}
-                  {totalAmount.toLocaleString(
-                    'id-ID'
-                  )}
+              <p className="mt-0.5 text-[10px] text-slate-300 truncate">
+                {profile?.email}
+              </p>
+
+              <div className="mt-2 inline-flex items-center gap-1.5">
+                <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
+
+                <span className="text-[8px] font-semibold uppercase tracking-wider text-[#e7d5a4]">
+                  Member Islami.or.id
+                </span>
+              </div>
+            </div>
+
+            <Link
+              href="/pengaturan"
+              className="w-9 h-9 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center hover:bg-white/15 transition"
+            >
+              <Settings className="w-4 h-4 text-slate-300" />
+            </Link>
+          </div>
+        </section>
+
+        {/* =========================================================
+            DONATION SUMMARY
+        ========================================================= */}
+        <section className="rounded-[28px] bg-white border border-slate-200/70 shadow-[0_8px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+
+          <div className="p-5">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  Total Donasi
                 </p>
 
-                <div className="flex items-center gap-1.5 text-[8px] text-[#d7b66a] font-semibold uppercase tracking-wider">
-                  <ShieldCheck className="w-3 h-3" />
-                  Terverifikasi
-                </div>
+                <p className="mt-2 text-[25px] leading-none font-bold tracking-tight text-[#102a43]">
+                  Rp {totalAmount.toLocaleString('id-ID')}
+                </p>
+              </div>
 
+              <div className="text-right">
+                <span className="inline-flex items-center rounded-full bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-1">
+                  <span className="text-[8px] font-bold uppercase tracking-wider text-[#98752d]">
+                    {levelInfo.level}
+                  </span>
+                </span>
+
+                <p className="mt-2 text-[11px] font-bold text-[#102a43]">
+                  {levelInfo.name}
+                </p>
               </div>
 
             </div>
 
-            {/* STATISTICS */}
-            <div className="mt-4 grid grid-cols-3 border-t border-white/10 pt-3">
+            <div className="mt-5 grid grid-cols-3 border-t border-slate-100 pt-4">
 
-              <div>
-                <p className="text-[8px] uppercase tracking-wider text-slate-300">
-                  Berhasil
-                </p>
-
-                <p className="mt-1 text-[14px] font-bold text-white">
-                  {successfulDonationsCount}x
-                </p>
-              </div>
-
-              <div className="border-x border-white/10 px-3">
-
-                <p className="text-[8px] uppercase tracking-wider text-slate-300">
+              <div className="text-center">
+                <p className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
                   Program
                 </p>
 
-                <p className="mt-1 text-[14px] font-bold text-white">
+                <p className="mt-1.5 text-[15px] font-bold text-[#102a43]">
                   {uniqueProgramsCount}
                 </p>
-
               </div>
 
-              <div className="pl-3">
-
-                <p className="text-[8px] uppercase tracking-wider text-slate-300">
-                  Transaksi
+              <div className="border-x border-slate-100 text-center">
+                <p className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
+                  Berhasil
                 </p>
 
-                <p className="mt-1 text-[14px] font-bold text-white">
-                  {donations.length}
+                <p className="mt-1.5 text-[15px] font-bold text-[#102a43]">
+                  {successfulDonations.length}x
+                </p>
+              </div>
+
+              <div className="text-center">
+                <p className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
+                  Referral
                 </p>
 
+                <p className="mt-1.5 flex items-center justify-center gap-1 text-[15px] font-bold text-[#102a43]">
+                  <Eye className="w-3 h-3 text-[#b18a3c]" />
+                  {referralClicks}
+                </p>
               </div>
 
             </div>
           </div>
 
+          {/* GOLD ACCENT */}
           <div className="h-[3px] bg-gradient-to-r from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
 
         </section>
 
-        {/* =====================================================
-            IMPACT CARD
-        ===================================================== */}
-        <section className="relative overflow-hidden bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        {/* =========================================================
+            TARGET SEDEKAH
+        ========================================================= */}
+        <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
 
-          <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#f7f2e7] -translate-y-1/2 translate-x-1/2" />
-
-          <div className="relative">
+          <div className="flex items-center justify-between">
 
             <div className="flex items-center gap-3">
 
-              <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-[#a37c32]" />
+              <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                <Target className="w-[17px] h-[17px] text-[#a37c32]" />
               </div>
 
               <div>
-
-                <p className="text-[8px] uppercase tracking-[0.18em] font-bold text-slate-400">
-                  Dampak Kebaikan
+                <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Personal Goal
                 </p>
 
-                <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
-                  Kebaikan yang Anda Titipkan
-                </h2>
-
+                <h3 className="mt-0.5 text-[12px] font-bold text-[#102a43]">
+                  Target Sedekah Bulanan
+                </h3>
               </div>
 
             </div>
 
-            <p className="mt-3 text-[10px] leading-relaxed text-slate-500">
-              Alhamdulillah, setiap donasi yang Anda titipkan melalui
-              {' '}
-              {SITE_NAME}
-              {' '}
-              menjadi bagian dari ikhtiar menghadirkan manfaat bagi
-              masyarakat yang membutuhkan.
-            </p>
-
-            <div className="mt-3 space-y-2">
-
-              {[
-                'Program sosial untuk yatim, dhuafa, dan masyarakat membutuhkan',
-                'Dukungan dakwah dan fasilitas ibadah umat',
-                'Program pendidikan, santri, dan kegiatan kemaslahatan',
-              ].map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-2"
-                >
-                  <div className="w-4 h-4 bg-[#f5f8f6] border border-emerald-100 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                  </div>
-
-                  <span className="text-[9px] font-medium text-slate-600">
-                    {item}
-                  </span>
-                </div>
-              ))}
-
-            </div>
-
-            <div className="mt-3.5 border-t border-slate-100 pt-2.5">
-              <p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                {SITE_DOMAIN} • {SITE_LOCATION}
-              </p>
-            </div>
-          </div>
-
-        </section>
-
-        {/* =====================================================
-            SEARCH & FILTER
-        ===================================================== */}
-        <section className="space-y-3 px-0">
-
-          <div className="flex items-center justify-between px-1">
-
-            <div>
-              <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
-                Aktivitas Donasi
-              </p>
-
-              <h2 className="mt-0.5 text-[13px] font-bold text-slate-800">
-                Riwayat Donasi
-              </h2>
-            </div>
-
-            <span className="text-[9px] font-semibold text-slate-400">
-              {filteredDonations.length} transaksi
+            <span className="text-[10px] font-bold text-[#a37c32]">
+              {progressPercent}%
             </span>
 
           </div>
 
-          {/* SEARCH */}
-          <div className="relative">
+          <div className="mt-5">
 
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-
-            <input
-              type="text"
-              placeholder="Cari program donasi..."
-              value={searchQuery}
-              onChange={(e) =>
-                setSearchQuery(e.target.value)
-              }
-              className="w-full h-11 bg-white border border-slate-200/80 pl-10 pr-4 text-[10px] font-medium text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#073f2e]"
-            />
-
-          </div>
-
-          {/* STATUS TABS */}
-          <div className="grid grid-cols-3 gap-1 p-1 bg-slate-200/70">
-
-            <button
-              onClick={() => setActiveTab('semua')}
-              className={`py-2 text-[9px] font-bold transition ${
-                activeTab === 'semua'
-                  ? 'bg-white text-[#073f2e] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Semua
-              <span className="ml-1 opacity-60">
-                {donations.length}
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[9px] text-slate-400">
+                Rp {totalAmount.toLocaleString('id-ID')}
               </span>
-            </button>
+
+              <span className="text-[9px] font-semibold text-slate-500">
+                Target Rp {targetBulanan.toLocaleString('id-ID')}
+              </span>
+            </div>
+
+            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#a37c32] to-[#d6b96f] transition-all duration-700"
+                style={{
+                  width: `${progressPercent}%`,
+                }}
+              />
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* =========================================================
+            WHATSAPP
+        ========================================================= */}
+        <section className="rounded-[24px] bg-white border border-slate-200/70 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+
+          <div className="flex items-center justify-between">
+
+            <div className="flex items-center gap-3">
+
+              <div className="w-10 h-10 rounded-xl bg-[#f3f7f5] flex items-center justify-center">
+                <Phone className="w-4 h-4 text-emerald-600" />
+              </div>
+
+              <div>
+                <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                  Kontak Referral
+                </p>
+
+                <p className="mt-1 text-[11px] font-bold text-[#102a43]">
+                  {profile?.phone || 'Belum diatur'}
+                </p>
+              </div>
+
+            </div>
 
             <button
-              onClick={() =>
-                setActiveTab('pending')
-              }
-              className={`py-2 text-[9px] font-bold transition ${
-                activeTab === 'pending'
-                  ? 'bg-white text-[#a37c32] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
+              onClick={() => setIsModalOpen(true)}
+              className="rounded-xl border border-slate-200 px-3.5 py-2 text-[9px] font-bold uppercase tracking-wider text-[#102a43] hover:bg-slate-50 transition cursor-pointer"
             >
-              Pending
-            </button>
-
-            <button
-              onClick={() =>
-                setActiveTab('sukses')
-              }
-              className={`py-2 text-[9px] font-bold transition ${
-                activeTab === 'sukses'
-                  ? 'bg-white text-emerald-600 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-800'
-              }`}
-            >
-              Berhasil
+              Ubah
             </button>
 
           </div>
 
-          {/* SELECTS */}
-          <div className="grid grid-cols-2 gap-2">
+        </section>
 
-            <div className="relative">
+        {/* =========================================================
+            MENU
+        ========================================================= */}
+        <section className="rounded-[26px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
 
-              <select
-                value={selectedCategory}
-                onChange={(e) =>
-                  setSelectedCategory(
-                    e.target.value
-                  )
-                }
-                className="appearance-none w-full h-10 bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#073f2e]"
-              >
-                <option value="Semua">
-                  Semua Kategori
-                </option>
+          <div className="px-5 pt-5 pb-3">
+            <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Account Center
+            </p>
 
-                <option value="zakat">
-                  Zakat
-                </option>
+            <h3 className="mt-1 text-[13px] font-bold text-[#102a43]">
+              Menu Akun
+            </h3>
+          </div>
 
-                <option value="infak">
-                  Infak
-                </option>
+          <div className="px-3 pb-3 space-y-1">
 
-                <option value="sedekah">
-                  Sedekah
-                </option>
+            <Link
+              href="/donasi-saya"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
 
-                <option value="wakaf">
-                  Wakaf
-                </option>
+                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <History className="w-4 h-4 text-[#102a43]" />
+                </div>
 
-                <option value="kemanusiaan">
-                  Kemanusiaan
-                </option>
-              </select>
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Riwayat Donasi
+                </span>
 
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+              </div>
 
-            </div>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
 
-            <div className="relative">
+            <Link
+              href="/kuitansi"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
 
-              <select
-                value={sortBy}
-                onChange={(e) =>
-                  setSortBy(
-                    e.target.value as
-                      | 'terbaru'
-                      | 'terlama'
-                      | 'terbesar'
-                      | 'terkecil'
-                  )
-                }
-                className="appearance-none w-full h-10 bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#073f2e]"
-              >
-                <option value="terbaru">
-                  Terbaru
-                </option>
+                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <FileText className="w-4 h-4 text-[#102a43]" />
+                </div>
 
-                <option value="terlama">
-                  Terlama
-                </option>
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Kuitansi & Sertifikat
+                </span>
 
-                <option value="terbesar">
-                  Nomor Terbesar
-                </option>
+              </div>
 
-                <option value="terkecil">
-                  Nomor Terkecil
-                </option>
-              </select>
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
 
-              <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+            <Link
+              href="/favorit"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
 
-            </div>
+                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <Bookmark className="w-4 h-4 text-[#102a43]" />
+                </div>
+
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Program Favorit
+                </span>
+
+              </div>
+
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
+
+            <Link
+              href="/referral"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
+
+                <div className="w-9 h-9 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-[#a37c32]" />
+                </div>
+
+                <div>
+                  <span className="text-[11px] font-semibold text-slate-700 block">
+                    Ajak Teman
+                  </span>
+
+                  <span className="text-[8px] text-slate-400">
+                    Program referral & kebaikan
+                  </span>
+                </div>
+
+              </div>
+
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
+
+            <Link
+              href="/pengaturan"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
+
+                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center">
+                  <Settings className="w-4 h-4 text-[#102a43]" />
+                </div>
+
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Pengaturan Akun
+                </span>
+
+              </div>
+
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
+
+            <Link
+              href="/bantuan"
+              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+            >
+              <div className="flex items-center gap-3">
+
+                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4 text-[#102a43]" />
+                </div>
+
+                <span className="text-[11px] font-semibold text-slate-700">
+                  Bantuan & FAQ
+                </span>
+
+              </div>
+
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+            </Link>
 
           </div>
         </section>
 
-        {/* =====================================================
-            TRANSACTION LIST
-        ===================================================== */}
-        {filteredDonations.length === 0 ? (
-          <section className="bg-white border-y border-slate-200/70 p-8 text-center shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        {/* =========================================================
+            LOGOUT
+        ========================================================= */}
+        <button
+          onClick={handleLogout}
+          className="w-full py-4 rounded-2xl text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          Keluar dari Akun
+        </button>
 
-            <div className="w-12 h-12 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center mx-auto">
-              <AlertCircle className="w-5 h-5 text-[#a37c32]" />
-            </div>
-
-            <h3 className="mt-4 text-[13px] font-bold text-slate-800">
-              Belum ada riwayat ditemukan
-            </h3>
-
-            <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400">
-              Coba ubah filter pencarian atau mulailah menebar
-              kebaikan bersama {SITE_NAME}.
-            </p>
-
-            <Link
-              href="/"
-              className="mt-4 inline-flex items-center gap-2 bg-[#073f2e] px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#052e21] transition"
-            >
-              Mulai Berdonasi
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-
-          </section>
-        ) : (
-          <section className="space-y-2.5">
-
-            {filteredDonations.map((d: any) => {
-              const status = (
-                d.status || 'pending'
-              ).toLowerCase();
-
-              const isPending =
-                status === 'pending' ||
-                status === 'unpaid';
-
-              const isSuccessful =
-                successfulStatuses.includes(
-                  status
-                );
-
-              return (
-                <article
-                  key={d.id}
-                  className="group bg-white border-y border-slate-200/70 p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-[#073f2e]/40 transition-all"
-                >
-
-                  {/* TOP */}
-                  <div className="flex items-start justify-between gap-3">
-
-                    <div className="min-w-0">
-
-                      <span className="inline-flex items-center bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-[#98752d]">
-                        {d.category ||
-                          'Kemanusiaan'}
-                      </span>
-
-                      <h3 className="mt-1.5 text-[12px] font-bold leading-snug text-slate-800">
-                        {d.program_name ||
-                          d.programTitle ||
-                          'Sedekah Umum BMA'}
-                      </h3>
-
-                    </div>
-
-                    {isPending ? (
-                      <span className="shrink-0 inline-flex items-center gap-1 bg-[#fff8e9] border border-[#f0dfb7] px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-[#a37c32]">
-                        <Clock className="w-3 h-3" />
-                        Pending
-                      </span>
-                    ) : isSuccessful ? (
-                      <span className="shrink-0 inline-flex items-center gap-1 bg-[#f0f8f4] border border-[#d6ebe0] px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
-                        <CheckCircle2 className="w-3 h-3" />
-                        Berhasil
-                      </span>
-                    ) : (
-                      <span className="shrink-0 inline-flex bg-slate-50 border border-slate-200 px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-slate-500">
-                        {d.status ||
-                          'Diproses'}
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* AMOUNT */}
-                  <div className="mt-3 flex items-end justify-between border-t border-slate-100 pt-2.5">
-
-                    <div>
-                      <p className="text-[7px] uppercase tracking-[0.18em] font-bold text-slate-400">
-                        Nominal Donasi
-                      </p>
-
-                      <p className="mt-0.5 text-[15px] font-bold tracking-tight text-[#073f2e]">
-                        Rp{' '}
-                        {Number(
-                          d.amount || 0
-                        ).toLocaleString(
-                          'id-ID'
-                        )}
-                      </p>
-                    </div>
-
-                    <div className="text-right">
-
-                      <p className="text-[7px] uppercase tracking-wider font-bold text-slate-400">
-                        Tanggal
-                      </p>
-
-                      <p className="mt-0.5 text-[9px] font-semibold text-slate-500">
-                        {new Date(
-                          d.created_at
-                        ).toLocaleDateString(
-                          'id-ID',
-                          {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          }
-                        )}
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                  {/* ACTIONS */}
-                  <div className="mt-3 flex items-center justify-between gap-2 pt-1">
-
-                    <button
-                      onClick={() =>
-                        setSelectedDonation(d)
-                      }
-                      className="text-[8px] font-bold uppercase tracking-wider text-slate-400 hover:text-[#073f2e] transition cursor-pointer"
-                    >
-                      Lihat Detail
-                    </button>
-
-                    <div className="flex items-center gap-2">
-
-                      {isPending &&
-                        d.payment_url && (
-                          <a
-                            href={
-                              d.payment_url
-                            }
-                            className="inline-flex items-center gap-1 bg-[#073f2e] hover:bg-[#052e21] text-white px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider transition shadow-sm"
-                          >
-                            Bayar
-                            <ArrowRight className="w-3 h-3" />
-                          </a>
-                        )}
-
-                      {!isPending && (
-                        <Link
-                          href={`/campaign/${
-                            d.slug || ''
-                          }`}
-                          className="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider transition"
-                        >
-                          Donasi Lagi
-                        </Link>
-                      )}
-
-                    </div>
-
-                  </div>
-
-                </article>
-              );
-            })}
-
-          </section>
-        )}
-
-        {/* =====================================================
-            BRAND FOOTER
-        ===================================================== */}
-        <div className="pt-2 text-center pb-2">
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-            {SITE_NAME}
-          </p>
-
-          <p className="mt-0.5 text-[7px] text-slate-400">
-            {SITE_DOMAIN} • {SITE_LOCATION}
+        <div className="text-center pt-1">
+          <p className="text-[8px] text-slate-300">
+            Terima kasih telah menjadi bagian dari gerakan
+            kebaikan.
           </p>
         </div>
 
       </div>
 
-      {/* =====================================================
-          DETAIL MODAL
-      ===================================================== */}
-      {selectedDonation && (
+      {/* =========================================================
+          MODAL WHATSAPP
+      ========================================================= */}
+      {isModalOpen && (
         <div className="fixed inset-0 bg-[#071521]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 
-          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white border border-slate-200 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
+          <div className="relative w-full max-w-sm overflow-hidden rounded-[28px] bg-white shadow-[0_25px_70px_rgba(0,0,0,0.25)]">
 
-            <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
+            <div className="h-1 bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
 
-            <div className="p-4">
+            <div className="p-5">
 
-              {/* MODAL HEADER */}
-              <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center justify-between">
 
                 <div>
-
-                  <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
-                    Rincian Donasi {SITE_SHORT_NAME}
+                  <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                    Account Settings
                   </p>
 
-                  <h3 className="mt-0.5 text-[14px] font-bold text-slate-800">
-                    Rincian Transaksi
+                  <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
+                    Nomor WhatsApp
                   </h3>
-
                 </div>
 
                 <button
-                  onClick={() =>
-                    setSelectedDonation(null)
-                  }
-                  aria-label="Tutup rincian transaksi"
-                  className="w-8 h-8 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                  onClick={() => setIsModalOpen(false)}
+                  className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
 
               </div>
 
-              {/* PROGRAM HERO */}
-              <div className="mt-4 bg-[#073f2e] p-4 text-white">
+              <form
+                onSubmit={handleUpdatePhone}
+                className="mt-5 space-y-4"
+              >
 
-                <p className="text-[7px] uppercase tracking-[0.18em] font-bold text-[#d7b66a]">
-                  Program {SITE_NAME}
-                </p>
+                <div>
+                  <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                    Nomor WhatsApp Baru
+                  </label>
 
-                <p className="mt-1 text-[12px] leading-relaxed font-bold text-white">
-                  {selectedDonation.program_name ||
-                    selectedDonation.programTitle ||
-                    'Sedekah Umum BMA'}
-                </p>
+                  <input
+                    type="tel"
+                    placeholder="Contoh: 081234567890"
+                    value={newPhone}
+                    onChange={(e) =>
+                      setNewPhone(e.target.value)
+                    }
+                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] px-4 py-3.5 text-[12px] font-semibold text-slate-800 outline-none transition focus:border-[#a37c32] focus:bg-white"
+                  />
 
-                <div className="mt-3.5">
-
-                  <p className="text-[7px] uppercase tracking-wider text-slate-300">
-                    Nominal
-                  </p>
-
-                  <p className="mt-0.5 text-[18px] font-bold text-white">
-                    Rp{' '}
-                    {Number(
-                      selectedDonation.amount || 0
-                    ).toLocaleString(
-                      'id-ID'
-                    )}
-                  </p>
-
-                </div>
-
-                <div className="mt-3 border-t border-white/10 pt-2.5">
-                  <p className="text-[7px] uppercase tracking-[0.15em] font-semibold text-[#d7b66a]">
-                    {SITE_DOMAIN} • {SITE_LOCATION}
+                  <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
+                    Nomor ini digunakan untuk identitas
+                    referral dan komunikasi terkait akun.
                   </p>
                 </div>
-
-              </div>
-
-              {/* DETAILS */}
-              <div className="mt-3.5 border border-slate-200/80 bg-white overflow-hidden">
-
-                <div className="divide-y divide-slate-100">
-
-                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
-
-                    <span className="text-[9px] text-slate-400">
-                      Status
-                    </span>
-
-                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600">
-                      <CheckCircle2 className="w-3 h-3" />
-                      {selectedDonation.status ||
-                        'Berhasil'}
-                    </span>
-
-                  </div>
-
-                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
-
-                    <span className="text-[9px] text-slate-400">
-                      Metode Pembayaran
-                    </span>
-
-                    <span className="text-[9px] font-bold uppercase text-slate-700 text-right">
-                      {selectedDonation.payment_method ||
-                        'QRIS / VA'}
-                    </span>
-
-                  </div>
-
-                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
-
-                    <span className="text-[9px] text-slate-400">
-                      Waktu Transaksi
-                    </span>
-
-                    <span className="text-[9px] font-semibold text-slate-700 text-right">
-                      {new Date(
-                        selectedDonation.created_at
-                      ).toLocaleString(
-                        'id-ID'
-                      )}
-                    </span>
-
-                  </div>
-
-                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
-
-                    <span className="text-[9px] text-slate-400">
-                      Invoice ID
-                    </span>
-
-                    <span className="font-mono text-[8px] text-slate-600 text-right break-all">
-                      {selectedDonation.invoice_id ||
-                        selectedDonation.id}
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* BUTTONS */}
-              <div className="mt-3.5 grid grid-cols-2 gap-2">
 
                 <button
-                  onClick={() =>
-                    alert(
-                      'Fitur unduh kuitansi PDF BMA segera hadir.'
-                    )
-                  }
-                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
+                  type="submit"
+                  disabled={savingPhone}
+                  className="w-full rounded-2xl bg-[#102a43] hover:bg-[#173d5d] text-white font-bold py-3.5 text-[9px] uppercase tracking-[0.16em] transition disabled:bg-slate-300 shadow-lg shadow-[#102a43]/10 cursor-pointer"
                 >
-                  <Download className="w-3.5 h-3.5" />
-                  Kuitansi
+                  {savingPhone
+                    ? 'Menyimpan...'
+                    : 'Simpan Nomor Baru'}
                 </button>
 
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      window.location.origin
-                    );
-
-                    alert(
-                      `Tautan ${SITE_DOMAIN} berhasil disalin untuk dibagikan!`
-                    );
-                  }}
-                  className="bg-[#073f2e] hover:bg-[#052e21] text-white font-bold py-2.5 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Heart className="w-3.5 h-3.5" />
-                  Bagikan profil
-                </button>
-
-              </div>
+              </form>
 
             </div>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
