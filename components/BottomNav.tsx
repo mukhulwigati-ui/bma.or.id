@@ -2,7 +2,12 @@
 
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -23,10 +28,12 @@ import { createBrowserClient } from '@supabase/ssr';
 interface NavItem {
   label: string;
   href: string;
+
   icon: React.ComponentType<{
     className?: string;
     strokeWidth?: number;
   }>;
+
   badge?: string;
 }
 
@@ -37,7 +44,18 @@ interface NavItem {
 export default function BottomNav() {
   const pathname = usePathname();
 
-  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [
+    showLoginModal,
+    setShowLoginModal,
+  ] = useState(false);
+
+  // ==========================================================
+  // PAGE STATUS
+  // ==========================================================
+
+  const isLoginPage =
+    pathname === '/login' ||
+    pathname?.startsWith('/login/');
 
   // ==========================================================
   // SUPABASE CLIENT
@@ -53,12 +71,28 @@ export default function BottomNav() {
   );
 
   // ==========================================================
+  // WAJIB:
+  // Tutup modal setiap pathname berubah.
+  //
+  // Ini mencegah modal tetap terbawa dari:
+  // / → /login
+  // /akun → /login
+  // dst.
+  // ==========================================================
+
+  useEffect(() => {
+    setShowLoginModal(false);
+  }, [pathname]);
+
+  // ==========================================================
   // HIDE NAV
   //
-  // Tidak tampil di:
+  // BottomNav TETAP tampil di /login.
+  //
+  // Tidak tampil hanya di:
   // - detail campaign
   // - Sanity Studio
-  // - callback auth
+  // - callback OAuth
   // ==========================================================
 
   if (
@@ -106,30 +140,91 @@ export default function BottomNav() {
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
-    // Menu selain Akun langsung jalan normal
+    // ========================================================
+    // MENU SELAIN AKUN
+    // ========================================================
+
     if (href !== '/akun') {
       return;
     }
+
+    // ========================================================
+    // PENTING:
+    //
+    // Kalau user SUDAH BERADA di /login,
+    // JANGAN munculkan modal login lagi.
+    //
+    // User memang sedang berada di halaman login.
+    // ========================================================
+
+    if (isLoginPage) {
+      e.preventDefault();
+
+      setShowLoginModal(false);
+
+      return;
+    }
+
+    // ========================================================
+    // CEK USER SUPABASE
+    // ========================================================
 
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      // Sudah login
+      // ======================================================
+      // SUDAH LOGIN
+      // ======================================================
+
       if (user) {
         return;
       }
 
-      // Belum login
-      e.preventDefault();
-      setShowLoginModal(true);
-    } catch (error) {
-      console.error('BottomNav auth check error:', error);
+      // ======================================================
+      // BELUM LOGIN
+      // ======================================================
 
       e.preventDefault();
+
+      setShowLoginModal(true);
+    } catch (error) {
+      console.error(
+        'BottomNav auth check error:',
+        error
+      );
+
+      e.preventDefault();
+
       setShowLoginModal(true);
     }
+  };
+
+  // ==========================================================
+  // ACTIVE STATE
+  // ==========================================================
+
+  const checkIsActive = (
+    href: string
+  ) => {
+    // Home
+    if (href === '/') {
+      return pathname === '/';
+    }
+
+    // Akun juga dianggap aktif ketika berada di halaman login
+    if (
+      href === '/akun' &&
+      isLoginPage
+    ) {
+      return true;
+    }
+
+    return (
+      pathname === href ||
+      pathname.startsWith(`${href}/`)
+    );
   };
 
   // ==========================================================
@@ -172,282 +267,321 @@ export default function BottomNav() {
             shadow-[0_-4px_14px_rgba(0,0,0,0.06)]
           "
         >
-          {navItems.map((item, index) => {
-            const Icon = item.icon;
+          {navItems.map(
+            (
+              item,
+              index
+            ) => {
+              const Icon =
+                item.icon;
 
-            // =================================================
-            // ACTIVE STATE
-            // =================================================
+              const isActive =
+                checkIsActive(
+                  item.href
+                );
 
-            const isActive =
-              item.href === '/'
-                ? pathname === '/'
-                : pathname === item.href ||
-                  pathname.startsWith(`${item.href}/`);
-
-            return (
-              <Link
-                key={`${item.href}-${index}`}
-                href={item.href}
-                onClick={(e) => handleNavClick(e, item.href)}
-                className={`
-                  flex
-                  min-w-0
-                  flex-1
-                  flex-col
-                  items-center
-                  justify-center
-                  py-1
-                  transition-colors
-                  duration-200
-
-                  ${
-                    isActive
-                      ? 'text-[#073f2e]'
-                      : 'text-[#6f8196] hover:text-[#073f2e]'
+              return (
+                <Link
+                  key={`${item.href}-${index}`}
+                  href={
+                    isLoginPage &&
+                    item.href === '/akun'
+                      ? '/login'
+                      : item.href
                   }
-                `}
-              >
-                {/* =============================================
-                    ICON
-                ============================================== */}
-
-                <div
-                  className="
-                    relative
+                  onClick={(e) =>
+                    handleNavClick(
+                      e,
+                      item.href
+                    )
+                  }
+                  className={`
                     flex
-                    h-6
+                    min-w-0
+                    flex-1
+                    flex-col
                     items-center
                     justify-center
-                  "
-                >
-                  <Icon
-                    className="
-                      h-[21px]
-                      w-[21px]
-                    "
-                    strokeWidth={isActive ? 2.4 : 1.8}
-                  />
-
-                  {/* BADGE */}
-                  {item.badge && (
-                    <span
-                      className="
-                        absolute
-                        -right-[18px]
-                        -top-[7px]
-                        min-w-[31px]
-                        border
-                        border-white
-                        bg-[#ff315f]
-                        px-1
-                        py-[2px]
-                        text-center
-                        text-[9px]
-                        font-bold
-                        leading-none
-                        text-white
-                      "
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </div>
-
-                {/* =============================================
-                    LABEL
-                ============================================== */}
-
-                <span
-                  className={`
-                    mt-0.5
-                    max-w-full
-                    truncate
-                    text-[11px]
-                    leading-tight
-                    tracking-tight
+                    py-1
+                    transition-colors
+                    duration-200
 
                     ${
                       isActive
-                        ? 'font-semibold'
-                        : 'font-normal'
+                        ? 'text-[#073f2e]'
+                        : 'text-[#6f8196] hover:text-[#073f2e]'
                     }
                   `}
                 >
-                  {item.label}
-                </span>
-              </Link>
-            );
-          })}
+                  {/* ===========================================
+                      ICON
+                  ============================================ */}
+
+                  <div
+                    className="
+                      relative
+                      flex
+                      h-6
+                      items-center
+                      justify-center
+                    "
+                  >
+                    <Icon
+                      className="
+                        h-[21px]
+                        w-[21px]
+                      "
+                      strokeWidth={
+                        isActive
+                          ? 2.4
+                          : 1.8
+                      }
+                    />
+
+                    {/* BADGE */}
+
+                    {item.badge && (
+                      <span
+                        className="
+                          absolute
+                          -right-[18px]
+                          -top-[7px]
+                          min-w-[31px]
+                          border
+                          border-white
+                          bg-[#ff315f]
+                          px-1
+                          py-[2px]
+                          text-center
+                          text-[9px]
+                          font-bold
+                          leading-none
+                          text-white
+                        "
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ===========================================
+                      LABEL
+                  ============================================ */}
+
+                  <span
+                    className={`
+                      mt-0.5
+                      max-w-full
+                      truncate
+                      text-[11px]
+                      leading-tight
+                      tracking-tight
+
+                      ${
+                        isActive
+                          ? 'font-semibold'
+                          : 'font-normal'
+                      }
+                    `}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              );
+            }
+          )}
         </nav>
       </div>
 
       {/* ======================================================
           LOGIN MODAL
+          
+          PENTING:
+          Modal sama sekali TIDAK BOLEH dirender di /login.
       ====================================================== */}
 
-      {showLoginModal && (
-        <div
-          className="
-            fixed
-            inset-0
-            z-[100]
-            flex
-            items-center
-            justify-center
-            bg-black/50
-            p-4
-            backdrop-blur-[2px]
-          "
-        >
-          {/* ==================================================
-              BACKDROP
-          =================================================== */}
-
-          <button
-            type="button"
-            aria-label="Tutup modal"
-            onClick={() => setShowLoginModal(false)}
+      {showLoginModal &&
+        !isLoginPage && (
+          <div
             className="
-              absolute
+              fixed
               inset-0
-              cursor-default
-            "
-          />
-
-          {/* ==================================================
-              MODAL
-          =================================================== */}
-
-          <section
-            className="
-              relative
-              z-10
-              w-full
-              max-w-sm
-              border
-              border-[#d3d8d5]
-              bg-white
-              p-5
-              text-center
-              shadow-[0_24px_60px_rgba(0,0,0,0.24)]
+              z-[100]
+              flex
+              items-center
+              justify-center
+              bg-black/50
+              p-4
+              backdrop-blur-[2px]
             "
           >
-            {/* ================================================
-                CLOSE
-            ================================================= */}
+            {/* =================================================
+                BACKDROP
+            ================================================== */}
 
             <button
               type="button"
-              onClick={() => setShowLoginModal(false)}
-              aria-label="Tutup"
+              aria-label="Tutup modal"
+              onClick={() =>
+                setShowLoginModal(
+                  false
+                )
+              }
               className="
                 absolute
-                right-3
-                top-3
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
-                border
-                border-[#dddddd]
-                bg-[#f5f5f5]
-                text-slate-400
-                transition
-                hover:bg-[#ececec]
-                hover:text-slate-700
+                inset-0
+                cursor-default
               "
-            >
-              <X className="h-4 w-4" />
-            </button>
+            />
 
-            {/* ================================================
-                CONTENT
-            ================================================= */}
+            {/* =================================================
+                MODAL
+            ================================================== */}
 
-            <div
+            <section
               className="
-                flex
-                flex-col
-                items-center
+                relative
+                z-10
+                w-full
+                max-w-sm
+                border
+                border-[#d3d8d5]
+                bg-white
+                p-5
+                text-center
+                shadow-[0_24px_60px_rgba(0,0,0,0.24)]
               "
             >
-              {/* IMAGE */}
+              {/* ===============================================
+                  CLOSE
+              ================================================ */}
 
-              <img
-                src="/images/empty.svg"
-                alt="Silakan masuk"
+              <button
+                type="button"
+                onClick={() =>
+                  setShowLoginModal(
+                    false
+                  )
+                }
+                aria-label="Tutup"
                 className="
-                  mb-4
-                  h-36
-                  w-36
-                  object-contain
-                  sm:h-40
-                  sm:w-40
-                "
-              />
-
-              {/* TITLE */}
-
-              <h2
-                className="
-                  text-[18px]
-                  font-bold
-                  tracking-tight
-                  text-[#333333]
-                "
-              >
-                Silakan Masuk
-              </h2>
-
-              {/* DESCRIPTION */}
-
-              <p
-                className="
-                  mt-2
-                  max-w-[340px]
-                  text-[13px]
-                  leading-[1.7]
-                  text-slate-600
-                "
-              >
-                Anda belum masuk ke akun BMA. Silakan login terlebih
-                dahulu untuk melihat profil, riwayat donasi, dan layanan
-                akun Anda.
-              </p>
-
-              {/* LOGIN BUTTON */}
-
-              <Link
-                href="/login"
-                onClick={() => setShowLoginModal(false)}
-                className="
-                  mt-5
+                  absolute
+                  right-3
+                  top-3
                   flex
-                  w-full
+                  h-9
+                  w-9
                   items-center
                   justify-center
                   border
-                  border-[#c7a700]
-                  bg-[#ffd600]
-                  py-3.5
-                  text-[12px]
-                  font-extrabold
-                  uppercase
-                  tracking-[0.14em]
-                  text-[#292929]
-                  shadow-[0_5px_14px_rgba(140,115,0,0.14)]
+                  border-[#dddddd]
+                  bg-[#f5f5f5]
+                  text-slate-400
                   transition
-                  hover:bg-[#f0c900]
+                  hover:bg-[#ececec]
+                  hover:text-slate-700
                 "
               >
-                Masuk ke Akun
-              </Link>
-            </div>
-          </section>
-        </div>
-      )}
+                <X
+                  className="
+                    h-4
+                    w-4
+                  "
+                />
+              </button>
+
+              {/* ===============================================
+                  CONTENT
+              ================================================ */}
+
+              <div
+                className="
+                  flex
+                  flex-col
+                  items-center
+                "
+              >
+                {/* IMAGE */}
+
+                <img
+                  src="/images/empty.svg"
+                  alt="Silakan masuk"
+                  className="
+                    mb-4
+                    h-36
+                    w-36
+                    object-contain
+                    sm:h-40
+                    sm:w-40
+                  "
+                />
+
+                {/* TITLE */}
+
+                <h2
+                  className="
+                    text-[18px]
+                    font-bold
+                    tracking-tight
+                    text-[#333333]
+                  "
+                >
+                  Silakan Masuk
+                </h2>
+
+                {/* DESCRIPTION */}
+
+                <p
+                  className="
+                    mt-2
+                    max-w-[340px]
+                    text-[13px]
+                    leading-[1.7]
+                    text-slate-600
+                  "
+                >
+                  Anda belum masuk ke akun
+                  BMA. Silakan login terlebih
+                  dahulu untuk melihat profil,
+                  riwayat donasi, dan layanan
+                  akun Anda.
+                </p>
+
+                {/* LOGIN BUTTON */}
+
+                <Link
+                  href="/login"
+                  onClick={() =>
+                    setShowLoginModal(
+                      false
+                    )
+                  }
+                  className="
+                    mt-5
+                    flex
+                    w-full
+                    items-center
+                    justify-center
+                    border
+                    border-[#c7a700]
+                    bg-[#ffd600]
+                    py-3.5
+                    text-[12px]
+                    font-extrabold
+                    uppercase
+                    tracking-[0.14em]
+                    text-[#292929]
+                    shadow-[0_5px_14px_rgba(140,115,0,0.14)]
+                    transition
+                    hover:bg-[#f0c900]
+                  "
+                >
+                  Masuk ke Akun
+                </Link>
+              </div>
+            </section>
+          </div>
+        )}
     </>
   );
 }
