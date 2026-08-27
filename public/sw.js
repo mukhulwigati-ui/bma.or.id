@@ -5,17 +5,16 @@
 // ============================================================
 
 const CACHE_PREFIX = 'bma-pwa-cache';
-const CACHE_VERSION = 'v3';
 
-const CACHE_NAME =
-  `${CACHE_PREFIX}-${CACHE_VERSION}`;
+// WAJIB dinaikkan setiap ada perubahan penting PWA
+const CACHE_VERSION = 'v4';
+
+const CACHE_NAME = `${CACHE_PREFIX}-${CACHE_VERSION}`;
 
 const OFFLINE_URL = '/offline';
 
 // ============================================================
-// ASET INTI
-//
-// Pastikan file berikut benar-benar tersedia di /public.
+// ASET INTI BMA
 // ============================================================
 
 const PRECACHE_ASSETS = [
@@ -27,7 +26,7 @@ const PRECACHE_ASSETS = [
 ];
 
 // ============================================================
-// HOST / PATH YANG TIDAK BOLEH DICACHE
+// HOST YANG TIDAK BOLEH DICACHE
 // ============================================================
 
 const BYPASS_HOSTS = [
@@ -40,11 +39,12 @@ const BYPASS_HOSTS = [
   'supabase.co',
 ];
 
-function shouldBypassRequest(url) {
-  // ==========================================================
-  // PATH INTERNAL
-  // ==========================================================
+// ============================================================
+// CEK REQUEST YANG HARUS BYPASS SERVICE WORKER
+// ============================================================
 
+function shouldBypassRequest(url) {
+  // API dan halaman dinamis sensitif
   if (
     url.pathname.startsWith('/studio') ||
     url.pathname.startsWith('/api/') ||
@@ -53,10 +53,7 @@ function shouldBypassRequest(url) {
     return true;
   }
 
-  // ==========================================================
-  // HOST EKSTERNAL
-  // ==========================================================
-
+  // Host eksternal
   return BYPASS_HOSTS.some(
     (host) =>
       url.hostname === host ||
@@ -65,17 +62,13 @@ function shouldBypassRequest(url) {
 }
 
 // ============================================================
-// VALID RESPONSE UNTUK CACHE
+// CEK RESPONSE YANG BOLEH DICACHE
 // ============================================================
 
 function isCacheableResponse(response) {
-  if (!response) {
-    return false;
-  }
+  if (!response) return false;
 
-  if (!response.ok) {
-    return false;
-  }
+  if (!response.ok) return false;
 
   return (
     response.type === 'basic' ||
@@ -87,159 +80,123 @@ function isCacheableResponse(response) {
 // INSTALL
 // ============================================================
 
-self.addEventListener(
-  'install',
-  (event) => {
-    console.log(
-      '[BMA Service Worker] Installing:',
-      CACHE_NAME
-    );
+self.addEventListener('install', (event) => {
+  console.log(
+    '[BMA Service Worker] Installing:',
+    CACHE_NAME
+  );
 
-    event.waitUntil(
-      (async () => {
-        const cache =
-          await caches.open(
-            CACHE_NAME
-          );
+  event.waitUntil(
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
 
-        // ====================================================
-        // Cache aset satu per satu.
-        //
-        // Jika satu file gagal, install SW tidak ikut gagal total.
-        // ====================================================
+      // Cache satu per satu agar satu aset gagal
+      // tidak menggagalkan seluruh instalasi SW.
+      await Promise.allSettled(
+        PRECACHE_ASSETS.map(async (asset) => {
+          try {
+            await cache.add(
+              new Request(asset, {
+                cache: 'reload',
+              })
+            );
 
-        await Promise.allSettled(
-          PRECACHE_ASSETS.map(
-            async (asset) => {
-              try {
-                await cache.add(
-                  asset
-                );
+            console.log(
+              '[BMA Service Worker] Cached:',
+              asset
+            );
+          } catch (error) {
+            console.warn(
+              '[BMA Service Worker] Gagal precache:',
+              asset,
+              error
+            );
+          }
+        })
+      );
+    })()
+  );
 
-                console.log(
-                  '[BMA Service Worker] Cached:',
-                  asset
-                );
-              } catch (error) {
-                console.warn(
-                  '[BMA Service Worker] Gagal precache:',
-                  asset,
-                  error
-                );
-              }
-            }
-          )
-        );
-      })()
-    );
-
-    self.skipWaiting();
-  }
-);
+  // Langsung gunakan SW terbaru
+  self.skipWaiting();
+});
 
 // ============================================================
 // ACTIVATE
-//
-// Hapus:
-// - cache BDB lama
-// - cache Islami lama
-// - cache BMA versi lama
 // ============================================================
 
-self.addEventListener(
-  'activate',
-  (event) => {
-    console.log(
-      '[BMA Service Worker] Activating:',
-      CACHE_NAME
-    );
+self.addEventListener('activate', (event) => {
+  console.log(
+    '[BMA Service Worker] Activating:',
+    CACHE_NAME
+  );
 
-    event.waitUntil(
-      (async () => {
-        const cacheNames =
-          await caches.keys();
+  event.waitUntil(
+    (async () => {
+      const cacheNames = await caches.keys();
 
-        await Promise.all(
-          cacheNames.map(
-            async (
+      await Promise.all(
+        cacheNames.map(async (cacheName) => {
+          const lowerName =
+            cacheName.toLowerCase();
+
+          // Cache BMA versi sebelumnya
+          const isOldBmaCache =
+            cacheName.startsWith(CACHE_PREFIX) &&
+            cacheName !== CACHE_NAME;
+
+          // Bersihkan sisa project BDB
+          const isOldBdbCache =
+            lowerName.includes('bdb');
+
+          // Bersihkan sisa project Islami
+          const isOldIslamiCache =
+            lowerName.includes('islami');
+
+          if (
+            isOldBmaCache ||
+            isOldBdbCache ||
+            isOldIslamiCache
+          ) {
+            console.log(
+              '[BMA Service Worker] Menghapus cache lama:',
               cacheName
-            ) => {
-              const isOldBmaCache =
-                cacheName.startsWith(
-                  CACHE_PREFIX
-                ) &&
-                cacheName !==
-                  CACHE_NAME;
+            );
 
-              const isOldBdbCache =
-                cacheName
-                  .toLowerCase()
-                  .includes(
-                    'bdb'
-                  );
+            await caches.delete(cacheName);
+          }
+        })
+      );
 
-              const isOldIslamiCache =
-                cacheName
-                  .toLowerCase()
-                  .includes(
-                    'islami'
-                  );
-
-              if (
-                isOldBmaCache ||
-                isOldBdbCache ||
-                isOldIslamiCache
-              ) {
-                console.log(
-                  '[BMA Service Worker] Menghapus cache lama:',
-                  cacheName
-                );
-
-                await caches.delete(
-                  cacheName
-                );
-              }
-            }
-          )
-        );
-
-        await self.clients.claim();
-      })()
-    );
-  }
-);
+      // Ambil kontrol halaman tanpa menunggu reload berikutnya
+      await self.clients.claim();
+    })()
+  );
+});
 
 // ============================================================
 // NETWORK FIRST
+// ============================================================
 //
-// Digunakan untuk:
-// - navigasi
-// - halaman campaign
+// Untuk:
+// - halaman
+// - campaign
 // - berita
-// - halaman dinamis
+// - navigasi
 //
-// Tujuan:
-// data baru BMA tidak tertahan cache lama.
+// Dengan strategi ini data terbaru BMA lebih diprioritaskan.
 // ============================================================
 
-async function networkFirst(
-  request
-) {
+async function networkFirst(request) {
   const cache =
-    await caches.open(
-      CACHE_NAME
-    );
+    await caches.open(CACHE_NAME);
 
   try {
     const networkResponse =
-      await fetch(
-        request
-      );
+      await fetch(request);
 
     if (
-      isCacheableResponse(
-        networkResponse
-      )
+      isCacheableResponse(networkResponse)
     ) {
       await cache.put(
         request,
@@ -250,59 +207,37 @@ async function networkFirst(
     return networkResponse;
   } catch (error) {
     const cachedResponse =
-      await cache.match(
-        request
-      );
+      await cache.match(request);
 
-    if (
-      cachedResponse
-    ) {
+    if (cachedResponse) {
       return cachedResponse;
     }
 
     // ========================================================
-    // OFFLINE FALLBACK UNTUK NAVIGATION
+    // FALLBACK JIKA OFFLINE
     // ========================================================
 
-    if (
-      request.mode ===
-      'navigate'
-    ) {
+    if (request.mode === 'navigate') {
       const offlinePage =
-        await cache.match(
-          OFFLINE_URL
-        );
+        await cache.match(OFFLINE_URL);
 
-      if (
-        offlinePage
-      ) {
+      if (offlinePage) {
         return offlinePage;
       }
 
       const homePage =
-        await cache.match(
-          '/'
-        );
+        await cache.match('/');
 
-      if (
-        homePage
-      ) {
+      if (homePage) {
         return homePage;
       }
     }
-
-    // ========================================================
-    // Response fallback valid
-    // ========================================================
 
     return new Response(
       'Anda sedang offline.',
       {
         status: 503,
-
-        statusText:
-          'Service Unavailable',
-
+        statusText: 'Service Unavailable',
         headers: {
           'Content-Type':
             'text/plain; charset=utf-8',
@@ -314,43 +249,32 @@ async function networkFirst(
 
 // ============================================================
 // CACHE FIRST
+// ============================================================
 //
-// Untuk:
-// - gambar lokal
-// - icon
+// Khusus aset statis:
+// - gambar
 // - font
-// - css/js statis
+// - CSS
+// - JavaScript
 // ============================================================
 
-async function cacheFirst(
-  request
-) {
+async function cacheFirst(request) {
   const cache =
-    await caches.open(
-      CACHE_NAME
-    );
+    await caches.open(CACHE_NAME);
 
   const cachedResponse =
-    await cache.match(
-      request
-    );
+    await cache.match(request);
 
-  if (
-    cachedResponse
-  ) {
+  if (cachedResponse) {
     return cachedResponse;
   }
 
   try {
     const networkResponse =
-      await fetch(
-        request
-      );
+      await fetch(request);
 
     if (
-      isCacheableResponse(
-        networkResponse
-      )
+      isCacheableResponse(networkResponse)
     ) {
       await cache.put(
         request,
@@ -360,14 +284,10 @@ async function cacheFirst(
 
     return networkResponse;
   } catch (error) {
-    return new Response(
-      '',
-      {
-        status: 504,
-        statusText:
-          'Gateway Timeout',
-      }
-    );
+    return new Response('', {
+      status: 504,
+      statusText: 'Gateway Timeout',
+    });
   }
 }
 
@@ -375,172 +295,194 @@ async function cacheFirst(
 // FETCH
 // ============================================================
 
-self.addEventListener(
-  'fetch',
-  (event) => {
-    const request =
-      event.request;
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
 
-    // ========================================================
-    // HANYA GET
-    // ========================================================
+  // Hanya intercept GET
+  if (request.method !== 'GET') {
+    return;
+  }
 
-    if (
-      request.method !==
-      'GET'
-    ) {
-      return;
-    }
+  const url =
+    new URL(request.url);
 
-    const url =
-      new URL(
-        request.url
-      );
+  // Hanya HTTP/HTTPS
+  if (
+    url.protocol !== 'http:' &&
+    url.protocol !== 'https:'
+  ) {
+    return;
+  }
 
-    // ========================================================
-    // HANYA HTTP / HTTPS
-    // ========================================================
+  // ========================================================
+  // JANGAN CACHE API / SANITY / PAYMENT / AUTH
+  // ========================================================
 
-    if (
-      url.protocol !==
-        'http:' &&
-      url.protocol !==
-        'https:'
-    ) {
-      return;
-    }
+  if (shouldBypassRequest(url)) {
+    return;
+  }
 
-    // ========================================================
-    // JANGAN CACHE DATA DINAMIS / EKSTERNAL
-    // ========================================================
+  // ========================================================
+  // JANGAN INTERCEPT DOMAIN EKSTERNAL
+  // ========================================================
 
-    if (
-      shouldBypassRequest(
-        url
-      )
-    ) {
-      return;
-    }
+  if (
+    url.origin !==
+    self.location.origin
+  ) {
+    return;
+  }
 
-    // ========================================================
-    // REQUEST DARI DOMAIN LAIN
-    //
-    // Jangan intercept resource eksternal yang tidak perlu.
-    // ========================================================
+  // ========================================================
+  // MANIFEST
+  //
+  // Jangan biarkan manifest lama tersangkut di cache SW.
+  // Ini penting saat mengganti identitas/theme PWA.
+  // ========================================================
 
-    if (
-      url.origin !==
-      self.location.origin
-    ) {
-      return;
-    }
-
-    // ========================================================
-    // NAVIGATION = NETWORK FIRST
-    // ========================================================
-
-    if (
-      request.mode ===
-        'navigate' ||
-      request.destination ===
-        'document'
-    ) {
-      event.respondWith(
-        networkFirst(
-          request
-        )
-      );
-
-      return;
-    }
-
-    // ========================================================
-    // ASET STATIS = CACHE FIRST
-    // ========================================================
-
-    const staticDestinations = [
-      'image',
-      'style',
-      'script',
-      'font',
-      'manifest',
-    ];
-
-    if (
-      staticDestinations.includes(
-        request.destination
-      )
-    ) {
-      event.respondWith(
-        cacheFirst(
-          request
-        )
-      );
-
-      return;
-    }
-
-    // ========================================================
-    // REQUEST INTERNAL LAINNYA
-    // NETWORK FIRST
-    // ========================================================
-
+  if (
+    url.pathname === '/manifest.json' ||
+    request.destination === 'manifest'
+  ) {
     event.respondWith(
-      networkFirst(
-        request
+      fetch(request, {
+        cache: 'no-store',
+      }).catch(() =>
+        caches.match('/manifest.json')
       )
     );
+
+    return;
   }
-);
+
+  // ========================================================
+  // NAVIGATION = NETWORK FIRST
+  // ========================================================
+
+  if (
+    request.mode === 'navigate' ||
+    request.destination === 'document'
+  ) {
+    event.respondWith(
+      networkFirst(request)
+    );
+
+    return;
+  }
+
+  // ========================================================
+  // STATIC ASSET = CACHE FIRST
+  // ========================================================
+
+  const staticDestinations = [
+    'image',
+    'style',
+    'script',
+    'font',
+  ];
+
+  if (
+    staticDestinations.includes(
+      request.destination
+    )
+  ) {
+    event.respondWith(
+      cacheFirst(request)
+    );
+
+    return;
+  }
+
+  // ========================================================
+  // REQUEST INTERNAL LAIN = NETWORK FIRST
+  // ========================================================
+
+  event.respondWith(
+    networkFirst(request)
+  );
+});
 
 // ============================================================
 // MESSAGE
-//
-// Bisa digunakan dari client untuk langsung aktivasi SW baru.
 // ============================================================
 
-self.addEventListener(
-  'message',
-  (event) => {
-    if (
-      event.data?.type ===
-      'SKIP_WAITING'
-    ) {
-      self.skipWaiting();
-    }
+self.addEventListener('message', (event) => {
+  // Paksa SW baru aktif
+  if (
+    event.data?.type ===
+    'SKIP_WAITING'
+  ) {
+    self.skipWaiting();
+  }
 
-    if (
-      event.data?.type ===
-      'CLEAR_BMA_CACHE'
-    ) {
-      event.waitUntil(
-        (async () => {
-          const cacheNames =
-            await caches.keys();
+  // ========================================================
+  // CLEAR CACHE BMA
+  // ========================================================
 
-          await Promise.all(
-            cacheNames.map(
-              (
-                cacheName
-              ) => {
-                if (
-                  cacheName.startsWith(
-                    CACHE_PREFIX
-                  )
-                ) {
-                  return caches.delete(
-                    cacheName
-                  );
-                }
+  if (
+    event.data?.type ===
+    'CLEAR_BMA_CACHE'
+  ) {
+    event.waitUntil(
+      (async () => {
+        const cacheNames =
+          await caches.keys();
 
-                return Promise.resolve(
-                  false
+        await Promise.all(
+          cacheNames.map(
+            (cacheName) => {
+              if (
+                cacheName.startsWith(
+                  CACHE_PREFIX
+                )
+              ) {
+                return caches.delete(
+                  cacheName
                 );
               }
-            )
-          );
-        })()
-      );
-    }
+
+              return Promise.resolve(false);
+            }
+          )
+        );
+      })()
+    );
   }
-);
+
+  // ========================================================
+  // CLEAR SEMUA CACHE PROJECT LAMA
+  // ========================================================
+
+  if (
+    event.data?.type ===
+    'CLEAR_LEGACY_CACHE'
+  ) {
+    event.waitUntil(
+      (async () => {
+        const cacheNames =
+          await caches.keys();
+
+        await Promise.all(
+          cacheNames.map(
+            (cacheName) => {
+              const lowerName =
+                cacheName.toLowerCase();
+
+              if (
+                lowerName.includes('bma') ||
+                lowerName.includes('bdb') ||
+                lowerName.includes('islami')
+              ) {
+                return caches.delete(
+                  cacheName
+                );
+              }
+
+              return Promise.resolve(false);
+            }
+          )
+        );
+      })()
+    );
+  }
+});
