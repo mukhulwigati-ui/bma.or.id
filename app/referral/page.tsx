@@ -66,25 +66,35 @@ export default function ReferralPage() {
         } = await supabase.auth.getUser();
 
         if (user) {
-          const { data: prof } = await supabase
+          let { data: prof } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .maybeSingle();
 
+          if (!prof) {
+            const meta = user.user_metadata || {};
+            prof = {
+              id: user.id,
+              email: user.email,
+              name: meta.full_name || meta.name || user.email?.split('@')[0] || 'Dermawan',
+              avatar: meta.avatar_url || meta.picture || '',
+              phone: '',
+            };
+            await supabase.from('profiles').upsert(prof);
+          }
+
           if (prof) {
             setProfile(prof);
 
-            if (prof.phone) {
+            const phoneClean = String(prof.phone || '').replace(/[^0-9]/g, '');
+
+            if (phoneClean.length >= 8) {
               setStatsLoading(true);
 
               try {
-                const cleanPhone = String(
-                  prof.phone
-                ).replace(/[^0-9]/g, '');
-
                 const resStats = await fetch(
-                  `/api/fundraiser/stats?phone=${cleanPhone}`
+                  `/api/fundraiser/stats?phone=${phoneClean}`
                 );
 
                 const jsonStats =
@@ -215,17 +225,8 @@ export default function ReferralPage() {
   // ============================================================
   // DATA REFERRAL
   // ============================================================
-  const hasPhone = Boolean(
-    profile?.phone &&
-      String(profile.phone).trim().length >= 9
-  );
-
-  const cleanPhone = hasPhone
-    ? String(profile.phone).replace(
-        /[^0-9]/g,
-        ''
-      )
-    : '';
+  const cleanPhone = String(profile?.phone || '').replace(/[^0-9]/g, '');
+  const hasPhone = Boolean(cleanPhone && cleanPhone.length >= 8);
 
   const baseUrl =
     typeof window !== 'undefined'
@@ -343,7 +344,7 @@ export default function ReferralPage() {
 
               <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
 
-              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e7d5a4]">
+              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e6d19d]">
                 {SITE_DOMAIN} • {SITE_LOCATION}
               </span>
 
