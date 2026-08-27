@@ -20,8 +20,12 @@ import {
   Loader2,
   Eye,
   ShieldCheck,
-  ArrowUpRight,
 } from 'lucide-react';
+
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
 
 export default function AkunPage() {
   const [user, setUser] = useState<any>(null);
@@ -240,7 +244,7 @@ export default function AkunPage() {
           </div>
 
           <span className="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">
-            Memuat akun
+            Memuat akun {SITE_SHORT_NAME}
           </span>
         </div>
       </div>
@@ -265,7 +269,7 @@ export default function AkunPage() {
             {profile?.avatar ? (
               <img
                 src={profile.avatar}
-                alt={profile.name}
+                alt={profile.name || 'Foto profil'}
                 className="w-[62px] h-[62px] rounded-[22px] object-cover border border-[#d7b66a]/50 shadow-xl"
               />
             ) : (
@@ -282,7 +286,7 @@ export default function AkunPage() {
               </p>
 
               <h1 className="mt-1 text-[17px] font-bold text-white truncate">
-                {profile?.name || 'Dermawan Islami'}
+                {profile?.name || 'Dermawan BMA'}
               </h1>
 
               <p className="mt-0.5 text-[10px] text-slate-300 truncate">
@@ -293,13 +297,14 @@ export default function AkunPage() {
                 <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
 
                 <span className="text-[8px] font-semibold uppercase tracking-wider text-[#e7d5a4]">
-                  Member Islami.or.id
+                  Member {SITE_DOMAIN}
                 </span>
               </div>
             </div>
 
             <Link
               href="/pengaturan"
+              aria-label="Pengaturan akun"
               className="w-9 h-9 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center hover:bg-white/15 transition"
             >
               <Settings className="w-4 h-4 text-slate-300" />
@@ -482,7 +487,7 @@ export default function AkunPage() {
 
           <div className="px-5 pt-5 pb-3">
             <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Account Center
+              {SITE_SHORT_NAME} Account Center
             </p>
 
             <h3 className="mt-1 text-[13px] font-bold text-[#102a43]">
@@ -565,7 +570,7 @@ export default function AkunPage() {
                   </span>
 
                   <span className="text-[8px] text-slate-400">
-                    Program referral & kebaikan
+                    Program referral & gerakan kebaikan BMA
                   </span>
                 </div>
 
@@ -626,10 +631,18 @@ export default function AkunPage() {
           Keluar dari Akun
         </button>
 
-        <div className="text-center pt-1">
-          <p className="text-[8px] text-slate-300">
-            Terima kasih telah menjadi bagian dari gerakan
-            kebaikan.
+        {/* =========================================================
+            BRAND FOOTER
+        ========================================================= */}
+        <div className="text-center pt-1 pb-2">
+          <p className="text-[8px] leading-relaxed text-slate-400">
+            Terima kasih telah menjadi bagian dari gerakan kebaikan
+            {' '}
+            {SITE_NAME}.
+          </p>
+
+          <p className="mt-1.5 text-[7px] font-semibold uppercase tracking-[0.15em] text-slate-300">
+            {SITE_DOMAIN} • {SITE_LOCATION}
           </p>
         </div>
 
@@ -651,7 +664,7 @@ export default function AkunPage() {
 
                 <div>
                   <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
-                    Account Settings
+                    {SITE_SHORT_NAME} Account Settings
                   </p>
 
                   <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
@@ -661,6 +674,7 @@ export default function AkunPage() {
 
                 <button
                   onClick={() => setIsModalOpen(false)}
+                  aria-label="Tutup"
                   className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -689,8 +703,8 @@ export default function AkunPage() {
                   />
 
                   <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
-                    Nomor ini digunakan untuk identitas
-                    referral dan komunikasi terkait akun.
+                    Nomor ini digunakan untuk identitas referral dan
+                    komunikasi terkait akun {SITE_DOMAIN}.
                   </p>
                 </div>
 

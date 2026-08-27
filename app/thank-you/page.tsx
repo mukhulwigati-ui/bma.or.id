@@ -4,77 +4,280 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import {
+  CheckCircle2,
+  ShieldCheck,
+  ReceiptText,
+  CreditCard,
+  ArrowRight,
+  Loader2,
+  Sparkles,
+} from 'lucide-react';
 
-// 1. Komponen Utama Konten Thank You bdb.or.id
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
+
 function ThankYouContent() {
   const searchParams = useSearchParams();
-  
-  // Menangkap parameter order id atau invoice dari redirect Pakasir
-  const orderId = searchParams.get('order_id') || searchParams.get('invoice') || searchParams.get('id') || 'INV-BDB-XXXXXX';
+
+  const orderId =
+    searchParams.get('order_id') ||
+    searchParams.get('invoice') ||
+    searchParams.get('id') ||
+    'INV-BMA-XXXXXX';
 
   return (
-    <div className="w-full max-w-md bg-white border border-slate-200 shadow-sm p-5 sm:p-6 flex flex-col justify-between text-center space-y-5 rounded-2xl">
-      <div>
-        {/* Ikon Centang Estetik */}
-        <div className="w-14 h-14 bg-emerald-50 text-emerald-600 border border-emerald-200 flex items-center justify-center mx-auto mb-4 shadow-inner rounded-xl">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={3} stroke="currentColor" className="w-7 h-7">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-          </svg>
+    <div className="w-full max-w-md space-y-4">
+
+      {/* =====================================================
+          PREMIUM SUCCESS HEADER
+      ====================================================== */}
+      <section className="relative overflow-hidden rounded-[32px] bg-[#102a43] shadow-[0_22px_60px_rgba(16,42,67,0.2)]">
+
+        <div className="absolute -right-20 -top-20 w-56 h-56 rounded-full border border-white/8" />
+
+        <div className="absolute right-5 bottom-[-90px] w-48 h-48 rounded-full border border-[#d7b66a]/15" />
+
+        <div className="relative z-10 p-6 sm:p-7 text-center">
+
+          <div className="w-16 h-16 rounded-[22px] bg-white/10 border border-white/10 flex items-center justify-center mx-auto shadow-xl">
+            <CheckCircle2 className="w-8 h-8 text-[#d7b66a]" />
+          </div>
+
+          <p className="mt-5 text-[8px] font-bold uppercase tracking-[0.2em] text-[#d7b66a]">
+            {SITE_SHORT_NAME} Payment Confirmation
+          </p>
+
+          <h1 className="mt-2 text-[24px] font-bold tracking-tight text-white">
+            Alhamdulillah!
+          </h1>
+
+          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.17em] text-emerald-300">
+            Donasi Berhasil Diproses
+          </p>
+
+          <p className="mt-4 text-[10px] leading-[1.85] text-slate-300">
+            Infak, sedekah, atau donasi Anda telah berhasil diproses
+            melalui layanan digital resmi {SITE_NAME}.
+          </p>
+
+          <div className="mt-4 flex items-center justify-center gap-1.5">
+            <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
+
+            <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e7d5a4]">
+              {SITE_DOMAIN} • {SITE_LOCATION}
+            </span>
+          </div>
+
         </div>
 
-        {/* Judul & Kalimat Apresiasi */}
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-          Alhamdulillah!
-        </h1>
-        <p className="text-xs sm:text-sm font-extrabold text-emerald-600 uppercase tracking-wider mt-1">
-          Donasi Terverifikasi Otomatis
-        </p>
-        
-        <p className="text-xs sm:text-sm text-slate-700 mt-3 mb-5 leading-relaxed font-normal">
-          Infak/Sedekah Anda telah berhasil diproses melalui sistem pembayaran resmi <span className="font-semibold text-slate-900">bdb.or.id</span>. Terima kasih banyak atas kepercayaan Anda menyalurkan dana kebajikan melalui kami, semoga menjadi aliran amal jariyah yang berlipat ganda serta mendatangkan keberkahan bagi Anda sekeluarga. Aamiin.
-        </p>
+        <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
 
-        {/* Kotak Status Detail Transaksi */}
-        <div className="bg-slate-50 border border-slate-200 p-4 space-y-2.5 text-left rounded-xl">
-          <div className="flex justify-between items-center text-xs sm:text-sm font-medium">
-            <span className="text-slate-400 uppercase tracking-wider">No. Invoice</span>
-            <span className="text-slate-900 font-bold font-mono">{orderId}</span>
+      </section>
+
+      {/* =====================================================
+          APPRECIATION CARD
+      ====================================================== */}
+      <section className="relative overflow-hidden rounded-[28px] bg-white border border-slate-200/70 p-5 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+        <div className="absolute -right-10 -top-10 w-28 h-28 rounded-full bg-[#f7f2e7]" />
+
+        <div className="relative z-10 text-center">
+
+          <div className="w-11 h-11 rounded-2xl bg-[#f7f2e7] flex items-center justify-center mx-auto">
+            <Sparkles className="w-5 h-5 text-[#a37c32]" />
           </div>
-          <div className="flex justify-between items-center text-xs sm:text-sm font-medium border-t border-slate-200 pt-2.5">
-            <span className="text-slate-400 uppercase tracking-wider">Status Dana</span>
-            <span className="bg-emerald-50 text-emerald-700 px-2.5 py-1 font-black text-xs uppercase tracking-wider border border-emerald-200 rounded-md">
+
+          <h2 className="mt-4 text-[14px] font-bold text-[#102a43]">
+            Terima Kasih atas Amanah Anda
+          </h2>
+
+          <p className="mt-3 text-[10px] leading-[1.85] text-slate-500">
+            Terima kasih telah mempercayakan kebaikan Anda melalui
+            Baitul Maal Al Muttaqin. Semoga setiap harta yang ditunaikan
+            menjadi amal yang diterima, membawa keberkahan, serta
+            menghadirkan manfaat bagi para penerima manfaat.
+          </p>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          TRANSACTION DETAILS
+      ====================================================== */}
+      <section className="rounded-[28px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+        <div className="px-5 py-4 border-b border-slate-100">
+
+          <div className="flex items-center gap-3">
+
+            <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+              <ReceiptText className="w-4 h-4 text-[#a37c32]" />
+            </div>
+
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Transaksi
+              </p>
+
+              <h2 className="mt-0.5 text-[13px] font-bold text-[#102a43]">
+                Detail Pembayaran
+              </h2>
+            </div>
+
+          </div>
+
+        </div>
+
+        <div className="divide-y divide-slate-100">
+
+          {/* INVOICE */}
+          <div className="px-5 py-4 flex items-start justify-between gap-4">
+
+            <div>
+              <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                No. Invoice
+              </p>
+            </div>
+
+            <span className="max-w-[210px] text-right font-mono text-[9px] font-bold text-slate-700 break-all">
+              {orderId}
+            </span>
+
+          </div>
+
+          {/* STATUS */}
+          <div className="px-5 py-4 flex items-center justify-between gap-4">
+
+            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400">
+              Status Dana
+            </p>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
+              <CheckCircle2 className="w-3 h-3" />
               Paid / Success
             </span>
+
           </div>
-          <div className="flex justify-between items-center text-xs sm:text-sm font-medium border-t border-slate-200 pt-2.5">
-            <span className="text-slate-400 uppercase tracking-wider">Metode Pembayaran</span>
-            <span className="text-slate-800 font-bold uppercase tracking-wider text-xs">
+
+          {/* PAYMENT METHOD */}
+          <div className="px-5 py-4 flex items-start justify-between gap-4">
+
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+
+              <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                Pembayaran
+              </p>
+            </div>
+
+            <span className="text-right text-[9px] font-bold text-slate-700">
               Pakasir Payment Gateway
             </span>
+
           </div>
+
         </div>
+
+      </section>
+
+      {/* =====================================================
+          SECURITY NOTE
+      ====================================================== */}
+      <section className="rounded-[22px] border border-[#eadfca] bg-[#f7f2e7]/60 p-4">
+
+        <div className="flex items-start gap-3">
+
+          <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#a37c32]" />
+
+          <div>
+
+            <p className="text-[9px] font-bold text-[#102a43]">
+              Transaksi Tercatat
+            </p>
+
+            <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
+              Status pembayaran mengikuti konfirmasi dari sistem
+              pembayaran. Riwayat transaksi dapat tersimpan pada akun
+              Anda apabila donasi dilakukan dalam keadaan login.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          ACTIONS
+      ====================================================== */}
+      <section className="rounded-[28px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+
+        <div className="space-y-2.5">
+
+          <Link
+            href="/akun"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-[#102a43] hover:bg-[#173d5d] text-white font-bold text-[9px] uppercase tracking-[0.16em] py-3.5 transition shadow-lg shadow-[#102a43]/10"
+          >
+            Lihat Akun Saya
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+
+          <Link
+            href="/"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold text-[9px] uppercase tracking-[0.16em] py-3.5 transition"
+          >
+            Kembali ke Beranda
+          </Link>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          BRAND FOOTER
+      ====================================================== */}
+      <div className="pt-1 pb-3 text-center">
+
+        <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+          {SITE_NAME}
+        </p>
+
+        <p className="mt-1 text-[7px] text-slate-300">
+          {SITE_DOMAIN} • {SITE_LOCATION}
+        </p>
+
       </div>
 
-      {/* Tombol Aksi Menuju Beranda Utama */}
-      <div className="pt-2">
-        <Link 
-          href="/" 
-          className="block w-full text-center bg-emerald-900 hover:bg-emerald-950 text-white font-bold py-3.5 transition text-xs sm:text-sm uppercase tracking-wider shadow-sm rounded-xl"
-        >
-          Kembali ke Beranda 🚀
-        </Link>
-      </div>
     </div>
   );
 }
 
-// 2. Wrapper Halaman Utama dengan Suspense Boundary (Mengatasi Build Error)
 export default function ThankYouPage() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <Suspense fallback={<div className="text-xs sm:text-sm font-bold text-slate-400 uppercase tracking-widest animate-pulse">Memuat Halaman Sukses...</div>}>
+    <div className="min-h-screen bg-[#f8f8f6] flex flex-col items-center justify-center px-4 py-6">
+
+      <Suspense
+        fallback={
+          <div className="flex flex-col items-center gap-4">
+
+            <div className="w-12 h-12 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+              <Loader2 className="w-5 h-5 animate-spin text-white" />
+            </div>
+
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Memuat konfirmasi pembayaran BMA
+            </p>
+
+          </div>
+        }
+      >
         <ThankYouContent />
       </Suspense>
+
     </div>
   );
 }

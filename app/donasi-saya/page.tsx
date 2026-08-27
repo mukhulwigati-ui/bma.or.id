@@ -6,8 +6,6 @@ import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import {
   Heart,
-  Wallet,
-  Award,
   CheckCircle2,
   Clock,
   Search,
@@ -20,6 +18,11 @@ import {
   X,
   ShieldCheck,
 } from 'lucide-react';
+
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
 
 export default function DonasiSayaPage() {
   const [donations, setDonations] = useState<any[]>([]);
@@ -219,7 +222,7 @@ export default function DonasiSayaPage() {
           </div>
 
           <p className="text-[9px] font-bold uppercase tracking-[0.22em] text-slate-400">
-            Memuat riwayat donasi
+            Memuat riwayat donasi {SITE_SHORT_NAME}
           </p>
         </div>
       </div>
@@ -233,7 +236,7 @@ export default function DonasiSayaPage() {
         month: 'long',
         year: 'numeric',
       })
-    : 'Juli 2026';
+    : '2026';
 
   return (
     <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-4">
@@ -257,7 +260,7 @@ export default function DonasiSayaPage() {
                 {profile?.avatar ? (
                   <img
                     src={profile.avatar}
-                    alt={profile.name}
+                    alt={profile.name || 'Foto profil donatur'}
                     className="w-[58px] h-[58px] rounded-[20px] object-cover border border-[#d7b66a]/50 shadow-xl"
                   />
                 ) : (
@@ -271,17 +274,25 @@ export default function DonasiSayaPage() {
                 <div className="min-w-0">
 
                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-[#d7b66a]">
-                    Donation Center
+                    {SITE_SHORT_NAME} Donation Center
                   </p>
 
                   <h1 className="mt-1 text-[16px] font-bold text-white truncate">
                     {profile?.name ||
-                      'Dermawan Islami'}
+                      'Dermawan BMA'}
                   </h1>
 
                   <p className="mt-1 text-[9px] text-slate-300">
                     Member sejak {memberSince}
                   </p>
+
+                  <div className="mt-2 inline-flex items-center gap-1.5">
+                    <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
+
+                    <span className="text-[7px] font-semibold uppercase tracking-wider text-[#e6d19d]">
+                      Member {SITE_DOMAIN}
+                    </span>
+                  </div>
 
                 </div>
               </div>
@@ -394,7 +405,7 @@ export default function DonasiSayaPage() {
               <div>
 
                 <p className="text-[8px] uppercase tracking-[0.18em] font-bold text-slate-400">
-                  Your Impact
+                  Dampak Kebaikan
                 </p>
 
                 <h2 className="mt-0.5 text-[12px] font-bold text-[#102a43]">
@@ -406,17 +417,20 @@ export default function DonasiSayaPage() {
             </div>
 
             <p className="mt-4 text-[10px] leading-relaxed text-slate-500">
-              Alhamdulillah, setiap donasi Anda menjadi
-              bagian dari ikhtiar menghadirkan manfaat
-              bagi mereka yang membutuhkan.
+              Alhamdulillah, setiap donasi yang Anda titipkan melalui
+              {' '}
+              {SITE_NAME}
+              {' '}
+              menjadi bagian dari ikhtiar menghadirkan manfaat bagi
+              masyarakat yang membutuhkan.
             </p>
 
             <div className="mt-4 space-y-2">
 
               {[
-                'Penyaluran logistik & pangan yatim dhuafa',
-                'Pembangunan fasilitas ibadah umat',
-                'Program pendidikan & beasiswa santri',
+                'Program sosial untuk yatim, dhuafa, dan masyarakat membutuhkan',
+                'Dukungan dakwah dan fasilitas ibadah umat',
+                'Program pendidikan, santri, dan kegiatan kemaslahatan',
               ].map((item) => (
                 <div
                   key={item}
@@ -433,6 +447,12 @@ export default function DonasiSayaPage() {
               ))}
 
             </div>
+
+            <div className="mt-4 border-t border-slate-100 pt-3">
+              <p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                {SITE_DOMAIN} • {SITE_LOCATION}
+              </p>
+            </div>
           </div>
 
         </section>
@@ -446,7 +466,7 @@ export default function DonasiSayaPage() {
 
             <div>
               <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
-                Activity
+                Aktivitas Donasi
               </p>
 
               <h2 className="mt-1 text-[14px] font-bold text-[#102a43]">
@@ -539,15 +559,23 @@ export default function DonasiSayaPage() {
                 <option value="Semua">
                   Semua Kategori
                 </option>
+
                 <option value="zakat">
                   Zakat
                 </option>
+
                 <option value="infak">
                   Infak
                 </option>
+
+                <option value="sedekah">
+                  Sedekah
+                </option>
+
                 <option value="wakaf">
                   Wakaf
                 </option>
+
                 <option value="kemanusiaan">
                   Kemanusiaan
                 </option>
@@ -575,12 +603,15 @@ export default function DonasiSayaPage() {
                 <option value="terbaru">
                   Terbaru
                 </option>
+
                 <option value="terlama">
                   Terlama
                 </option>
+
                 <option value="terbesar">
                   Nominal Terbesar
                 </option>
+
                 <option value="terkecil">
                   Nominal Terkecil
                 </option>
@@ -608,8 +639,8 @@ export default function DonasiSayaPage() {
             </h3>
 
             <p className="mt-2 text-[9px] leading-relaxed text-slate-400">
-              Coba ubah filter pencarian atau
-              mulailah menebar kebaikan hari ini.
+              Coba ubah filter pencarian atau mulailah menebar
+              kebaikan bersama {SITE_NAME}.
             </p>
 
             <Link
@@ -657,7 +688,7 @@ export default function DonasiSayaPage() {
                       <h3 className="mt-2 text-[12px] sm:text-[13px] font-bold leading-snug text-[#102a43]">
                         {d.program_name ||
                           d.programTitle ||
-                          'Sedekah Umum'}
+                          'Sedekah Umum BMA'}
                       </h3>
 
                     </div>
@@ -771,6 +802,19 @@ export default function DonasiSayaPage() {
           </section>
         )}
 
+        {/* =====================================================
+            BRAND FOOTER
+        ====================================================== */}
+        <div className="pt-2 text-center">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+            {SITE_NAME}
+          </p>
+
+          <p className="mt-1 text-[7px] text-slate-300">
+            {SITE_DOMAIN} • {SITE_LOCATION}
+          </p>
+        </div>
+
       </div>
 
       {/* =====================================================
@@ -791,7 +835,7 @@ export default function DonasiSayaPage() {
                 <div>
 
                   <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
-                    Transaction Details
+                    Rincian Donasi {SITE_SHORT_NAME}
                   </p>
 
                   <h3 className="mt-1 text-[15px] font-bold text-[#102a43]">
@@ -804,6 +848,7 @@ export default function DonasiSayaPage() {
                   onClick={() =>
                     setSelectedDonation(null)
                   }
+                  aria-label="Tutup rincian transaksi"
                   className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
                 >
                   <X className="w-4 h-4" />
@@ -815,12 +860,13 @@ export default function DonasiSayaPage() {
               <div className="mt-5 rounded-2xl bg-[#102a43] p-4">
 
                 <p className="text-[7px] uppercase tracking-[0.18em] font-bold text-[#d7b66a]">
-                  Program Donasi
+                  Program {SITE_NAME}
                 </p>
 
                 <p className="mt-1.5 text-[12px] leading-relaxed font-bold text-white">
                   {selectedDonation.program_name ||
-                    selectedDonation.programTitle}
+                    selectedDonation.programTitle ||
+                    'Sedekah Umum BMA'}
                 </p>
 
                 <div className="mt-4">
@@ -838,6 +884,12 @@ export default function DonasiSayaPage() {
                     )}
                   </p>
 
+                </div>
+
+                <div className="mt-4 border-t border-white/10 pt-3">
+                  <p className="text-[7px] uppercase tracking-[0.15em] font-semibold text-[#d7b66a]">
+                    {SITE_DOMAIN} • {SITE_LOCATION}
+                  </p>
                 </div>
 
               </div>
@@ -913,7 +965,7 @@ export default function DonasiSayaPage() {
                 <button
                   onClick={() =>
                     alert(
-                      'Fitur unduh kuitansi PDF segera hadir.'
+                      'Fitur unduh kuitansi PDF BMA segera hadir.'
                     )
                   }
                   className="rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5"
@@ -929,7 +981,7 @@ export default function DonasiSayaPage() {
                     );
 
                     alert(
-                      'Tautan platform berhasil disalin untuk dibagikan!'
+                      `Tautan ${SITE_DOMAIN} berhasil disalin untuk dibagikan!`
                     );
                   }}
                   className="rounded-xl bg-[#102a43] hover:bg-[#173d5d] text-white font-bold py-3 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5"

@@ -1,215 +1,655 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
+import {
+  BriefcaseBusiness,
+  CircleDollarSign,
+  Coins,
+  Info,
+  ShieldCheck,
+  Sparkles,
+  ArrowRight,
+  CheckCircle2,
+  Calculator,
+} from 'lucide-react';
 
 type ZakatType = 'penghasilan' | 'maal' | 'emas';
 
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+
 export default function ZakatCalculator() {
-  const [activeTab, setActiveTab] = useState<ZakatType>('penghasilan');
-  
-  // State Form Inputs
-  const [penghasilan, setPenghasilan] = useState('');
-  const [bonus, setBonus] = useState('');
-  
-  const [tabungan, setTabungan] = useState('');
-  const [investasi, setInvestasi] = useState('');
-  
-  const [beratEmas, setBeratEmas] = useState('');
+  const [activeTab, setActiveTab] =
+    useState<ZakatType>('penghasilan');
 
-  // Konfigurasi Standar Asumsi Harga Emas 2026 (Rp / gram)
-  const HARGA_EMAS = 1400000; 
+  const [penghasilan, setPenghasilan] =
+    useState('');
+
+  const [bonus, setBonus] =
+    useState('');
+
+  const [tabungan, setTabungan] =
+    useState('');
+
+  const [investasi, setInvestasi] =
+    useState('');
+
+  const [beratEmas, setBeratEmas] =
+    useState('');
+
+  // ============================================================
+  // KONFIGURASI NISHAB
+  // ============================================================
+  const HARGA_EMAS = 1400000;
   const NISHAB_EMAS_GRAM = 85;
-  const NISHAB_TAHUNAN = NISHAB_EMAS_GRAM * HARGA_EMAS; // Rp 119.000.000
-  const NISHAB_BULANAN = Math.round(NISHAB_TAHUNAN / 12); // Rp 9.916.667
 
-  // Format ribuan ke Rupiah saat mengetik
-  const formatRupiah = (value: string) => {
-    const raw = value.replace(/[^0-9]/g, '');
-    return raw ? Number(raw).toLocaleString('id-ID') : '';
+  const NISHAB_TAHUNAN =
+    NISHAB_EMAS_GRAM * HARGA_EMAS;
+
+  const NISHAB_BULANAN =
+    Math.round(
+      NISHAB_TAHUNAN / 12
+    );
+
+  // ============================================================
+  // FORMAT RUPIAH
+  // ============================================================
+  const formatRupiah = (
+    value: string
+  ) => {
+    const raw =
+      value.replace(/[^0-9]/g, '');
+
+    return raw
+      ? Number(
+          raw
+        ).toLocaleString('id-ID')
+      : '';
   };
 
-  const getCleanNumber = (value: string) => Number(value.replace(/\./g, '')) || 0;
+  const getCleanNumber = (
+    value: string
+  ) =>
+    Number(
+      value.replace(/\./g, '')
+    ) || 0;
 
-  // Logika Kalkulasi Utama
-  let totalWajibZakat = 0;
-  let isWajib = false;
-  let deskripsiNishab = '';
+  // ============================================================
+  // KALKULASI
+  // ============================================================
+  const calculation = useMemo(() => {
+    let totalWajibZakat = 0;
+    let isWajib = false;
+    let deskripsiNishab = '';
+    let nilaiDasar = 0;
 
-  if (activeTab === 'penghasilan') {
-    const totalInput = getCleanNumber(penghasilan) + getCleanNumber(bonus);
-    isWajib = totalInput >= NISHAB_BULANAN;
-    totalWajibZakat = isWajib ? Math.round(totalInput * 0.025) : 0;
-    deskripsiNishab = `Nishab zakat penghasilan bulanan saat ini adalah Rp ${NISHAB_BULANAN.toLocaleString('id-ID')} (Setara 1/12 dari 85g Emas).`;
-  } else if (activeTab === 'maal') {
-    const totalHarta = getCleanNumber(tabungan) + getCleanNumber(investasi);
-    isWajib = totalHarta >= NISHAB_TAHUNAN;
-    totalWajibZakat = isWajib ? Math.round(totalHarta * 0.025) : 0;
-    deskripsiNishab = `Nishab zakat maal tahunan adalah Rp ${NISHAB_TAHUNAN.toLocaleString('id-ID')} (Setara 85g Emas).`;
-  } else if (activeTab === 'emas') {
-    const berat = Number(beratEmas) || 0;
-    isWajib = berat >= NISHAB_EMAS_GRAM;
-    totalWajibZakat = isWajib ? Math.round((berat * HARGA_EMAS) * 0.025) : 0;
-    deskripsiNishab = `Nishab zakat emas simpanan minimal adalah ${NISHAB_EMAS_GRAM} gram.`;
-  }
+    if (
+      activeTab === 'penghasilan'
+    ) {
+      nilaiDasar =
+        getCleanNumber(
+          penghasilan
+        ) +
+        getCleanNumber(
+          bonus
+        );
 
-  // Aksi Checkout Otomatis mengarahkan ke halaman pembayaran program Zakat
-  const handleRedirectZakat = () => {
-    if (totalWajibZakat <= 0) return;
-    
-    // Kita arahkan donatur langsung ke halaman detail campaign zakat 
-    // dengan membawa parameter nominal otomatis (query string)
-    window.location.href = `/campaign/zakat-maal-dan-penghasilan?amount=${totalWajibZakat}`;
-  };
+      isWajib =
+        nilaiDasar >=
+        NISHAB_BULANAN;
+
+      totalWajibZakat =
+        isWajib
+          ? Math.round(
+              nilaiDasar * 0.025
+            )
+          : 0;
+
+      deskripsiNishab =
+        `Nishab zakat penghasilan bulanan adalah Rp ${NISHAB_BULANAN.toLocaleString(
+          'id-ID'
+        )}, setara 1/12 dari nishab 85 gram emas.`;
+    }
+
+    if (activeTab === 'maal') {
+      nilaiDasar =
+        getCleanNumber(
+          tabungan
+        ) +
+        getCleanNumber(
+          investasi
+        );
+
+      isWajib =
+        nilaiDasar >=
+        NISHAB_TAHUNAN;
+
+      totalWajibZakat =
+        isWajib
+          ? Math.round(
+              nilaiDasar * 0.025
+            )
+          : 0;
+
+      deskripsiNishab =
+        `Nishab zakat maal tahunan adalah Rp ${NISHAB_TAHUNAN.toLocaleString(
+          'id-ID'
+        )}, setara 85 gram emas.`;
+    }
+
+    if (activeTab === 'emas') {
+      const berat =
+        Number(beratEmas) || 0;
+
+      nilaiDasar =
+        berat * HARGA_EMAS;
+
+      isWajib =
+        berat >=
+        NISHAB_EMAS_GRAM;
+
+      totalWajibZakat =
+        isWajib
+          ? Math.round(
+              nilaiDasar * 0.025
+            )
+          : 0;
+
+      deskripsiNishab =
+        `Nishab zakat emas simpanan adalah ${NISHAB_EMAS_GRAM} gram emas.`;
+    }
+
+    return {
+      totalWajibZakat,
+      isWajib,
+      deskripsiNishab,
+      nilaiDasar,
+    };
+  }, [
+    activeTab,
+    penghasilan,
+    bonus,
+    tabungan,
+    investasi,
+    beratEmas,
+    NISHAB_BULANAN,
+    NISHAB_TAHUNAN,
+  ]);
+
+  const {
+    totalWajibZakat,
+    isWajib,
+    deskripsiNishab,
+    nilaiDasar,
+  } = calculation;
+
+  // ============================================================
+  // REDIRECT ZAKAT
+  // ============================================================
+  const handleRedirectZakat =
+    () => {
+      if (
+        totalWajibZakat <= 0
+      ) {
+        return;
+      }
+
+      window.location.href =
+        `/campaign/zakat-maal-dan-penghasilan?amount=${totalWajibZakat}`;
+    };
+
+  // ============================================================
+  // TAB CONFIG
+  // ============================================================
+  const tabs = [
+    {
+      id: 'penghasilan' as ZakatType,
+      title: 'Penghasilan',
+      shortTitle: 'Penghasilan',
+      icon: BriefcaseBusiness,
+    },
+    {
+      id: 'maal' as ZakatType,
+      title: 'Maal',
+      shortTitle: 'Maal',
+      icon: CircleDollarSign,
+    },
+    {
+      id: 'emas' as ZakatType,
+      title: 'Emas',
+      shortTitle: 'Emas',
+      icon: Coins,
+    },
+  ];
 
   return (
-    <div className="w-full max-w-3xl mx-auto bg-white border border-gray-200 rounded-none shadow-sm overflow-hidden">
-      {/* Tab Menu Utama */}
-      <div className="flex border-b border-gray-200 text-xs font-bold text-gray-400">
-        <button
-          onClick={() => setActiveTab('penghasilan')}
-          className={`flex-1 py-4 text-center transition focus:outline-none rounded-none ${
-            activeTab === 'penghasilan' ? 'text-emerald-600 bg-gray-50/50 border-b-2 border-emerald-600 font-black' : 'hover:text-gray-600 border-b-2 border-transparent'
-          }`}
-        >
-          💼 ZAKAT PENGHASILAN
-        </button>
-        <button
-          onClick={() => setActiveTab('maal')}
-          className={`flex-1 py-4 text-center transition focus:outline-none rounded-none ${
-            activeTab === 'maal' ? 'text-emerald-600 bg-gray-50/50 border-b-2 border-emerald-600 font-black' : 'hover:text-gray-600 border-b-2 border-transparent'
-          }`}
-        >
-          💰 ZAKAT MAAL / TABUNGAN
-        </button>
-        <button
-          onClick={() => setActiveTab('emas')}
-          className={`flex-1 py-4 text-center transition focus:outline-none rounded-none ${
-            activeTab === 'emas' ? 'text-emerald-600 bg-gray-50/50 border-b-2 border-emerald-600 font-black' : 'hover:text-gray-600 border-b-2 border-transparent'
-          }`}
-        >
-          ✨ ZAKAT EMAS
-        </button>
+    <div className="w-full space-y-4">
+
+      {/* =====================================================
+          TAB MENU
+      ====================================================== */}
+      <div className="grid grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1">
+
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+
+          const active =
+            activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() =>
+                setActiveTab(
+                  tab.id
+                )
+              }
+              className={`rounded-xl px-2 py-3 transition ${
+                active
+                  ? 'bg-white text-[#102a43] shadow-sm'
+                  : 'text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+
+                <Icon
+                  className={`w-4 h-4 ${
+                    active
+                      ? 'text-[#a37c32]'
+                      : 'text-slate-400'
+                  }`}
+                />
+
+                <span className="text-[8px] font-bold uppercase tracking-[0.12em]">
+                  {tab.shortTitle}
+                </span>
+
+              </div>
+            </button>
+          );
+        })}
+
       </div>
 
-      <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
-        
-        {/* KOLOM KIRI: FORM DATA MASUKAN */}
-        <div className="space-y-4 text-left">
-          <p className="text-[11px] text-gray-400 font-medium leading-relaxed mb-2">
-            ℹ️ {deskripsiNishab}
-          </p>
+      {/* =====================================================
+          NISHAB INFO
+      ====================================================== */}
+      <div className="rounded-2xl border border-[#eadfca] bg-[#f7f2e7]/60 p-4">
 
-          {activeTab === 'penghasilan' && (
-            <>
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Pendapatan Bulanan (Gaji Pokok)</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-                    placeholder="Contoh: 10.000.000"
-                    value={penghasilan}
-                    onChange={(e) => setPenghasilan(formatRupiah(e.target.value))}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Pendapatan Lain / Bonus (Opsional)</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-                    placeholder="0"
-                    value={bonus}
-                    onChange={(e) => setBonus(formatRupiah(e.target.value))}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+        <div className="flex items-start gap-3">
 
-          {activeTab === 'maal' && (
-            <>
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Total Uang Simpanan (Tabungan/Deposito/Cash)</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-                    placeholder="Contoh: 150.000.000"
-                    value={tabungan}
-                    onChange={(e) => setTabungan(formatRupiah(e.target.value))}
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Nilai Aset Reksadana / Saham / Emas Batangan</label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-xs font-bold text-gray-400">Rp</span>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-none pl-9 pr-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-                    placeholder="0"
-                    value={investasi}
-                    onChange={(e) => setInvestasi(formatRupiah(e.target.value))}
-                  />
-                </div>
-              </div>
-            </>
-          )}
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#a37c32]" />
 
-          {activeTab === 'emas' && (
-            <div>
-              <label className="text-[11px] font-bold text-gray-500 block mb-1.5">Total Berat Emas Yang Disimpan (Gram)</label>
-              <div className="relative flex items-center">
-                <input
-                  type="number"
-                  className="w-full border border-gray-200 rounded-none px-3.5 py-2.5 text-xs font-bold text-gray-800 focus:outline-emerald-500"
-                  placeholder="Contoh: 90"
-                  value={beratEmas}
-                  onChange={(e) => setBeratEmas(e.target.value)}
-                />
-                <span className="absolute right-3.5 text-xs font-bold text-gray-400">Gram</span>
-              </div>
-            </div>
-          )}
-        </div>
+          <div>
 
-        {/* KOLOM KANAN: HASIL KALKULASI & ACTION BUTTON */}
-        <div className="bg-gray-50 border border-gray-100 p-6 text-center space-y-4 flex flex-col justify-between h-full rounded-none">
-          <div className="space-y-2 text-left md:text-center">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block">
-              Besaran Wajib Zakat Anda
-            </span>
-            <div className="text-3xl font-black text-emerald-600 tracking-tight py-2">
-              Rp {totalWajibZakat.toLocaleString('id-ID')}
-            </div>
-            <div className="text-[11px] leading-relaxed font-medium text-gray-500">
-              {totalWajibZakat > 0 ? (
-                <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 uppercase tracking-wide">
-                  🎉 Anda Wajib Zakat (Mencapai Nishab)
-                </span>
-              ) : (
-                <span className="text-gray-400 italic">
-                  Harta belum mencapai batas minimum nishab wajib zakat 2.5%.
-                </span>
-              )}
-            </div>
+            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#98752d]">
+              Informasi Nishab
+            </p>
+
+            <p className="mt-1 text-[9px] leading-relaxed text-slate-500">
+              {deskripsiNishab}
+            </p>
+
           </div>
 
-          <button
-            onClick={handleRedirectZakat}
-            disabled={totalWajibZakat <= 0}
-            className="w-full bg-emerald-600 text-white font-bold py-3.5 rounded-none transition text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed shadow-md shadow-emerald-100/60"
-          >
-            Tunaikan Zakat Sekarang 🚀
-          </button>
         </div>
 
       </div>
+
+      {/* =====================================================
+          FORM
+      ====================================================== */}
+      <div className="space-y-4">
+
+        {/* ===================================================
+            PENGHASILAN
+        =================================================== */}
+        {activeTab ===
+          'penghasilan' && (
+          <>
+            <div>
+
+              <label className="block text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
+                Pendapatan Bulanan
+              </label>
+
+              <p className="mt-1 text-[8px] text-slate-400">
+                Gaji pokok atau pendapatan utama
+              </p>
+
+              <div className="relative mt-2">
+
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                  Rp
+                </span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="10.000.000"
+                  value={
+                    penghasilan
+                  }
+                  onChange={(e) =>
+                    setPenghasilan(
+                      formatRupiah(
+                        e.target
+                          .value
+                      )
+                    )
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] pl-11 pr-4 text-[11px] font-semibold text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8"
+                />
+
+              </div>
+
+            </div>
+
+            <div>
+
+              <label className="block text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
+                Bonus / Pendapatan Lain
+              </label>
+
+              <p className="mt-1 text-[8px] text-slate-400">
+                Opsional
+              </p>
+
+              <div className="relative mt-2">
+
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                  Rp
+                </span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={bonus}
+                  onChange={(e) =>
+                    setBonus(
+                      formatRupiah(
+                        e.target
+                          .value
+                      )
+                    )
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] pl-11 pr-4 text-[11px] font-semibold text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8"
+                />
+
+              </div>
+
+            </div>
+          </>
+        )}
+
+        {/* ===================================================
+            MAAL
+        =================================================== */}
+        {activeTab ===
+          'maal' && (
+          <>
+            <div>
+
+              <label className="block text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
+                Uang Simpanan
+              </label>
+
+              <p className="mt-1 text-[8px] text-slate-400">
+                Tabungan, deposito, dan uang tunai
+              </p>
+
+              <div className="relative mt-2">
+
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                  Rp
+                </span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="150.000.000"
+                  value={tabungan}
+                  onChange={(e) =>
+                    setTabungan(
+                      formatRupiah(
+                        e.target
+                          .value
+                      )
+                    )
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] pl-11 pr-4 text-[11px] font-semibold text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8"
+                />
+
+              </div>
+
+            </div>
+
+            <div>
+
+              <label className="block text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
+                Investasi & Aset Likuid
+              </label>
+
+              <p className="mt-1 text-[8px] text-slate-400">
+                Saham, reksa dana, emas batangan, dan aset sejenis
+              </p>
+
+              <div className="relative mt-2">
+
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400">
+                  Rp
+                </span>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="0"
+                  value={investasi}
+                  onChange={(e) =>
+                    setInvestasi(
+                      formatRupiah(
+                        e.target
+                          .value
+                      )
+                    )
+                  }
+                  className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] pl-11 pr-4 text-[11px] font-semibold text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8"
+                />
+
+              </div>
+
+            </div>
+          </>
+        )}
+
+        {/* ===================================================
+            EMAS
+        =================================================== */}
+        {activeTab ===
+          'emas' && (
+          <div>
+
+            <label className="block text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
+              Berat Emas Simpanan
+            </label>
+
+            <p className="mt-1 text-[8px] text-slate-400">
+              Total emas yang dimiliki dalam gram
+            </p>
+
+            <div className="relative mt-2">
+
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="90"
+                value={beratEmas}
+                onChange={(e) =>
+                  setBeratEmas(
+                    e.target.value
+                  )
+                }
+                className="h-12 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] px-4 pr-16 text-[11px] font-semibold text-slate-800 outline-none transition placeholder:text-slate-300 focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8"
+              />
+
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                Gram
+              </span>
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
+
+      {/* =====================================================
+          RESULT CARD
+      ====================================================== */}
+      <div className="relative overflow-hidden rounded-[26px] bg-[#102a43] shadow-[0_14px_40px_rgba(16,42,67,0.14)]">
+
+        <div className="absolute -right-12 -top-12 w-36 h-36 rounded-full border border-white/8" />
+
+        <div className="relative z-10 p-5">
+
+          <div className="flex items-center justify-between gap-3">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10">
+                <Calculator className="h-4 w-4 text-[#d7b66a]" />
+              </div>
+
+              <div>
+
+                <p className="text-[8px] font-bold uppercase tracking-[0.17em] text-[#d7b66a]">
+                  Hasil Perhitungan
+                </p>
+
+                <p className="mt-0.5 text-[11px] font-bold text-white">
+                  Estimasi Zakat Anda
+                </p>
+
+              </div>
+
+            </div>
+
+            <ShieldCheck className="h-4 w-4 text-[#d7b66a]" />
+
+          </div>
+
+          <div className="mt-5">
+
+            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Nilai Harta Dihitung
+            </p>
+
+            <p className="mt-1 text-[11px] font-semibold text-slate-300">
+              Rp{' '}
+              {nilaiDasar.toLocaleString(
+                'id-ID'
+              )}
+            </p>
+
+          </div>
+
+          <div className="mt-4 border-t border-white/10 pt-4">
+
+            <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              Besaran Zakat
+            </p>
+
+            <p className="mt-2 text-[28px] leading-none font-bold tracking-tight text-white">
+              Rp{' '}
+              {totalWajibZakat.toLocaleString(
+                'id-ID'
+              )}
+            </p>
+
+            <p className="mt-2 text-[8px] text-slate-400">
+              Perhitungan 2,5%
+            </p>
+
+          </div>
+
+          <div className="mt-4">
+
+            {isWajib ? (
+              <div className="flex items-start gap-2 rounded-xl border border-emerald-400/15 bg-emerald-400/10 p-3">
+
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-300" />
+
+                <div>
+
+                  <p className="text-[9px] font-bold text-emerald-200">
+                    Telah Mencapai Nishab
+                  </p>
+
+                  <p className="mt-1 text-[8px] leading-relaxed text-emerald-100/70">
+                    Berdasarkan data yang dimasukkan, harta Anda telah
+                    mencapai batas nishab pada kalkulator ini.
+                  </p>
+
+                </div>
+
+              </div>
+            ) : (
+              <div className="flex items-start gap-2 rounded-xl border border-white/10 bg-white/5 p-3">
+
+                <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#d7b66a]" />
+
+                <p className="text-[8px] leading-relaxed text-slate-300">
+                  Nilai yang dimasukkan belum mencapai batas nishab
+                  yang digunakan pada kalkulator ini.
+                </p>
+
+              </div>
+            )}
+
+          </div>
+
+        </div>
+
+        <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
+
+      </div>
+
+      {/* =====================================================
+          ACTION
+      ====================================================== */}
+      <button
+        type="button"
+        onClick={
+          handleRedirectZakat
+        }
+        disabled={
+          totalWajibZakat <= 0
+        }
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#102a43] text-[9px] font-bold uppercase tracking-[0.16em] text-white shadow-lg shadow-[#102a43]/10 transition hover:bg-[#173d5d] disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+      >
+        <Sparkles className="h-4 w-4" />
+
+        Tunaikan Zakat Sekarang
+
+        <ArrowRight className="h-4 w-4" />
+      </button>
+
+      {/* =====================================================
+          FOOTER NOTE
+      ====================================================== */}
+      <div className="text-center">
+
+        <p className="text-[7px] leading-relaxed text-slate-400">
+          Kalkulator zakat digital {SITE_NAME} • {SITE_DOMAIN}
+        </p>
+
+      </div>
+
     </div>
   );
 }

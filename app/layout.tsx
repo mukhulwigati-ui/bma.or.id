@@ -1,80 +1,126 @@
 // app/layout.tsx
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import LayoutClientWrapper from "@/components/LayoutClientWrapper"; // 🚀 Menggunakan LayoutClientWrapper yang sudah ada
-import BottomNav from "@/components/BottomNav"; // 🚀 Import BottomNav Global
-import Script from "next/script";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
+import LayoutClientWrapper from '@/components/LayoutClientWrapper';
+import BottomNav from '@/components/BottomNav';
+import Script from 'next/script';
+import './globals.css';
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+  variable: '--font-geist-sans',
+  subsets: ['latin'],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: '--font-geist-mono',
+  subsets: ['latin'],
 });
 
-// 🚀 MASTER SEO & PWA METADATA BDB.OR.ID (100% Didukung di Server Component)
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_URL = 'https://bma.or.id';
+const SITE_LOCATION = 'Jepara';
+
+// ============================================================
+// MASTER SEO & PWA METADATA BMA.OR.ID
+// ============================================================
 export const metadata: Metadata = {
   title: {
-    default: "bdb.or.id | Balai Dakwah Banjarnegara - Platform Sedekah, Infaq & Zakat Online Amanah",
-    template: "%s | bdb.or.id"
+    default:
+      'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
+    template: '%s | bma.or.id',
   },
-  description: "Salurkan sedekah, infaq, zakat, dan wakaf Anda secara instan dan amanah melalui bdb.or.id (Balai Dakwah Banjarnegara). Mengalirkan keberkahan dan kepedulian untuk pemberdayaan ummat, yatim, dhuafa, dan program sosial kemanusiaan.",
-  manifest: "/manifest.json",
+
+  description:
+    'Salurkan zakat, infak, sedekah, wakaf, dan donasi program sosial melalui Baitul Maal Al Muttaqin di bma.or.id. Berpusat di Jepara dan hadir untuk memperluas manfaat bagi umat dan masyarakat.',
+
+  manifest: '/manifest.json',
+
+  applicationName: SITE_NAME,
+
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
-    title: "Balai Dakwah Banjarnegara",
+    statusBarStyle: 'default',
+    title: SITE_NAME,
   },
+
   keywords: [
-    "bdb",
-    "bdb or id",
-    "balai dakwah banjarnegara",
-    "sedekah online",
-    "infaq online",
-    "bayar zakat online",
-    "wakaf quran",
-    "sedekah subuh",
-    "donasi yatim dhuafa",
-    "lembaga amil zakat amanah",
-    "donasi qris instant",
+    'Baitul Maal Al Muttaqin',
+    'BMA Jepara',
+    'bma.or.id',
+    'baitul maal jepara',
+    'zakat jepara',
+    'zakat online',
+    'infak online',
+    'sedekah online',
+    'sedekah subuh',
+    'wakaf online',
+    'wakaf quran',
+    'donasi yatim dhuafa',
+    'donasi santri',
+    'donasi kemanusiaan',
+    'donasi online jepara',
+    'kalkulator zakat',
   ],
-  authors: [{ name: "bdb.or.id", url: "https://bdb.or.id" }],
-  creator: "bdb.or.id",
-  publisher: "bdb.or.id",
-  metadataBase: new URL("https://bdb.or.id"),
+
+  authors: [
+    {
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  ],
+
+  creator: SITE_NAME,
+  publisher: SITE_NAME,
+
+  metadataBase: new URL(SITE_URL),
+
   alternates: {
-    canonical: "/",
+    canonical: '/',
   },
+
   openGraph: {
-    title: "bdb.or.id | Balai Dakwah Banjarnegara - Platform Sedekah, Infaq & Zakat Online Amanah",
-    description: "Tunaikan kepedulian Anda dengan mudah bersama Balai Dakwah Banjarnegara (bdb.or.id). Salurkan sedekah subuh, infaq produktif, dan zakat mal/fitrah secara transparan dan otomatis via QRIS & Virtual Account.",
-    url: "https://bdb.or.id",
-    siteName: "bdb.or.id",
-    locale: "id_ID",
-    type: "website",
+    title:
+      'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
+
+    description:
+      'Bersama Baitul Maal Al Muttaqin, tunaikan zakat, infak, sedekah, wakaf, dan dukung berbagai program sosial, pendidikan, dakwah, serta kemanusiaan melalui layanan digital bma.or.id.',
+
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    locale: 'id_ID',
+    type: 'website',
+
     images: [
       {
-        url: "https://bdb.or.id/images/banner.png",
+        url: `${SITE_URL}/images/banner.png`,
         width: 1200,
         height: 630,
-        type: "image/png",
-        alt: "bdb.or.id - Balai Dakwah Banjarnegara - Mengalirkan Keberkahan Melalui Sedekah dan Infaq",
+        type: 'image/png',
+        alt: `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
       },
     ],
   },
+
   twitter: {
-    card: "summary_large_image",
-    title: "bdb.or.id | Balai Dakwah Banjarnegara - Sedekah & Infaq Online Mudah",
-    description: "Platform resmi galang donasi, sedekah, infaq, dan zakat amanah bersama bdb.or.id (Balai Dakwah Banjarnegara).",
-    images: ["https://bdb.or.id/images/banner.png"],
+    card: 'summary_large_image',
+
+    title:
+      'bma.or.id | Baitul Maal Al Muttaqin',
+
+    description:
+      'Platform digital Baitul Maal Al Muttaqin untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.',
+
+    images: [
+      `${SITE_URL}/images/banner.png`,
+    ],
   },
+
   robots: {
     index: true,
     follow: true,
+
     googleBot: {
       index: true,
       follow: true,
@@ -83,33 +129,62 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+
   verification: {
-    google: "google-site-verification-token-anda",
+    google:
+      'google-site-verification-token-anda',
+  },
+
+  category: 'Nonprofit Organization',
+
+  other: {
+    'organization-name': SITE_NAME,
+    'organization-short-name':
+      SITE_SHORT_NAME,
+    'organization-location':
+      `${SITE_LOCATION}, Jawa Tengah, Indonesia`,
   },
 };
 
+// ============================================================
+// ROOT LAYOUT
+// ============================================================
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-      <body className="min-h-screen bg-slate-100 flex flex-col text-slate-800" suppressHydrationWarning>
-        
-        {/* 🚀 GOOGLE ANALYTICS SCRIPT (GA4) */}
+    <html
+      lang="id"
+      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    >
+      <body
+        className="min-h-screen bg-[#f8f8f6] flex flex-col text-slate-800"
+        suppressHydrationWarning
+      >
+
+        {/* =====================================================
+            GOOGLE ANALYTICS GA4
+        ====================================================== */}
         <Script
           strategy="afterInteractive"
-          src={`https://www.googletagmanager.com/gtag/js?id=G-FG813S8GLF`}
+          src="https://www.googletagmanager.com/gtag/js?id=G-FG813S8GLF"
         />
+
         <Script
           id="google-analytics"
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
+
+              function gtag(){
+                dataLayer.push(arguments);
+              }
+
               gtag('js', new Date());
+
               gtag('config', 'G-FG813S8GLF', {
                 page_path: window.location.pathname,
               });
@@ -117,20 +192,30 @@ export default function RootLayout({
           }}
         />
 
-        {/* 🚀 MIDTRANS SNAP SCRIPT UTAMA (Dioptimalkan agar tidak terblokir CSP) */}
+        {/* =====================================================
+            MIDTRANS SNAP
+        ====================================================== */}
         <Script
           src="https://app.midtrans.com/snap/snap.js"
-          data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || "Mid-client-NVjY5ccbH7M47czA"}
+          data-client-key={
+            process.env
+              .NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
+            'Mid-client-NVjY5ccbH7M47czA'
+          }
           strategy="lazyOnload"
           crossOrigin="anonymous"
         />
 
-        {/* 🚀 LAYOUT CLIENT WRAPPER (MEMUAT CHILDREN & PWA MODAL TENGAH) */}
+        {/* =====================================================
+            MAIN APPLICATION
+        ====================================================== */}
         <LayoutClientWrapper>
           {children}
         </LayoutClientWrapper>
 
-        {/* 🚀 GLOBAL BOTTOM NAVIGATION */}
+        {/* =====================================================
+            GLOBAL BOTTOM NAVIGATION
+        ====================================================== */}
         <BottomNav />
 
       </body>

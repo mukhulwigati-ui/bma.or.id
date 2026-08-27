@@ -1,7 +1,11 @@
 // app/referral/page.tsx
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
 import {
@@ -17,18 +21,28 @@ import {
   Users,
   ExternalLink,
   ChevronDown,
+  ShieldCheck,
+  Link2,
+  CircleDollarSign,
+  HeartHandshake,
 } from 'lucide-react';
+
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
 
 export default function ReferralPage() {
   const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState<any>(null);
   const [allPrograms, setAllPrograms] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [statsLoading, setStatsLoading] = useState(false);
 
   const [selectedSlug, setSelectedSlug] = useState('');
   const [searchProgram, setSearchProgram] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copiedText, setCopiedText] = useState('');
 
   const supabase = useMemo(
     () =>
@@ -39,6 +53,9 @@ export default function ReferralPage() {
     []
   );
 
+  // ============================================================
+  // LOAD PROFILE, STATS, DAN PROGRAM
+  // ============================================================
   useEffect(() => {
     const fetchProfileStatsAndPrograms = async () => {
       setLoading(true);
@@ -62,11 +79,16 @@ export default function ReferralPage() {
               setStatsLoading(true);
 
               try {
+                const cleanPhone = String(
+                  prof.phone
+                ).replace(/[^0-9]/g, '');
+
                 const resStats = await fetch(
-                  `/api/fundraiser/stats?phone=${prof.phone}`
+                  `/api/fundraiser/stats?phone=${cleanPhone}`
                 );
 
-                const jsonStats = await resStats.json();
+                const jsonStats =
+                  await resStats.json();
 
                 if (jsonStats.success) {
                   setStats(jsonStats);
@@ -75,15 +97,28 @@ export default function ReferralPage() {
                     totalEarnings: 0,
                     donationCount: 0,
                     history: [],
+                    profile: {
+                      ...prof,
+                      feePaid:
+                        prof?.feePaid || 0,
+                    },
                   });
                 }
               } catch (err) {
-                console.error('Gagal memuat statistik afiliasi:', err);
+                console.error(
+                  'Gagal memuat statistik fundraiser:',
+                  err
+                );
 
                 setStats({
                   totalEarnings: 0,
                   donationCount: 0,
                   history: [],
+                  profile: {
+                    ...prof,
+                    feePaid:
+                      prof?.feePaid || 0,
+                  },
                 });
               } finally {
                 setStatsLoading(false);
@@ -93,19 +128,33 @@ export default function ReferralPage() {
                 totalEarnings: 0,
                 donationCount: 0,
                 history: [],
+                profile: {
+                  ...prof,
+                  feePaid:
+                    prof?.feePaid || 0,
+                },
               });
             }
           }
         }
 
-        const resProg = await fetch('/api/programs');
-        const jsonProg = await resProg.json();
+        const resProg =
+          await fetch('/api/programs');
 
-        if (jsonProg.success && jsonProg.data) {
+        const jsonProg =
+          await resProg.json();
+
+        if (
+          jsonProg.success &&
+          Array.isArray(jsonProg.data)
+        ) {
           setAllPrograms(jsonProg.data);
         }
       } catch (err) {
-        console.error('Error loading referral data:', err);
+        console.error(
+          'Error loading referral data:',
+          err
+        );
       } finally {
         setLoading(false);
       }
@@ -114,37 +163,68 @@ export default function ReferralPage() {
     fetchProfileStatsAndPrograms();
   }, [supabase]);
 
-  const handleCopy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
+  // ============================================================
+  // COPY LINK
+  // ============================================================
+  const handleCopy = async (
+    text: string
+  ) => {
+    if (!text) return;
 
-    setTimeout(() => {
-      setCopied(false);
-    }, 2000);
+    try {
+      await navigator.clipboard.writeText(
+        text
+      );
+
+      setCopiedText(text);
+
+      setTimeout(() => {
+        setCopiedText('');
+      }, 2000);
+    } catch (error) {
+      console.error(
+        'Gagal menyalin tautan:',
+        error
+      );
+    }
   };
 
+  // ============================================================
+  // LOADING
+  // ============================================================
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f7f8fa] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
+
         <div className="flex flex-col items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#0b2742] flex items-center justify-center shadow-lg">
+
+          <div className="w-12 h-12 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
             <Loader2 className="w-5 h-5 text-white animate-spin" />
           </div>
 
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.22em]">
-            Memuat pusat afiliasi
+          <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+            Memuat Fundraiser BMA
           </span>
+
         </div>
+
       </div>
     );
   }
 
+  // ============================================================
+  // DATA REFERRAL
+  // ============================================================
   const hasPhone = Boolean(
-    profile?.phone && profile.phone.trim().length >= 9
+    profile?.phone &&
+      String(profile.phone).trim().length >= 9
   );
 
   const cleanPhone = hasPhone
-    ? profile.phone.replace(/[^0-9]/g, '')
+    ? String(profile.phone).replace(
+        /[^0-9]/g,
+        ''
+      )
     : '';
 
   const baseUrl =
@@ -152,349 +232,570 @@ export default function ReferralPage() {
       ? window.location.origin
       : '';
 
-  const defaultReferralLink = hasPhone
-    ? `${baseUrl}/?ref=${cleanPhone}`
-    : '';
+  const defaultReferralLink =
+    hasPhone
+      ? `${baseUrl}/?ref=${cleanPhone}`
+      : '';
 
-  const filteredPrograms = allPrograms.filter((p) =>
-    (p.title || '')
-      .toLowerCase()
-      .includes(searchProgram.toLowerCase())
-  );
+  const filteredPrograms =
+    allPrograms.filter((program) => {
+      const title = String(
+        program?.title || ''
+      ).toLowerCase();
 
-  const totalEarnings = stats?.totalEarnings || 0;
-  const donationCount = stats?.donationCount || 0;
-  const totalUjrah = Math.round(totalEarnings * 0.1);
-  const feePaid = stats?.profile?.feePaid || 0;
-  const availableFee = Math.max(0, totalUjrah - feePaid);
+      return title.includes(
+        searchProgram.toLowerCase()
+      );
+    });
+
+  const totalEarnings =
+    Number(stats?.totalEarnings || 0);
+
+  const donationCount =
+    Number(stats?.donationCount || 0);
+
+  const totalUjrah =
+    Math.round(totalEarnings * 0.1);
+
+  const feePaid =
+    Number(
+      stats?.profile?.feePaid || 0
+    );
+
+  const availableFee =
+    Math.max(
+      0,
+      totalUjrah - feePaid
+    );
 
   return (
-    <div className="min-h-screen bg-[#f7f8fa] text-slate-900 pb-24">
-      <div className="max-w-md mx-auto px-4 pt-5 space-y-4">
+    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-4">
 
-        {/* HEADER */}
-        <header className="flex items-center justify-between">
-          <Link
-            href="/akun"
-            className="group w-10 h-10 rounded-2xl bg-white border border-slate-200/70 flex items-center justify-center shadow-[0_4px_18px_rgba(15,23,42,0.04)] transition hover:border-slate-300"
-          >
-            <ArrowLeft className="w-[17px] h-[17px] text-slate-600 group-hover:-translate-x-0.5 transition" />
-          </Link>
+      <div className="max-w-md mx-auto space-y-4">
 
-          <div className="text-center">
-            <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-              Fundraiser Center
-            </p>
+        {/* =====================================================
+            PREMIUM HEADER
+        ====================================================== */}
+        <section className="relative overflow-hidden rounded-[30px] bg-[#102a43] shadow-[0_20px_55px_rgba(16,42,67,0.18)]">
 
-            <h1 className="text-[15px] font-bold tracking-tight text-[#102a43]">
-              Afiliasi & Performa
-            </h1>
-          </div>
+          <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
 
-          <div className="w-10 h-10 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-[0_6px_20px_rgba(16,42,67,0.18)]">
-            <Sparkles className="w-[16px] h-[16px] text-[#d8b76a]" />
-          </div>
-        </header>
+          <div className="absolute right-4 bottom-[-80px] w-44 h-44 rounded-full border border-[#d7b66a]/15" />
 
-        {/* PREMIUM HERO */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#102a43] p-6 shadow-[0_18px_45px_rgba(16,42,67,0.18)]">
-          <div className="absolute -right-16 -top-20 w-48 h-48 rounded-full border border-white/10" />
-          <div className="absolute -right-8 -top-12 w-32 h-32 rounded-full border border-[#d8b76a]/20" />
-          <div className="absolute right-5 bottom-5 w-20 h-20 rounded-full bg-[#d8b76a]/5 blur-2xl" />
+          <div className="relative z-10 p-5 sm:p-6">
 
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/8 border border-white/10 px-3 py-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#d8b76a]" />
-              <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#e8d7aa]">
-                Program Kebaikan Berkelanjutan
-              </span>
-            </div>
+            <div className="flex items-center justify-between gap-3">
 
-            <h2 className="mt-5 text-[23px] leading-[1.2] font-bold tracking-tight text-white">
-              Sebarkan Kebaikan.
-              <br />
-              Tumbuhkan Kebermanfaatan.
-            </h2>
+              <div className="flex items-center gap-3 min-w-0">
 
-            <p className="mt-3 max-w-[290px] text-[11px] leading-[1.8] text-slate-300">
-              Bagikan campaign melalui tautan afiliasi Anda dan pantau
-              setiap dukungan yang berhasil dihimpun secara transparan.
-            </p>
+                <Link
+                  href="/akun"
+                  aria-label="Kembali ke akun"
+                  className="w-10 h-10 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center hover:bg-white/15 transition"
+                >
+                  <ArrowLeft className="w-4 h-4 text-white" />
+                </Link>
 
-            <div className="mt-5 flex items-center gap-2 text-[#d8b76a]">
-              <span className="h-px w-8 bg-[#d8b76a]/50" />
-              <span className="text-[9px] font-semibold uppercase tracking-[0.15em]">
-                Berbagi • Menghimpun • Memberi Manfaat
-              </span>
-            </div>
-          </div>
-        </section>
+                <div className="min-w-0">
 
-        {/* LOCKED STATE */}
-        {!hasPhone ? (
-          <section className="bg-white rounded-[26px] border border-slate-200/70 p-6 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-            <div className="flex flex-col items-center text-center">
-              <div className="w-14 h-14 rounded-[20px] bg-[#fff8e8] border border-[#f0dfb5] flex items-center justify-center">
-                <Lock className="w-6 h-6 text-[#b4862c]" />
+                  <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#d7b66a]">
+                    {SITE_SHORT_NAME} Fundraiser Center
+                  </p>
+
+                  <h1 className="mt-1 text-[17px] font-bold text-white">
+                    Referral & Performa
+                  </h1>
+
+                </div>
+
               </div>
 
-              <h3 className="mt-4 text-[14px] font-bold text-[#102a43]">
-                Aktivasi Afiliasi Diperlukan
+              <div className="w-10 h-10 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center">
+                <HeartHandshake className="w-4 h-4 text-[#d7b66a]" />
+              </div>
+
+            </div>
+
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/8 border border-white/10 px-3 py-1.5">
+
+              <span className="w-1.5 h-1.5 rounded-full bg-[#d7b66a]" />
+
+              <span className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#e7d5a4]">
+                Gerakan Kebaikan Bersama
+              </span>
+
+            </div>
+
+            <h2 className="mt-4 text-[22px] leading-[1.25] font-bold tracking-tight text-white">
+              Sebarkan Kebaikan.
+              <br />
+              Perluas Manfaat.
+            </h2>
+
+            <p className="mt-3 max-w-[310px] text-[10px] leading-[1.8] text-slate-300">
+              Bagikan program Baitul Maal Al Muttaqin
+              melalui tautan referral pribadi Anda dan
+              pantau setiap dukungan yang berhasil
+              dihimpun.
+            </p>
+
+            <div className="mt-4 flex items-center gap-1.5">
+
+              <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
+
+              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e7d5a4]">
+                {SITE_DOMAIN} • {SITE_LOCATION}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
+
+        </section>
+
+        {/* =====================================================
+            LOCKED STATE
+        ====================================================== */}
+        {!hasPhone ? (
+          <section className="relative overflow-hidden rounded-[28px] bg-white border border-slate-200/70 p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+            <div className="absolute -right-10 -top-10 w-28 h-28 rounded-full bg-[#f7f2e7]" />
+
+            <div className="relative z-10 flex flex-col items-center text-center">
+
+              <div className="w-14 h-14 rounded-2xl bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
+                <Lock className="w-6 h-6 text-[#a37c32]" />
+              </div>
+
+              <p className="mt-5 text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                Aktivasi Fundraiser
+              </p>
+
+              <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
+                Nomor WhatsApp Diperlukan
               </h3>
 
-              <p className="mt-2 text-[11px] leading-[1.7] text-slate-500 max-w-[280px]">
-                Lengkapi nomor WhatsApp Anda untuk mengaktifkan
-                kode referral dan mendapatkan tautan promosi pribadi.
+              <p className="mt-3 text-[9px] leading-[1.8] text-slate-500 max-w-[290px]">
+                Lengkapi nomor WhatsApp pada profil
+                Anda. Nomor tersebut akan digunakan
+                sebagai kode referral unik untuk
+                menghasilkan tautan fundraiser.
               </p>
 
               <Link
                 href="/pengaturan"
-                className="mt-5 inline-flex items-center justify-center rounded-xl bg-[#102a43] px-5 py-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white shadow-lg shadow-[#102a43]/10 transition hover:bg-[#173d5d]"
+                className="mt-5 inline-flex items-center justify-center gap-2 rounded-2xl bg-[#102a43] px-5 py-3 text-[9px] font-bold uppercase tracking-[0.15em] text-white shadow-lg shadow-[#102a43]/10 transition hover:bg-[#173d5d]"
               >
-                Lengkapi Sekarang
+                Lengkapi Profil
+                <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
               </Link>
+
             </div>
+
           </section>
         ) : (
           <>
-            {/* PERFORMANCE */}
+
+            {/* =================================================
+                PROFILE STATUS
+            ================================================= */}
+            <section className="rounded-[24px] bg-white border border-slate-200/70 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+
+              <div className="flex items-center justify-between gap-3">
+
+                <div className="flex items-center gap-3 min-w-0">
+
+                  <div className="w-11 h-11 shrink-0 rounded-2xl bg-[#102a43] flex items-center justify-center text-white font-bold">
+                    {(profile?.name || 'F')
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+
+                  <div className="min-w-0">
+
+                    <p className="text-[8px] font-bold uppercase tracking-[0.17em] text-slate-400">
+                      Fundraiser BMA
+                    </p>
+
+                    <h2 className="mt-1 text-[12px] font-bold text-[#102a43] truncate">
+                      {profile?.name ||
+                        'Sahabat Kebaikan'}
+                    </h2>
+
+                    <p className="mt-0.5 text-[8px] text-slate-400">
+                      {profile?.phone}
+                    </p>
+
+                  </div>
+
+                </div>
+
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
+
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+
+                  Aktif
+
+                </span>
+
+              </div>
+
+            </section>
+
+            {/* =================================================
+                PERFORMANCE
+            ================================================= */}
             {statsLoading ? (
-              <section className="bg-white rounded-[26px] border border-slate-200/70 p-6 text-center">
+              <section className="rounded-[26px] bg-white border border-slate-200/70 p-8 text-center shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+
                 <Loader2 className="w-5 h-5 text-[#102a43] animate-spin mx-auto" />
 
-                <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-                  Mengambil performa
+                <p className="mt-3 text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Mengambil statistik
                 </p>
+
               </section>
             ) : (
-              <section className="bg-white rounded-[26px] border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-                <div className="px-5 pt-5 pb-4 flex items-center justify-between">
+              <section className="rounded-[28px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+                <div className="px-5 pt-5 pb-4 flex items-center justify-between gap-3">
+
                   <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
+
+                    <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
                       Performance Overview
                     </p>
 
                     <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
                       Statistik Penghimpunan
                     </h3>
+
                   </div>
 
-                  <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-emerald-700">
-                      Aktif
-                    </span>
+                  <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-[#a37c32]" />
                   </div>
+
                 </div>
 
+                {/* MAIN STATS */}
                 <div className="grid grid-cols-2 border-t border-slate-100">
+
                   <div className="p-5 border-r border-slate-100">
+
                     <div className="flex items-center gap-2 text-slate-400">
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">
+
+                      <CircleDollarSign className="w-3.5 h-3.5" />
+
+                      <span className="text-[8px] font-bold uppercase tracking-wider">
                         Dana Dihimpun
                       </span>
+
                     </div>
 
                     <p className="mt-3 text-[20px] font-bold tracking-tight text-[#102a43]">
-                      Rp {totalEarnings.toLocaleString('id-ID')}
+                      Rp{' '}
+                      {totalEarnings.toLocaleString(
+                        'id-ID'
+                      )}
                     </p>
+
                   </div>
 
                   <div className="p-5">
+
                     <div className="flex items-center gap-2 text-slate-400">
+
                       <Users className="w-3.5 h-3.5" />
-                      <span className="text-[9px] font-bold uppercase tracking-wider">
+
+                      <span className="text-[8px] font-bold uppercase tracking-wider">
                         Transaksi
                       </span>
+
                     </div>
 
                     <p className="mt-3 text-[20px] font-bold tracking-tight text-[#102a43]">
                       {donationCount}
                     </p>
 
-                    <p className="mt-0.5 text-[9px] text-slate-400">
+                    <p className="mt-0.5 text-[8px] text-slate-400">
                       transaksi berhasil
                     </p>
+
                   </div>
+
                 </div>
 
-                {/* FEE SUMMARY */}
-                <div className="m-4 rounded-2xl bg-[#f8f7f3] border border-[#eee9dc] p-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500">
-                      Ringkasan Ujrah
-                    </span>
+                {/* UJRAH */}
+                <div className="m-4 rounded-2xl bg-[#f7f2e7]/60 border border-[#eadfca] p-4">
 
-                    <span className="text-[9px] font-semibold text-[#9b7528]">
+                  <div className="flex items-center justify-between gap-3">
+
+                    <div>
+
+                      <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#98752d]">
+                        Ringkasan Ujrah
+                      </p>
+
+                      <p className="mt-1 text-[8px] text-slate-400">
+                        Berdasarkan 10% perolehan
+                      </p>
+
+                    </div>
+
+                    <span className="inline-flex items-center rounded-full bg-white border border-[#eadfca] px-2.5 py-1 text-[8px] font-bold text-[#98752d]">
                       10%
                     </span>
+
                   </div>
 
-                  <div className="mt-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-500">
+                  <div className="mt-4 divide-y divide-[#e9e3d4]">
+
+                    <div className="flex justify-between items-center gap-4 py-2.5">
+
+                      <span className="text-[9px] text-slate-500">
                         Total hak Anda
                       </span>
 
                       <span className="text-[11px] font-bold text-slate-700">
-                        Rp {totalUjrah.toLocaleString('id-ID')}
+                        Rp{' '}
+                        {totalUjrah.toLocaleString(
+                          'id-ID'
+                        )}
                       </span>
+
                     </div>
 
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-500">
-                        Telah dibayarkan
+                    <div className="flex justify-between items-center gap-4 py-2.5">
+
+                      <span className="text-[9px] text-slate-500">
+                        Telah dibayarkan BMA
                       </span>
 
                       <span className="text-[11px] font-semibold text-slate-600">
-                        Rp {feePaid.toLocaleString('id-ID')}
-                      </span>
-                    </div>
-
-                    <div className="pt-3 border-t border-[#e9e3d4] flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-[#102a43]">
-                        Saldo tersedia
+                        Rp{' '}
+                        {feePaid.toLocaleString(
+                          'id-ID'
+                        )}
                       </span>
 
-                      <span className="text-[14px] font-bold text-[#9b7528]">
-                        Rp {availableFee.toLocaleString('id-ID')}
-                      </span>
                     </div>
+
                   </div>
+
+                  <div className="mt-2 rounded-xl bg-white border border-[#eadfca] p-3">
+
+                    <p className="text-[7px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                      Saldo Ujrah Tersedia
+                    </p>
+
+                    <p className="mt-1 text-[18px] font-bold text-[#102a43]">
+                      Rp{' '}
+                      {availableFee.toLocaleString(
+                        'id-ID'
+                      )}
+                    </p>
+
+                  </div>
+
                 </div>
+
               </section>
             )}
 
-            {/* LINK GENERATOR */}
-            <section className="bg-white rounded-[26px] border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-              <div className="flex items-start justify-between">
+            {/* =================================================
+                LINK GENERATOR
+            ================================================= */}
+            <section className="rounded-[28px] bg-white border border-slate-200/70 p-5 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+              <div className="flex items-start justify-between gap-3">
+
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
+
+                  <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
                     Referral Tools
                   </p>
 
                   <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
-                    Tautan Afiliasi
+                    Tautan Fundraiser
                   </h3>
+
                 </div>
 
-                <div className="w-9 h-9 rounded-xl bg-[#f3f6f8] flex items-center justify-center">
-                  <ExternalLink className="w-4 h-4 text-[#102a43]" />
+                <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                  <Link2 className="w-4 h-4 text-[#a37c32]" />
                 </div>
+
               </div>
+
+              <p className="mt-3 text-[9px] leading-relaxed text-slate-500">
+                Gunakan tautan umum untuk mengarahkan
+                orang ke beranda BMA atau pilih campaign
+                tertentu untuk membuat tautan referral
+                khusus.
+              </p>
 
               {/* GENERAL LINK */}
               <div className="mt-5">
-                <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Tautan Umum Platform
+
+                <label className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Tautan Umum {SITE_DOMAIN}
                 </label>
 
-                <div className="mt-2 flex items-center gap-2 p-1.5 rounded-2xl bg-[#f7f8fa] border border-slate-200">
+                <div className="mt-2 flex items-center gap-2 p-1.5 rounded-2xl bg-[#f8f8f6] border border-slate-200">
+
                   <input
                     type="text"
                     readOnly
                     value={defaultReferralLink}
-                    className="min-w-0 flex-1 bg-transparent px-2 text-[10px] font-mono text-slate-600 outline-none truncate"
+                    className="min-w-0 flex-1 bg-transparent px-2 text-[9px] font-mono text-slate-500 outline-none truncate"
                   />
 
                   <button
-                    onClick={() => handleCopy(defaultReferralLink)}
-                    className={`shrink-0 rounded-xl px-3.5 py-2.5 text-[9px] font-bold flex items-center gap-1.5 transition ${
-                      copied
+                    type="button"
+                    onClick={() =>
+                      handleCopy(
+                        defaultReferralLink
+                      )
+                    }
+                    className={`shrink-0 rounded-xl px-3.5 py-2.5 text-[8px] font-bold uppercase tracking-wider flex items-center gap-1.5 transition ${
+                      copiedText ===
+                      defaultReferralLink
                         ? 'bg-emerald-600 text-white'
                         : 'bg-[#102a43] text-white hover:bg-[#173d5d]'
                     }`}
                   >
-                    {copied ? (
+                    {copiedText ===
+                    defaultReferralLink ? (
                       <Check className="w-3.5 h-3.5" />
                     ) : (
                       <Copy className="w-3.5 h-3.5" />
                     )}
 
-                    {copied ? 'Tersalin' : 'Salin'}
+                    {copiedText ===
+                    defaultReferralLink
+                      ? 'Tersalin'
+                      : 'Salin'}
                   </button>
+
                 </div>
+
               </div>
 
               {/* CAMPAIGN SELECTOR */}
               <div className="mt-5 pt-5 border-t border-slate-100">
-                <label className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+
+                <label className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400">
                   Campaign Spesifik
                 </label>
 
+                {/* SEARCH */}
                 <div className="relative mt-2">
-                  <Search className="absolute left-3.5 top-3 w-3.5 h-3.5 text-slate-400" />
+
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
 
                   <input
                     type="text"
-                    placeholder="Cari campaign..."
+                    placeholder="Cari program BMA..."
                     value={searchProgram}
                     onChange={(e) =>
-                      setSearchProgram(e.target.value)
+                      setSearchProgram(
+                        e.target.value
+                      )
                     }
-                    className="w-full rounded-xl bg-[#f7f8fa] border border-slate-200 pl-10 pr-3 py-3 text-[10px] font-medium text-slate-700 outline-none transition focus:border-[#9b7528]"
+                    className="w-full h-11 rounded-xl bg-[#f8f8f6] border border-slate-200 pl-10 pr-3 text-[9px] font-medium text-slate-700 outline-none transition focus:bg-white focus:border-[#a37c32] focus:ring-4 focus:ring-[#a37c32]/8"
                   />
+
                 </div>
 
+                {/* SELECT */}
                 <div className="relative mt-2">
+
                   <select
                     value={selectedSlug}
                     onChange={(e) => {
-                      setSelectedSlug(e.target.value);
-                      setCopied(false);
+                      setSelectedSlug(
+                        e.target.value
+                      );
+
+                      setCopiedText('');
                     }}
-                    className="appearance-none w-full rounded-xl bg-[#f7f8fa] border border-slate-200 px-3.5 py-3 text-[10px] font-semibold text-slate-700 outline-none focus:border-[#9b7528]"
+                    className="appearance-none w-full h-11 rounded-xl bg-[#f8f8f6] border border-slate-200 px-3.5 pr-10 text-[9px] font-semibold text-slate-700 outline-none transition focus:bg-white focus:border-[#a37c32]"
                   >
+
                     <option value="">
-                      Pilih dari {filteredPrograms.length} campaign
+                      Pilih dari{' '}
+                      {filteredPrograms.length}{' '}
+                      program
                     </option>
 
                     {filteredPrograms.map(
-                      (prog: any, index: number) => (
+                      (
+                        prog: any,
+                        index: number
+                      ) => (
                         <option
-                          key={prog._id || index}
-                          value={prog.slug}
+                          key={
+                            prog._id || index
+                          }
+                          value={
+                            prog.slug
+                          }
                         >
                           {prog.title}
                         </option>
                       )
                     )}
+
                   </select>
 
-                  <ChevronDown className="pointer-events-none absolute right-3.5 top-3.5 w-3.5 h-3.5 text-slate-400" />
+                  <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+
                 </div>
 
                 {/* GENERATED LINK */}
                 {selectedSlug &&
                   (() => {
-                    const affiliateUrl = `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
+                    const affiliateUrl =
+                      `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
+
+                    const isCopied =
+                      copiedText ===
+                      affiliateUrl;
 
                     return (
-                      <div className="mt-3 rounded-2xl bg-[#f8f7f3] border border-[#eee9dc] p-3.5">
+                      <div className="mt-3 rounded-2xl bg-[#f7f2e7]/60 border border-[#eadfca] p-3.5">
+
                         <div className="flex items-center justify-between gap-3">
+
                           <div>
-                            <p className="text-[8px] font-bold uppercase tracking-wider text-[#9b7528]">
-                              Link Campaign
+
+                            <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-[#98752d]">
+                              Tautan Campaign
                             </p>
 
-                            <p className="mt-1 text-[9px] text-slate-500">
+                            <p className="mt-1 text-[8px] text-slate-400">
                               Siap dibagikan
                             </p>
+
                           </div>
 
                           <button
                             type="button"
                             onClick={() =>
-                              handleCopy(affiliateUrl)
+                              handleCopy(
+                                affiliateUrl
+                              )
                             }
-                            className={`rounded-xl px-3 py-2 text-[9px] font-bold flex items-center gap-1.5 text-white ${
-                              copied
+                            className={`rounded-xl px-3 py-2 text-[8px] font-bold uppercase tracking-wider flex items-center gap-1.5 text-white transition ${
+                              isCopied
                                 ? 'bg-emerald-600'
-                                : 'bg-[#102a43]'
+                                : 'bg-[#102a43] hover:bg-[#173d5d]'
                             }`}
                           >
-                            {copied ? (
+                            {isCopied ? (
                               <>
                                 <Check className="w-3 h-3" />
                                 Tersalin
@@ -506,103 +807,180 @@ export default function ReferralPage() {
                               </>
                             )}
                           </button>
+
                         </div>
 
                         <div className="mt-3 rounded-xl bg-white border border-slate-200 px-3 py-2.5">
-                          <p className="text-[9px] font-mono text-slate-500 truncate">
+
+                          <p className="text-[8px] font-mono text-slate-500 truncate select-all">
                             {affiliateUrl}
                           </p>
+
                         </div>
+
                       </div>
                     );
                   })()}
+
               </div>
+
             </section>
 
-            {/* HISTORY */}
-            <section className="bg-white rounded-[26px] border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
-              <div className="px-5 py-5 flex items-center justify-between border-b border-slate-100">
+            {/* =================================================
+                HISTORY
+            ================================================= */}
+            <section className="rounded-[28px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+
+              <div className="px-5 py-5 flex items-center justify-between gap-3 border-b border-slate-100">
+
                 <div>
-                  <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
-                    Activity
+
+                  <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+                    Aktivitas
                   </p>
 
                   <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
                     Riwayat Dukungan
                   </h3>
+
                 </div>
 
-                <TrendingUp className="w-4 h-4 text-[#9b7528]" />
+                <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                  <TrendingUp className="w-4 h-4 text-[#a37c32]" />
+                </div>
+
               </div>
 
               {stats?.history &&
               stats.history.length > 0 ? (
                 <div className="divide-y divide-slate-100 max-h-72 overflow-y-auto">
+
                   {stats.history.map(
-                    (item: any, idx: number) => (
+                    (
+                      item: any,
+                      idx: number
+                    ) => (
                       <div
                         key={idx}
                         className="px-5 py-4 flex items-center gap-3"
                       >
+
                         <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
                           <Check className="w-4 h-4 text-emerald-600" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <p className="text-[11px] font-bold text-slate-800 truncate">
-                            {item.donorName}
+
+                          <p className="text-[10px] font-bold text-slate-700 truncate">
+                            {item.donorName ||
+                              'Hamba Allah'}
                           </p>
 
-                          <p className="mt-1 text-[9px] text-slate-400 truncate">
+                          <p className="mt-1 text-[8px] text-slate-400 truncate">
                             {item.programTitle ||
-                              'Sedekah Umum'}
+                              'Sedekah Umum BMA'}
                           </p>
+
                         </div>
 
                         <div className="text-right shrink-0">
-                          <p className="text-[11px] font-bold text-emerald-600">
+
+                          <p className="text-[10px] font-bold text-emerald-600">
                             +Rp{' '}
-                            {Number(item.amount).toLocaleString(
+                            {Number(
+                              item.amount || 0
+                            ).toLocaleString(
                               'id-ID'
                             )}
                           </p>
 
-                          <p className="mt-1 text-[8px] text-slate-400">
+                          <p className="mt-1 text-[7px] font-semibold uppercase tracking-wider text-slate-400">
                             Berhasil
                           </p>
+
                         </div>
+
                       </div>
                     )
                   )}
+
                 </div>
               ) : (
                 <div className="px-5 py-10 text-center">
-                  <div className="w-11 h-11 rounded-2xl bg-slate-50 mx-auto flex items-center justify-center">
-                    <Wallet className="w-5 h-5 text-slate-300" />
+
+                  <div className="w-12 h-12 rounded-2xl bg-[#f7f2e7] mx-auto flex items-center justify-center">
+                    <Wallet className="w-5 h-5 text-[#a37c32]" />
                   </div>
 
-                  <p className="mt-3 text-[11px] font-semibold text-slate-500">
-                    Belum ada transaksi
+                  <h4 className="mt-4 text-[11px] font-bold text-[#102a43]">
+                    Belum Ada Transaksi
+                  </h4>
+
+                  <p className="mt-2 text-[9px] leading-relaxed text-slate-400">
+                    Donasi yang masuk melalui
+                    tautan fundraiser Anda akan
+                    tampil pada bagian ini.
                   </p>
 
-                  <p className="mt-1 text-[9px] leading-relaxed text-slate-400">
-                    Transaksi melalui tautan afiliasi Anda
-                    akan muncul di sini.
-                  </p>
                 </div>
               )}
+
             </section>
 
-            {/* FOOTNOTE */}
-            <div className="text-center px-6 pt-1">
-              <p className="text-[8px] leading-relaxed text-slate-400">
-                Terima kasih telah menjadi bagian dari gerakan
-                kebaikan dan membantu memperluas manfaat.
-              </p>
-            </div>
+            {/* =================================================
+                INFO
+            ================================================= */}
+            <section className="rounded-[22px] border border-[#eadfca] bg-[#f7f2e7]/60 p-4">
+
+              <div className="flex items-start gap-3">
+
+                <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#a37c32]" />
+
+                <div>
+
+                  <p className="text-[9px] font-bold text-[#102a43]">
+                    Tautan Referral Pribadi
+                  </p>
+
+                  <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
+                    Parameter referral dibuat dari
+                    nomor WhatsApp yang tersimpan pada
+                    akun Anda. Pastikan nomor tersebut
+                    benar agar pencatatan fundraiser
+                    berjalan sesuai sistem.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </section>
+
           </>
         )}
+
+        {/* =====================================================
+            BRAND FOOTER
+        ====================================================== */}
+        <div className="text-center px-6 pt-1 pb-3">
+
+          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+            {SITE_NAME}
+          </p>
+
+          <p className="mt-1 text-[7px] text-slate-300">
+            {SITE_DOMAIN} • {SITE_LOCATION}
+          </p>
+
+          <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
+            Terima kasih telah membantu memperluas
+            manfaat dan gerakan kebaikan bersama BMA.
+          </p>
+
+        </div>
+
       </div>
+
     </div>
   );
 }
