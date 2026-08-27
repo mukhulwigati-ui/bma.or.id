@@ -25,10 +25,6 @@ import {
   createBrowserClient,
 } from '@supabase/ssr';
 
-// ============================================================
-// TYPES
-// ============================================================
-
 interface NavItem {
   label: string;
   href: string;
@@ -40,10 +36,6 @@ interface NavItem {
   badge?: string;
 }
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function BottomNav() {
   const pathname =
     usePathname();
@@ -53,10 +45,6 @@ export default function BottomNav() {
     setShowLoginModal,
   ] =
     useState(false);
-
-  // ==========================================================
-  // SUPABASE
-  // ==========================================================
 
   const supabase =
     useMemo(
@@ -70,10 +58,7 @@ export default function BottomNav() {
       []
     );
 
-  // ==========================================================
-  // HIDE NAVIGATION
-  // ==========================================================
-
+  // Sembunyikan di detail campaign & studio
   if (
     !pathname ||
     pathname.startsWith(
@@ -86,51 +71,30 @@ export default function BottomNav() {
     return null;
   }
 
-  // ==========================================================
-  // NAV ITEMS
-  // ==========================================================
-
   const navItems:
     NavItem[] = [
     {
-      label:
-        'Home',
-      href:
-        '/',
-      icon:
-        Home,
+      label: 'Home',
+      href: '/',
+      icon: Home,
     },
     {
-      label:
-        'Donasi Saya',
-      href:
-        '/donasi-saya',
-      icon:
-        HeartHandshake,
+      label: 'Donasi Saya',
+      href: '/donasi-saya',
+      icon: HeartHandshake,
     },
     {
-      label:
-        'Berita',
-      href:
-        '/news',
-      icon:
-        Newspaper,
-      badge:
-        '21.8k',
+      label: 'Berita',
+      href: '/news',
+      icon: Newspaper,
+      badge: '21.8k',
     },
     {
-      label:
-        'Akun',
-      href:
-        '/akun',
-      icon:
-        User,
+      label: 'Akun',
+      href: '/akun',
+      icon: User,
     },
   ];
-
-  // ==========================================================
-  // CHECK AUTH
-  // ==========================================================
 
   const handleNavClick =
     async (
@@ -139,7 +103,6 @@ export default function BottomNav() {
       href:
         string
     ) => {
-      // Hanya menu Akun yang butuh pengecekan login
       if (
         href !==
         '/akun'
@@ -155,16 +118,12 @@ export default function BottomNav() {
         } =
           await supabase.auth.getUser();
 
-        // Sudah login:
-        // biarkan Link navigasi normal.
         if (
           user
         ) {
           return;
         }
 
-        // Belum login:
-        // tahan navigasi dan tampilkan modal.
         e.preventDefault();
 
         setShowLoginModal(
@@ -186,14 +145,10 @@ export default function BottomNav() {
       }
     };
 
-  // ==========================================================
-  // RENDER
-  // ==========================================================
-
   return (
     <>
       {/* ======================================================
-          FIXED BOTTOM NAV
+          BOTTOM NAV
       ====================================================== */}
 
       <div
@@ -213,8 +168,8 @@ export default function BottomNav() {
           className="
             pointer-events-auto
             flex
-            w-[calc(100%-0.75rem)]
-            max-w-[35rem]
+            w-[calc(100%-0.5rem)]
+            max-w-[29rem]
             items-center
             justify-around
             border-x
@@ -222,8 +177,8 @@ export default function BottomNav() {
             border-[#d8dedb]
             bg-white
             px-1
-            py-2
-            shadow-[0_-5px_18px_rgba(0,0,0,0.08)]
+            py-1.5
+            shadow-[0_-4px_14px_rgba(0,0,0,0.07)]
           "
         >
           {navItems.map(
@@ -262,7 +217,7 @@ export default function BottomNav() {
                     items-center
                     justify-center
                     px-1
-                    py-1.5
+                    py-1
                     transition-colors
                     ${
                       isActive
@@ -274,10 +229,10 @@ export default function BottomNav() {
                   <div className="relative">
 
                     <Icon
-                      className="h-[21px] w-[21px]"
+                      className="h-5 w-5"
                       strokeWidth={
                         isActive
-                          ? 2.4
+                          ? 2.3
                           : 1.8
                       }
                     />
@@ -309,9 +264,9 @@ export default function BottomNav() {
 
                   <span
                     className={`
-                      mt-1
+                      mt-0.5
                       truncate
-                      text-[12px]
+                      text-[11px]
                       tracking-tight
                       ${
                         isActive
@@ -351,7 +306,6 @@ export default function BottomNav() {
           "
         >
 
-          {/* BACKDROP CLICK */}
           <button
             type="button"
             aria-label="Tutup modal"
@@ -367,13 +321,12 @@ export default function BottomNav() {
             "
           />
 
-          {/* MODAL */}
           <section
             className="
               relative
               z-10
-              w-[calc(100%-0.75rem)]
-              max-w-[35rem]
+              w-[calc(100%-1rem)]
+              max-w-md
               border
               border-[#d4d8d5]
               bg-white
@@ -383,7 +336,6 @@ export default function BottomNav() {
             "
           >
 
-            {/* CLOSE */}
             <button
               type="button"
               onClick={() =>
@@ -413,7 +365,6 @@ export default function BottomNav() {
               <X className="h-4 w-4" />
             </button>
 
-            {/* IMAGE */}
             <div className="flex flex-col items-center">
 
               <img
@@ -421,15 +372,14 @@ export default function BottomNav() {
                 alt="Silakan masuk"
                 className="
                   mb-5
-                  h-44
-                  w-44
+                  h-40
+                  w-40
                   object-contain
-                  sm:h-48
-                  sm:w-48
+                  sm:h-44
+                  sm:w-44
                 "
               />
 
-              {/* TITLE */}
               <h2
                 className="
                   text-[18px]
@@ -441,11 +391,10 @@ export default function BottomNav() {
                 Silakan Masuk
               </h2>
 
-              {/* DESCRIPTION */}
               <p
                 className="
                   mt-2
-                  max-w-[420px]
+                  max-w-[390px]
                   px-2
                   text-[13px]
                   leading-[1.7]
@@ -458,7 +407,6 @@ export default function BottomNav() {
                 aktivitas, dan layanan akun Anda.
               </p>
 
-              {/* LOGIN BUTTON */}
               <Link
                 href="/login"
                 onClick={() =>
