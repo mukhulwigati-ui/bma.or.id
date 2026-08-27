@@ -2,11 +2,7 @@
 
 'use client';
 
-import React, {
-  useMemo,
-  useState,
-} from 'react';
-
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -18,9 +14,7 @@ import {
   X,
 } from 'lucide-react';
 
-import {
-  createBrowserClient,
-} from '@supabase/ssr';
+import { createBrowserClient } from '@supabase/ssr';
 
 // ============================================================
 // TYPES
@@ -29,12 +23,10 @@ import {
 interface NavItem {
   label: string;
   href: string;
-
   icon: React.ComponentType<{
     className?: string;
     strokeWidth?: number;
   }>;
-
   badge?: string;
 }
 
@@ -43,30 +35,22 @@ interface NavItem {
 // ============================================================
 
 export default function BottomNav() {
-  const pathname =
-    usePathname();
+  const pathname = usePathname();
 
-  const [
-    showLoginModal,
-    setShowLoginModal,
-  ] =
-    useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // ==========================================================
   // SUPABASE CLIENT
   // ==========================================================
 
-  const supabase =
-    useMemo(
-      () =>
-        createBrowserClient(
-          process.env
-            .NEXT_PUBLIC_SUPABASE_URL!,
-          process.env
-            .NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        ),
-      []
-    );
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
+  );
 
   // ==========================================================
   // HIDE NAV
@@ -79,15 +63,9 @@ export default function BottomNav() {
 
   if (
     !pathname ||
-    pathname.startsWith(
-      '/campaign/'
-    ) ||
-    pathname.startsWith(
-      '/studio'
-    ) ||
-    pathname.startsWith(
-      '/auth/'
-    )
+    pathname.startsWith('/campaign/') ||
+    pathname.startsWith('/studio') ||
+    pathname.startsWith('/auth/')
   ) {
     return null;
   }
@@ -96,53 +74,27 @@ export default function BottomNav() {
   // NAVIGATION ITEMS
   // ==========================================================
 
-  const navItems:
-    NavItem[] = [
+  const navItems: NavItem[] = [
     {
-      label:
-        'Home',
-
-      href:
-        '/',
-
-      icon:
-        Home,
+      label: 'Home',
+      href: '/',
+      icon: Home,
     },
-
     {
-      label:
-        'Donasi Saya',
-
-      href:
-        '/donasi-saya',
-
-      icon:
-        HeartHandshake,
+      label: 'Donasi Saya',
+      href: '/donasi-saya',
+      icon: HeartHandshake,
     },
-
     {
-      label:
-        'Berita',
-
-      href:
-        '/news',
-
-      icon:
-        Newspaper,
-
-      badge:
-        '21.8k',
+      label: 'Berita',
+      href: '/news',
+      icon: Newspaper,
+      badge: '21.8k',
     },
-
     {
-      label:
-        'Akun',
-
-      href:
-        '/akun',
-
-      icon:
-        User,
+      label: 'Akun',
+      href: '/akun',
+      icon: User,
     },
   ];
 
@@ -150,60 +102,35 @@ export default function BottomNav() {
   // AUTH CHECK UNTUK MENU AKUN
   // ==========================================================
 
-  const handleNavClick =
-    async (
-      e:
-        React.MouseEvent<HTMLAnchorElement>,
+  const handleNavClick = async (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    // Menu selain Akun langsung jalan normal
+    if (href !== '/akun') {
+      return;
+    }
 
-      href:
-        string
-    ) => {
-      // Menu selain Akun langsung jalan normal
-      if (
-        href !==
-        '/akun'
-      ) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // Sudah login
+      if (user) {
         return;
       }
 
-      try {
-        const {
-          data: {
-            user,
-          },
-        } =
-          await supabase
-            .auth
-            .getUser();
+      // Belum login
+      e.preventDefault();
+      setShowLoginModal(true);
+    } catch (error) {
+      console.error('BottomNav auth check error:', error);
 
-        // Sudah login
-        if (
-          user
-        ) {
-          return;
-        }
-
-        // Belum login
-        e.preventDefault();
-
-        setShowLoginModal(
-          true
-        );
-      } catch (
-        error
-      ) {
-        console.error(
-          'BottomNav auth check error:',
-          error
-        );
-
-        e.preventDefault();
-
-        setShowLoginModal(
-          true
-        );
-      }
-    };
+      e.preventDefault();
+      setShowLoginModal(true);
+    }
+  };
 
   // ==========================================================
   // RENDER
@@ -211,7 +138,6 @@ export default function BottomNav() {
 
   return (
     <>
-
       {/* ======================================================
           BOTTOM NAVIGATION
       ====================================================== */}
@@ -229,167 +155,131 @@ export default function BottomNav() {
           px-3
         "
       >
-
         <nav
           aria-label="Navigasi bawah"
           className="
             pointer-events-auto
             flex
             w-full
-            max-w-md
+            max-w-[420px]
             items-center
             border-x
             border-t
             border-[#d6ddd9]
             bg-white
             px-1
-            py-1.5
-            shadow-[0_-4px_16px_rgba(0,0,0,0.07)]
+            py-1
+            shadow-[0_-4px_14px_rgba(0,0,0,0.06)]
           "
         >
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
 
-          {navItems.map(
-            (
-              item,
-              index
-            ) => {
-              const Icon =
-                item.icon;
+            // =================================================
+            // ACTIVE STATE
+            // =================================================
 
-              // =================================================
-              // ACTIVE STATE
-              // =================================================
+            const isActive =
+              item.href === '/'
+                ? pathname === '/'
+                : pathname === item.href ||
+                  pathname.startsWith(`${item.href}/`);
 
-              const isActive =
-                item.href === '/'
-                  ? pathname === '/'
-                  : pathname ===
-                      item.href ||
-                    pathname.startsWith(
-                      `${item.href}/`
-                    );
+            return (
+              <Link
+                key={`${item.href}-${index}`}
+                href={item.href}
+                onClick={(e) => handleNavClick(e, item.href)}
+                className={`
+                  flex
+                  min-w-0
+                  flex-1
+                  flex-col
+                  items-center
+                  justify-center
+                  py-1
+                  transition-colors
+                  duration-200
 
-              return (
-                <Link
-                  key={
-                    `${item.href}-${index}`
+                  ${
+                    isActive
+                      ? 'text-[#073f2e]'
+                      : 'text-[#6f8196] hover:text-[#073f2e]'
                   }
-                  href={
-                    item.href
-                  }
-                  onClick={(
-                    e
-                  ) =>
-                    handleNavClick(
-                      e,
-                      item.href
-                    )
-                  }
-                  className={`
+                `}
+              >
+                {/* =============================================
+                    ICON
+                ============================================== */}
+
+                <div
+                  className="
+                    relative
                     flex
-                    min-w-0
-                    flex-1
-                    flex-col
+                    h-6
                     items-center
                     justify-center
-                    py-1.5
-                    transition-colors
-                    duration-200
+                  "
+                >
+                  <Icon
+                    className="
+                      h-[21px]
+                      w-[21px]
+                    "
+                    strokeWidth={isActive ? 2.4 : 1.8}
+                  />
+
+                  {/* BADGE */}
+                  {item.badge && (
+                    <span
+                      className="
+                        absolute
+                        -right-[18px]
+                        -top-[7px]
+                        min-w-[31px]
+                        border
+                        border-white
+                        bg-[#ff315f]
+                        px-1
+                        py-[2px]
+                        text-center
+                        text-[9px]
+                        font-bold
+                        leading-none
+                        text-white
+                      "
+                    >
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+
+                {/* =============================================
+                    LABEL
+                ============================================== */}
+
+                <span
+                  className={`
+                    mt-0.5
+                    max-w-full
+                    truncate
+                    text-[11px]
+                    leading-tight
+                    tracking-tight
 
                     ${
                       isActive
-                        ? 'text-[#073f2e]'
-                        : 'text-[#6f8196] hover:text-[#073f2e]'
+                        ? 'font-semibold'
+                        : 'font-normal'
                     }
                   `}
                 >
-
-                  {/* =============================================
-                      ICON
-                  ============================================== */}
-
-                  <div
-                    className="
-                      relative
-                      flex
-                      h-6
-                      items-center
-                      justify-center
-                    "
-                  >
-
-                    <Icon
-                      className="
-                        h-[21px]
-                        w-[21px]
-                      "
-                      strokeWidth={
-                        isActive
-                          ? 2.4
-                          : 1.8
-                      }
-                    />
-
-                    {/* BADGE */}
-                    {item.badge && (
-                      <span
-                        className="
-                          absolute
-                          -right-[18px]
-                          -top-[7px]
-                          min-w-[31px]
-                          border
-                          border-white
-                          bg-[#ff315f]
-                          px-1
-                          py-[2px]
-                          text-center
-                          text-[9px]
-                          font-bold
-                          leading-none
-                          text-white
-                        "
-                      >
-                        {
-                          item.badge
-                        }
-                      </span>
-                    )}
-
-                  </div>
-
-                  {/* =============================================
-                      LABEL
-                  ============================================== */}
-
-                  <span
-                    className={`
-                      mt-0.5
-                      max-w-full
-                      truncate
-                      text-[11px]
-                      leading-tight
-                      tracking-tight
-
-                      ${
-                        isActive
-                          ? 'font-semibold'
-                          : 'font-normal'
-                      }
-                    `}
-                  >
-                    {
-                      item.label
-                    }
-                  </span>
-
-                </Link>
-              );
-            }
-          )}
-
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
         </nav>
-
       </div>
 
       {/* ======================================================
@@ -397,7 +287,6 @@ export default function BottomNav() {
       ====================================================== */}
 
       {showLoginModal && (
-
         <div
           className="
             fixed
@@ -411,7 +300,6 @@ export default function BottomNav() {
             backdrop-blur-[2px]
           "
         >
-
           {/* ==================================================
               BACKDROP
           =================================================== */}
@@ -419,11 +307,7 @@ export default function BottomNav() {
           <button
             type="button"
             aria-label="Tutup modal"
-            onClick={() =>
-              setShowLoginModal(
-                false
-              )
-            }
+            onClick={() => setShowLoginModal(false)}
             className="
               absolute
               inset-0
@@ -449,18 +333,13 @@ export default function BottomNav() {
               shadow-[0_24px_60px_rgba(0,0,0,0.24)]
             "
           >
-
             {/* ================================================
                 CLOSE
             ================================================= */}
 
             <button
               type="button"
-              onClick={() =>
-                setShowLoginModal(
-                  false
-                )
-              }
+              onClick={() => setShowLoginModal(false)}
               aria-label="Tutup"
               className="
                 absolute
@@ -480,12 +359,7 @@ export default function BottomNav() {
                 hover:text-slate-700
               "
             >
-              <X
-                className="
-                  h-4
-                  w-4
-                "
-              />
+              <X className="h-4 w-4" />
             </button>
 
             {/* ================================================
@@ -499,7 +373,6 @@ export default function BottomNav() {
                 items-center
               "
             >
-
               {/* IMAGE */}
 
               <img
@@ -539,21 +412,16 @@ export default function BottomNav() {
                   text-slate-600
                 "
               >
-                Anda belum masuk ke akun BMA.
-                Silakan login terlebih dahulu
-                untuk melihat profil, riwayat
-                donasi, dan layanan akun Anda.
+                Anda belum masuk ke akun BMA. Silakan login terlebih
+                dahulu untuk melihat profil, riwayat donasi, dan layanan
+                akun Anda.
               </p>
 
               {/* LOGIN BUTTON */}
 
               <Link
                 href="/login"
-                onClick={() =>
-                  setShowLoginModal(
-                    false
-                  )
-                }
+                onClick={() => setShowLoginModal(false)}
                 className="
                   mt-5
                   flex
@@ -576,14 +444,10 @@ export default function BottomNav() {
               >
                 Masuk ke Akun
               </Link>
-
             </div>
-
           </section>
-
         </div>
       )}
-
     </>
   );
 }
