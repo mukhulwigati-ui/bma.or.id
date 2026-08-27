@@ -201,7 +201,7 @@ const portableTextComponents = {
     blockquote: ({
       children,
     }: any) => (
-      <blockquote className="my-5 border-l-4 border-[#999999] bg-[#eeeeee] px-4 py-3 text-sm italic leading-relaxed text-[#555555]">
+      <blockquote className="my-5 border-l-4 border-[#0b6b45] bg-[#eef6f1] px-4 py-3 text-sm italic leading-relaxed text-[#555555]">
         {children}
       </blockquote>
     ),
@@ -241,7 +241,7 @@ function DetailHeader({
     useRouter();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-[#c9c9c9] bg-[#dedede] shadow-sm">
+    <header className="sticky top-0 z-50 w-full border-b border-[#043524] bg-[#073f2e] shadow-[0_2px_12px_rgba(0,0,0,0.12)]">
 
       <div className="mx-auto flex h-14 w-full max-w-md items-center justify-between px-3">
 
@@ -251,7 +251,7 @@ function DetailHeader({
           onClick={() =>
             router.back()
           }
-          className="flex h-9 w-9 items-center justify-center border border-[#c6c6c6] bg-[#f5f5f5] text-[#555555] transition hover:bg-white hover:text-[#333333]"
+          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
           aria-label="Kembali"
         >
           <ArrowLeft className="h-4.5 w-4.5" />
@@ -260,11 +260,11 @@ function DetailHeader({
         {/* TITLE */}
         <div className="min-w-0 flex-1 px-3 text-center">
 
-          <p className="truncate text-[8px] font-bold uppercase tracking-[0.15em] text-[#888888]">
+          <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-200/80">
             {SITE_DOMAIN}
           </p>
 
-          <h1 className="truncate text-[12px] font-bold tracking-tight text-[#454545] sm:text-sm">
+          <h1 className="truncate text-[14px] font-bold tracking-tight text-white sm:text-[15px]">
             {title}
           </h1>
 
@@ -276,7 +276,7 @@ function DetailHeader({
           onClick={
             onOpenShare
           }
-          className="flex h-9 w-9 items-center justify-center border border-[#c6c6c6] bg-[#f5f5f5] text-[#555555] transition hover:bg-white hover:text-[#333333]"
+          className="flex h-10 w-10 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
           aria-label="Bagikan"
         >
           <Share2 className="h-4.5 w-4.5" />
@@ -449,17 +449,17 @@ function EmbeddedZakatCalculator({
     <section className="my-5 overflow-hidden border border-[#d4d4d4] bg-white">
 
       {/* HEADER */}
-      <div className="flex items-center gap-2.5 border-b border-[#d5d5d5] bg-[#e5e5e5] px-4 py-3">
+      <div className="flex items-center gap-3 border-b border-[#06452f] bg-[#073f2e] px-4 py-3.5">
 
-        <Calculator className="h-4 w-4 text-[#666666]" />
+        <Calculator className="h-5 w-5 text-emerald-200" />
 
         <div>
 
-          <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-[#888888]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-200/80">
             Fasilitas BMA
           </p>
 
-          <h3 className="text-[12px] font-bold text-[#444444]">
+          <h3 className="text-[14px] font-bold text-white">
             Kalkulator Zakat
           </h3>
 
@@ -468,7 +468,7 @@ function EmbeddedZakatCalculator({
       </div>
 
       {/* TABS */}
-      <div className="grid grid-cols-3 border-b border-[#d6d6d6] bg-[#eeeeee]">
+      <div className="grid grid-cols-3 border-b border-[#d8e2dc] bg-[#eef4f0]">
 
         {[
           {
@@ -500,11 +500,11 @@ function EmbeddedZakatCalculator({
                     | 'emas'
                 )
               }
-              className={`border-r border-[#d4d4d4] px-2 py-3 text-[9px] font-bold uppercase tracking-[0.1em] transition last:border-r-0 ${
+              className={`border-r border-[#d4d4d4] px-2 py-3 text-[11px] font-bold uppercase tracking-[0.1em] transition last:border-r-0 ${
                 activeTab ===
                 tab.id
-                  ? 'bg-white text-[#3e3e3e] border-b-2 border-b-[#d9232e]'
-                  : 'text-[#888888] hover:bg-[#e7e7e7]'
+                  ? 'bg-white text-[#073f2e] border-b-[3px] border-b-[#0b6b45]'
+                  : 'text-[#65736b] hover:bg-[#e5eee9]'
               }`}
             >
               {tab.label}
@@ -636,29 +636,29 @@ function EmbeddedZakatCalculator({
         )}
 
         {/* NISHAB */}
-        <div className="border border-[#d7d7d7] bg-[#eeeeee] px-3 py-2.5">
+        <div className="border border-[#d5e1da] bg-[#eef5f1] px-3 py-3">
 
-          <p className="text-[9px] leading-relaxed text-[#777777]">
+          <p className="text-[11px] leading-relaxed text-[#777777]">
             {nishabText}
           </p>
 
         </div>
 
         {/* RESULT */}
-        <div className="border border-[#cecece] bg-[#e2e2e2] p-4 text-center">
+        <div className="border border-[#06452f] bg-[#073f2e] p-5 text-center shadow-sm">
 
-          <span className="block text-[8px] font-bold uppercase tracking-[0.14em] text-[#777777]">
+          <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200/80">
             Estimasi Zakat
           </span>
 
-          <strong className="mt-1 block text-xl font-bold text-[#3f3f3f]">
+          <strong className="mt-1.5 block text-2xl font-extrabold text-white">
             Rp{' '}
             {formatRupiah(
               totalZakat
             )}
           </strong>
 
-          <p className="mt-1 text-[9px] text-[#888888]">
+          <p className="mt-1.5 text-[11px] text-emerald-100/80">
             {isWajib
               ? 'Perhitungan telah mencapai batas nishab.'
               : 'Nilai belum mencapai batas nishab.'}
@@ -677,14 +677,14 @@ function EmbeddedZakatCalculator({
                 )
               )
             }
-            className="mt-3 w-full bg-[#d9232e] py-3 text-[9px] font-bold uppercase tracking-[0.13em] text-white transition hover:bg-[#c21e29] disabled:cursor-not-allowed disabled:bg-[#bbbbbb]"
+            className="mt-4 w-full border border-[#d3b300] bg-[#ffd600] py-3.5 text-[11px] font-bold uppercase tracking-[0.13em] text-[#26352d] transition hover:bg-[#f0ca00] disabled:cursor-not-allowed disabled:border-[#9aa69f] disabled:bg-[#9aa69f] disabled:text-white"
           >
             Gunakan Nominal Ini
           </button>
 
         </div>
 
-        <p className="text-center text-[9px] leading-relaxed text-[#999999]">
+        <p className="text-center text-[11px] leading-relaxed text-[#999999]">
           Kalkulator merupakan estimasi awal. Ketentuan zakat tetap memperhatikan nishab, haul, dan kondisi harta.
         </p>
 
@@ -768,8 +768,8 @@ const DonationFormFields = ({
                   }
                   className={`border px-2 py-3 text-[10px] font-bold transition ${
                     selected
-                      ? 'border-[#777777] bg-[#dedede] text-[#333333]'
-                      : 'border-[#d5d5d5] bg-white text-[#666666] hover:bg-[#f1f1f1]'
+                      ? 'border-[#0b6b45] bg-[#e8f2ec] text-[#073f2e]'
+                      : 'border-[#d4ddd8] bg-white text-[#59665f] hover:bg-[#f0f5f2]'
                   }`}
                 >
                   Rp{' '}
@@ -881,11 +881,11 @@ const DonationFormFields = ({
 
       {isLoggedIn ? (
         hasPhone ? (
-          <div className="flex items-center justify-between gap-3 border border-[#d2d2d2] bg-[#eeeeee] p-3.5">
+          <div className="flex items-center justify-between gap-3 border border-[#cdded4] bg-[#edf5f0] p-4">
 
             <div className="min-w-0">
 
-              <span className="block text-[8px] font-bold uppercase tracking-[0.12em] text-[#777777]">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#777777]">
                 Akun Terverifikasi
               </span>
 
@@ -905,7 +905,7 @@ const DonationFormFields = ({
 
           </div>
         ) : (
-          <div className="space-y-3 border border-[#d4d4d4] bg-[#eeeeee] p-4">
+          <div className="space-y-3 border border-[#cdded4] bg-[#edf5f0] p-4">
 
             <div>
 
@@ -913,7 +913,7 @@ const DonationFormFields = ({
                 Lengkapi Nomor WhatsApp
               </p>
 
-              <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
+              <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
                 Nomor digunakan untuk informasi transaksi, kuitansi, dan laporan program.
               </p>
 
@@ -946,7 +946,7 @@ const DonationFormFields = ({
                 disabled={
                   savingPhone
                 }
-                className="shrink-0 bg-[#555555] px-4 py-2.5 text-[9px] font-bold uppercase text-white transition hover:bg-[#444444] disabled:opacity-50"
+                className="shrink-0 bg-[#073f2e] px-4 py-2.5 text-[11px] font-bold uppercase text-white transition hover:bg-[#052f22] disabled:opacity-50"
               >
                 {savingPhone
                   ? 'Menyimpan'
@@ -1051,7 +1051,7 @@ const DonationFormFields = ({
 
       </button>
 
-      <p className="text-center text-[8px] leading-relaxed text-[#999999]">
+      <p className="text-center text-[10px] leading-relaxed text-[#999999]">
         Transaksi diproses melalui sistem pembayaran yang terintegrasi dengan {SITE_DOMAIN}.
       </p>
 
@@ -1707,7 +1707,7 @@ export default function CampaignDetailClient({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#f2f2f2]">
+      <div className="min-h-screen bg-[#f4f7f5]">
 
         <DetailHeader
           title="Program Donasi"
@@ -1740,7 +1740,7 @@ export default function CampaignDetailClient({
 
   if (!program) {
     return (
-      <div className="min-h-screen bg-[#f2f2f2]">
+      <div className="min-h-screen bg-[#f4f7f5]">
 
         <DetailHeader
           title="Program Donasi"
@@ -1835,7 +1835,7 @@ export default function CampaignDetailClient({
   // ==========================================================
 
   return (
-    <div className="min-h-screen bg-[#f2f2f2] pb-28">
+    <div className="min-h-screen bg-[#f4f7f5] pb-28">
 
       <DetailHeader
         title={
@@ -1878,81 +1878,73 @@ export default function CampaignDetailClient({
           <div className="space-y-4 p-4 sm:p-5">
 
             {program.category && (
-              <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#888888]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#65736b]">
                 {program.category}
               </p>
             )}
 
-            <h1 className="text-[19px] font-bold leading-[1.3] tracking-tight text-[#3b3b3b] sm:text-xl">
+            <h1 className="text-[22px] font-bold leading-[1.3] tracking-tight text-[#2f3c35] sm:text-2xl">
               {program.title}
             </h1>
 
-            {/* DONATION SUMMARY */}
-            <div className="border border-[#d5d5d5] bg-[#eeeeee] p-4">
+           {/* DONATION SUMMARY */}
+<div className="border border-[#06452f] bg-[#073f2e] p-5 shadow-sm">
 
-              <p className="text-[8px] font-bold uppercase tracking-[0.13em] text-[#888888]">
-                Dana Terkumpul
-              </p>
+  {/* LABEL */}
+  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-emerald-200/80">
+    Dana Terkumpul
+  </p>
 
-              <p className="mt-1 text-xl font-bold text-[#444444]">
-                Rp{' '}
-                {formatRupiah(
-                  currentCollected
-                )}
-              </p>
+  {/* NOMINAL */}
+  <p className="mt-1.5 text-2xl font-extrabold tracking-tight text-white sm:text-[26px]">
+    Rp {formatRupiah(currentCollected)}
+  </p>
 
-              <div className="mt-3 flex items-center justify-between gap-3 text-[9px] text-[#777777]">
+  {/* TARGET & SISA HARI */}
+  <div className="mt-4 flex items-center justify-between gap-3 text-[11px] text-emerald-100/80">
 
-                <span>
-                  Target Rp{' '}
-                  <strong className="font-semibold text-[#555555]">
-                    {formatRupiah(
-                      rawTarget
-                    )}
-                  </strong>
-                </span>
+    <span>
+      Target{' '}
+      <strong className="font-bold text-white">
+        Rp {formatRupiah(rawTarget)}
+      </strong>
+    </span>
 
-                {typeof program.daysLeft ===
-                  'number' &&
-                program.daysLeft >
-                  0 ? (
-                  <span className="flex items-center gap-1">
-                    <Clock3 className="h-3 w-3" />
+    {typeof program.daysLeft === 'number' &&
+    program.daysLeft > 0 ? (
+      <span className="flex items-center gap-1.5 font-semibold text-emerald-100">
+        <Clock3 className="h-3.5 w-3.5" />
+        {program.daysLeft} hari lagi
+      </span>
+    ) : null}
 
-                    {
-                      program.daysLeft
-                    }{' '}
-                    hari lagi
-                  </span>
-                ) : null}
+  </div>
 
-              </div>
+  {/* PROGRESS BAR */}
+  <div className="mt-4 h-2.5 w-full overflow-hidden bg-white/15">
 
-              {/* PROGRESS */}
-              <div className="mt-3 h-2 w-full overflow-hidden bg-[#d2d2d2]">
+    <div
+      className="h-full bg-[#27c463] transition-all duration-500"
+      style={{
+        width: `${percentage}%`,
+      }}
+    />
 
-                <div
-                  className="h-full bg-[#d9232e] transition-all duration-500"
-                  style={{
-                    width: `${percentage}%`,
-                  }}
-                />
+  </div>
 
-              </div>
+  {/* PROGRESS INFO */}
+  <div className="mt-3 flex items-center justify-between text-[11px]">
 
-              <div className="mt-2 flex items-center justify-between text-[9px]">
+    <span className="font-semibold text-emerald-100">
+      {percentage}% tercapai
+    </span>
 
-                <span className="font-semibold text-[#777777]">
-                  {percentage}% tercapai
-                </span>
+    <span className="flex items-center gap-1.5 font-semibold text-emerald-100">
+      <Users className="h-4 w-4" />
+      {donors.length} Donatur
+    </span>
 
-                <span className="flex items-center gap-1 font-semibold text-[#777777]">
-                  <Users className="h-3 w-3" />
-
-                  {donors.length} Donatur
-                </span>
-
-              </div>
+  </div>
 
             </div>
 
@@ -1960,7 +1952,7 @@ export default function CampaignDetailClient({
                 TABS
             ================================================== */}
 
-            <div className="grid grid-cols-3 border-b border-[#d3d3d3] bg-[#eeeeee]">
+            <div className="grid grid-cols-3 border border-[#d8e2dc] bg-[#eef4f0]">
 
               {[
                 {
@@ -1996,11 +1988,11 @@ export default function CampaignDetailClient({
                           | 'laporan'
                       )
                     }
-                    className={`border-r border-[#d4d4d4] px-1 py-3 text-[9px] font-bold transition last:border-r-0 ${
+                    className={`border-r border-[#d4d4d4] px-1 py-3 text-[11px] font-bold transition last:border-r-0 ${
                       activeTab ===
                       tab.id
-                        ? 'border-b-2 border-b-[#d9232e] bg-white text-[#444444]'
-                        : 'text-[#888888] hover:bg-[#e7e7e7]'
+                        ? 'border-b-[3px] border-b-[#0b6b45] bg-white text-[#073f2e]'
+                        : 'text-[#65736b] hover:bg-[#e5eee9]'
                     }`}
                   >
                     {tab.label}
@@ -2081,12 +2073,12 @@ export default function CampaignDetailClient({
                           key={
                             index
                           }
-                          className="flex items-center justify-between gap-3 border border-[#dddddd] bg-[#f5f5f5] p-3"
+                          className="flex items-center justify-between gap-3 border border-[#d7e1db] bg-[#f3f7f5] p-3.5"
                         >
 
                           <div className="flex min-w-0 items-center gap-3">
 
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center bg-[#dedede] text-xs font-bold text-[#555555]">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-[#dcebe2] text-sm font-bold text-[#073f2e]">
 
                               {String(
                                 donor.name ||
@@ -2107,7 +2099,7 @@ export default function CampaignDetailClient({
                                   'Hamba Allah'}
                               </p>
 
-                              <p className="mt-0.5 text-[9px] text-[#999999]">
+                              <p className="mt-0.5 text-[11px] text-[#999999]">
                                 {donor.date ||
                                   'Baru saja'}
                               </p>
@@ -2161,7 +2153,7 @@ export default function CampaignDetailClient({
                           key={
                             index
                           }
-                          className="border border-[#dddddd] bg-[#f5f5f5] p-4"
+                          className="border border-[#d7e1db] bg-[#f3f7f5] p-4"
                         >
 
                           <div className="flex items-start justify-between gap-3 border-b border-[#dddddd] pb-2.5">
@@ -2171,7 +2163,7 @@ export default function CampaignDetailClient({
                                 'Laporan Penyaluran'}
                             </h4>
 
-                            <span className="shrink-0 text-[9px] text-[#999999]">
+                            <span className="shrink-0 text-[11px] text-[#999999]">
                               {report.date ||
                                 ''}
                             </span>
@@ -2233,7 +2225,7 @@ export default function CampaignDetailClient({
                 true
               )
             }
-            className="w-full bg-[#d9232e] py-4 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-sm transition hover:bg-[#c51f29] active:scale-[0.995] sm:text-sm"
+            className="w-full bg-[#d9232e] py-4 text-[13px] font-bold uppercase tracking-[0.14em] text-white shadow-[0_4px_14px_rgba(217,35,46,0.22)] transition hover:bg-[#c51f29] active:scale-[0.995] sm:text-sm"
           >
             Donasi Sekarang
           </button>
@@ -2260,15 +2252,15 @@ export default function CampaignDetailClient({
 
           <section className="relative z-10 max-h-[92vh] w-full max-w-md overflow-y-auto border border-[#cccccc] bg-white shadow-2xl">
 
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#d5d5d5] bg-[#e5e5e5] px-4 py-3.5">
+            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-4">
 
               <div>
 
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-[#888888]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#888888]">
                   {SITE_DOMAIN}
                 </p>
 
-                <h3 className="text-[13px] font-bold text-[#444444]">
+                <h3 className="text-[15px] font-bold text-white">
                   Pilih Nominal Donasi
                 </h3>
 
@@ -2281,7 +2273,7 @@ export default function CampaignDetailClient({
                     false
                   )
                 }
-                className="flex h-8 w-8 items-center justify-center border border-[#c8c8c8] bg-[#f7f7f7] text-[#666666] transition hover:bg-white"
+                className="flex h-9 w-9 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
                 aria-label="Tutup"
               >
                 <X className="h-4 w-4" />
@@ -2359,15 +2351,15 @@ export default function CampaignDetailClient({
           <section className="relative z-10 w-full max-w-md border border-[#cccccc] bg-white shadow-2xl">
 
             {/* HEADER */}
-            <div className="flex items-center justify-between border-b border-[#d5d5d5] bg-[#e5e5e5] px-4 py-3.5">
+            <div className="flex items-center justify-between border-b border-[#043524] bg-[#073f2e] px-4 py-4">
 
               <div>
 
-                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-[#888888]">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#888888]">
                   Bagikan Kebaikan
                 </p>
 
-                <h3 className="text-[13px] font-bold text-[#444444]">
+                <h3 className="text-[15px] font-bold text-white">
                   Bagikan Program
                 </h3>
 
@@ -2380,7 +2372,7 @@ export default function CampaignDetailClient({
                     false
                   )
                 }
-                className="flex h-8 w-8 items-center justify-center border border-[#c8c8c8] bg-[#f7f7f7] text-[#666666]"
+                className="flex h-9 w-9 items-center justify-center border border-white/20 bg-white/10 text-white transition hover:bg-white/20"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -2392,7 +2384,7 @@ export default function CampaignDetailClient({
               {/* URL */}
               <div>
 
-                <label className="mb-1.5 block text-[9px] font-semibold text-[#777777]">
+                <label className="mb-1.5 block text-[11px] font-semibold text-[#777777]">
                   Tautan Program
                 </label>
 
@@ -2412,7 +2404,7 @@ export default function CampaignDetailClient({
                     onClick={
                       handleCopyLink
                     }
-                    className="flex shrink-0 items-center gap-1.5 bg-[#555555] px-3.5 py-2.5 text-[9px] font-bold text-white transition hover:bg-[#444444]"
+                    className="flex shrink-0 items-center gap-1.5 bg-[#073f2e] px-3.5 py-2.5 text-[11px] font-bold text-white transition hover:bg-[#052f22]"
                   >
 
                     {copied ? (
@@ -2444,12 +2436,12 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d4d4d4] bg-[#eeeeee] px-2 py-3 text-[#555555] transition hover:bg-[#e5e5e5]"
+                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
                 >
 
                   <MessageCircle className="h-5 w-5" />
 
-                  <span className="mt-1.5 text-[9px] font-bold">
+                  <span className="mt-1.5 text-[11px] font-bold">
                     WhatsApp
                   </span>
 
@@ -2462,7 +2454,7 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d4d4d4] bg-[#eeeeee] px-2 py-3 text-[#555555] transition hover:bg-[#e5e5e5]"
+                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
                 >
 
                   <svg
@@ -2472,7 +2464,7 @@ export default function CampaignDetailClient({
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
 
-                  <span className="mt-1.5 text-[9px] font-bold">
+                  <span className="mt-1.5 text-[11px] font-bold">
                     Facebook
                   </span>
 
@@ -2488,7 +2480,7 @@ export default function CampaignDetailClient({
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center border border-[#d4d4d4] bg-[#eeeeee] px-2 py-3 text-[#555555] transition hover:bg-[#e5e5e5]"
+                  className="flex flex-col items-center justify-center border border-[#d5e0d9] bg-[#eef5f1] px-2 py-3.5 text-[#073f2e] transition hover:bg-[#e4eee8]"
                 >
 
                   <svg
@@ -2498,7 +2490,7 @@ export default function CampaignDetailClient({
                     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                   </svg>
 
-                  <span className="mt-1.5 text-[9px] font-bold">
+                  <span className="mt-1.5 text-[11px] font-bold">
                     Twitter/X
                   </span>
 
