@@ -1,4 +1,4 @@
-// proxy.ts
+// middleware.ts
 
 import {
   createServerClient,
@@ -40,11 +40,6 @@ function isProtectedRoute(
 
 // ============================================================
 // COPY COOKIE DARI RESPONSE SUPABASE KE RESPONSE REDIRECT
-//
-// Ini penting.
-//
-// Jika Supabase melakukan refresh token/session,
-// cookie baru harus ikut dibawa saat kita redirect.
 // ============================================================
 
 function redirectWithCookies(
@@ -74,10 +69,10 @@ function redirectWithCookies(
 }
 
 // ============================================================
-// PROXY
+// MIDDLEWARE (Wajib menggunakan nama 'middleware' agar terbaca Next.js)
 // ============================================================
 
-export async function proxy(
+export async function middleware(
   request: NextRequest
 ) {
   const pathname =
@@ -94,9 +89,6 @@ export async function proxy(
 
   // ==========================================================
   // SUPABASE SERVER CLIENT
-  //
-  // Gunakan getAll / setAll.
-  // Ini pola yang lebih aman untuk @supabase/ssr.
   // ==========================================================
 
   const supabase =
@@ -114,10 +106,6 @@ export async function proxy(
           setAll(
             cookiesToSet
           ) {
-            // ================================================
-            // Update cookie di request
-            // ================================================
-
             cookiesToSet.forEach(
               ({
                 name,
@@ -130,18 +118,10 @@ export async function proxy(
               }
             );
 
-            // ================================================
-            // Buat response baru menggunakan request terbaru
-            // ================================================
-
             response =
               NextResponse.next({
                 request,
               });
-
-            // ================================================
-            // Set cookie baru pada browser
-            // ================================================
 
             cookiesToSet.forEach(
               ({
@@ -163,9 +143,6 @@ export async function proxy(
 
   // ==========================================================
   // VALIDASI USER
-  //
-  // Jangan pakai getSession() untuk proteksi server.
-  // getUser() memvalidasi session terhadap Supabase Auth.
   // ==========================================================
 
   const {
@@ -177,54 +154,14 @@ export async function proxy(
     await supabase.auth.getUser();
 
   if (error) {
-    // Jangan langsung dianggap fatal.
-    // Bisa terjadi ketika belum login.
     console.warn(
-      '[BMA Proxy] Auth:',
+      '[BMA Middleware] Auth:',
       error.message
     );
   }
 
   // ==========================================================
-  // DEBUG SEMENTARA
-  //
-  // Bisa dihapus setelah auth benar-benar stabil.
-  // ==========================================================
-
-  if (
-    process.env.NODE_ENV !==
-    'production'
-  ) {
-    console.log(
-      '[BMA Proxy]',
-      {
-        pathname,
-        authenticated:
-          Boolean(user),
-
-        userId:
-          user?.id ||
-          null,
-
-        email:
-          user?.email ||
-          null,
-      }
-    );
-  }
-
-  // ==========================================================
-  // 1. PROTECTED ROUTES
-  //
-  // Belum login:
-  // /akun
-  // /donasi-saya
-  // /favorit
-  // /kuitansi
-  // /pengaturan
-  // /notifikasi
-  //
-  // diarahkan ke /login
+  // 1. PROTECTED ROUTES (Belum login -> lempar ke /login)
   // ==========================================================
 
   if (
@@ -239,9 +176,6 @@ export async function proxy(
     loginUrl.pathname =
       '/login';
 
-    // Simpan tujuan awal.
-    // Setelah login nanti bisa dikembangkan agar kembali
-    // ke halaman yang sebelumnya ingin dibuka.
     loginUrl.searchParams.set(
       'next',
       pathname
@@ -254,10 +188,7 @@ export async function proxy(
   }
 
   // ==========================================================
-  // 2. JIKA SUDAH LOGIN TAPI MEMBUKA /login
-  //
-  // Jangan tampilkan form login lagi.
-  // Langsung arahkan ke /akun.
+  // 2. SUDAH LOGIN TAPI MEMBUKA /login -> lempar ke /akun
   // ==========================================================
 
   if (
@@ -286,20 +217,6 @@ export async function proxy(
   }
 
   // ==========================================================
-  // 3. AUTH CALLBACK
-  //
-  // Tidak diberi proteksi.
-  // app/auth/callback/route.ts akan menangani:
-  //
-  // exchangeCodeForSession(code)
-  //
-  // Jadi jangan redirect route ini ke /login.
-  // ==========================================================
-
-  // Tidak perlu kondisi tambahan.
-  // Cukup biarkan lewat.
-
-  // ==========================================================
   // RESPONSE NORMAL
   // ==========================================================
 
@@ -308,15 +225,6 @@ export async function proxy(
 
 // ============================================================
 // MATCHER
-//
-// Login sengaja TIDAK dikecualikan.
-//
-// Alasannya:
-// jika user sudah punya session dan membuka /login,
-// proxy harus bisa mengarahkannya ke /akun.
-//
-// /auth juga tetap boleh lewat proxy,
-// tetapi TIDAK termasuk protected route.
 // ============================================================
 
 export const config = {
