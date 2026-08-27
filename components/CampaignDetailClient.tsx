@@ -405,7 +405,8 @@ export default function CampaignDetailClient({ slug, referral }: CampaignDetailC
     }
   };
 
-  // 🚀 PERBAIKAN: Menghilangkan header Authorization ketat agar tidak error Session not found
+  // 🚀 PERBAIKAN: Menghapus header Authorization yang ketat pada fetch ke /api/checkout 
+  // agar transaksinya berjalan mulus tanpa error "Session not found"
   const handleDonate = async () => {
     const cleanAmount = Number(String(amount || '').replace(/[^0-9]/g, ''));
     if (!cleanAmount || isNaN(cleanAmount) || cleanAmount < 1000) {
@@ -683,7 +684,7 @@ export default function CampaignDetailClient({ slug, referral }: CampaignDetailC
               </button>
             </div>
 
-            <div className="space-y-0.5">
+            <div className="space-y-1.5">
               <label className="text-xs sm:text-sm font-semibold text-slate-600 block">Tautan Program</label>
               <div className="flex items-center gap-2">
                 <input 
