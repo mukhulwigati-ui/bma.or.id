@@ -159,9 +159,6 @@ interface ProgramItem {
   id: string;
   title: string;
   slug: string;
-
-  // WAJIB STRING
-  // agar kompatibel dengan CampaignItem
   image: string;
 
   collectedAmount: number;
@@ -206,19 +203,12 @@ function normalizePrograms(
         item.title &&
         item.slug
     )
-
     .map((item) => ({
       id: String(item.id),
 
       title: String(item.title),
 
       slug: String(item.slug),
-
-      // ======================================================
-      // SELALU STRING
-      // Menghindari error:
-      // string | undefined is not assignable to string
-      // ======================================================
 
       image:
         typeof item.image === 'string' &&
@@ -270,21 +260,13 @@ function normalizePrograms(
 // ============================================================
 
 export default async function HomePage() {
-
   let heroBanners: HeroBanner[] = [];
 
   let mendesakPrograms: ProgramItem[] = [];
-
   let unggulanPrograms: ProgramItem[] = [];
-
   let pilihanPrograms: ProgramItem[] = [];
 
   try {
-
-    // ========================================================
-    // QUERY SANITY
-    // ========================================================
-
     const query = `{
       "heroBanners":
         *[
@@ -469,28 +451,18 @@ export default async function HomePage() {
         }
     }`;
 
-    // ========================================================
-    // FETCH DATA
-    // ========================================================
-
     const data =
       await serverClient.fetch<HomeSanityData>(
         query
       );
-
-    // ========================================================
-    // HERO BANNERS
-    // ========================================================
 
     if (
       Array.isArray(
         data?.heroBanners
       )
     ) {
-
       heroBanners =
         data.heroBanners
-
           .filter(
             (item) =>
               Boolean(
@@ -498,7 +470,6 @@ export default async function HomePage() {
                 item?.imageUrl
               )
           )
-
           .map((item) => ({
             _id:
               String(item.id),
@@ -517,10 +488,6 @@ export default async function HomePage() {
           }));
     }
 
-    // ========================================================
-    // PROGRAM
-    // ========================================================
-
     mendesakPrograms =
       normalizePrograms(
         data?.mendesak
@@ -537,16 +504,11 @@ export default async function HomePage() {
       );
 
   } catch (error) {
-
     console.error(
       'Gagal mengambil data homepage BMA dari Sanity:',
       error
     );
   }
-
-  // ==========================================================
-  // RENDER HOMEPAGE
-  // ==========================================================
 
   return (
     <main
@@ -554,7 +516,7 @@ export default async function HomePage() {
         min-h-screen
         w-full
         overflow-x-hidden
-        bg-[#f5f5f4]
+        bg-[#f3f3f3]
         pb-24
       "
     >
@@ -583,13 +545,9 @@ export default async function HomePage() {
 
         {/* ====================================================
             IDENTITAS BMA
-
-            DESAIN BARU:
-            - abu-abu soft
-            - putih
-            - hitam
-            - aksen hijau BMA
-            - tanpa rounded corner
+            ABU-ABU LEBIH TEGAS
+            TANPA GARIS HIJAU
+            TANPA ROUNDED CORNER
         ===================================================== */}
 
         <section
@@ -597,18 +555,15 @@ export default async function HomePage() {
             relative
             overflow-hidden
             border
-            border-stone-200
-            bg-[#eeeeec]
+            border-[#cfcfcf]
+            bg-[#dedede]
             px-5
             py-4
-            shadow-[0_6px_20px_rgba(15,23,42,0.05)]
+            shadow-[0_5px_18px_rgba(0,0,0,0.06)]
           "
         >
 
-          {/* ================================================
-              DEKORASI BACKGROUND
-          ================================================= */}
-
+          {/* Ornamen lingkaran */}
           <div
             className="
               pointer-events-none
@@ -619,7 +574,7 @@ export default async function HomePage() {
               w-32
               rounded-full
               border
-              border-stone-300/60
+              border-black/[0.05]
             "
           />
 
@@ -633,27 +588,11 @@ export default async function HomePage() {
               w-32
               rounded-full
               border
-              border-stone-300/50
+              border-black/[0.045]
             "
           />
 
-          <div
-            className="
-              pointer-events-none
-              absolute
-              left-0
-              top-0
-              h-full
-              w-[3px]
-              bg-[#16a34a]
-            "
-          />
-
-
-          {/* ================================================
-              CONTENT
-          ================================================= */}
-
+          {/* CONTENT */}
           <div
             className="
               relative
@@ -665,7 +604,6 @@ export default async function HomePage() {
           >
 
             {/* ICON */}
-
             <div
               className="
                 flex
@@ -675,8 +613,8 @@ export default async function HomePage() {
                 items-center
                 justify-center
                 border
-                border-stone-300
-                bg-white
+                border-[#c3c3c3]
+                bg-[#f7f7f7]
                 shadow-sm
               "
             >
@@ -685,16 +623,14 @@ export default async function HomePage() {
                 className="
                   h-[18px]
                   w-[18px]
-                  text-stone-800
+                  text-[#4b4b4b]
                 "
                 strokeWidth={1.8}
               />
 
             </div>
 
-
             {/* TEXT */}
-
             <div className="min-w-0 flex-1">
 
               <div
@@ -710,9 +646,9 @@ export default async function HomePage() {
                   className="
                     h-2.5
                     w-2.5
-                    text-[#16a34a]
+                    text-[#6b6b6b]
                   "
-                  strokeWidth={2.5}
+                  strokeWidth={2.4}
                 />
 
                 <p
@@ -721,7 +657,7 @@ export default async function HomePage() {
                     font-black
                     uppercase
                     tracking-[0.18em]
-                    text-stone-500
+                    text-[#666666]
                   "
                 >
                   {SITE_SHORT_NAME} • {SITE_LOCATION}
@@ -729,19 +665,17 @@ export default async function HomePage() {
 
               </div>
 
-
               <h1
                 className="
                   text-[14px]
-                  font-black
+                  font-extrabold
                   leading-tight
                   tracking-tight
-                  text-stone-950
+                  text-[#2f2f2f]
                 "
               >
                 {SITE_NAME}
               </h1>
-
 
               <p
                 className="
@@ -749,7 +683,7 @@ export default async function HomePage() {
                   text-[8px]
                   font-medium
                   leading-relaxed
-                  text-stone-500
+                  text-[#666666]
                 "
               >
                 Menghubungkan amanah,
@@ -772,18 +706,16 @@ export default async function HomePage() {
 
         {/* ====================================================
             TRUST / INFORMATION STRIP
-
-            SOFT GRAY, BUKAN KUNING
         ===================================================== */}
 
         <section
           className="
             border
-            border-stone-200
-            bg-white
+            border-[#d4d4d4]
+            bg-[#eeeeee]
             px-4
             py-3.5
-            shadow-[0_4px_16px_rgba(15,23,42,0.035)]
+            shadow-[0_4px_14px_rgba(0,0,0,0.035)]
           "
         >
 
@@ -796,7 +728,6 @@ export default async function HomePage() {
           >
 
             {/* ICON */}
-
             <div
               className="
                 flex
@@ -806,8 +737,8 @@ export default async function HomePage() {
                 items-center
                 justify-center
                 border
-                border-stone-200
-                bg-[#f1f1ef]
+                border-[#d0d0d0]
+                bg-[#f7f7f7]
               "
             >
 
@@ -815,16 +746,14 @@ export default async function HomePage() {
                 className="
                   h-4
                   w-4
-                  text-[#15803d]
+                  text-[#555555]
                 "
                 strokeWidth={2}
               />
 
             </div>
 
-
             {/* CONTENT */}
-
             <div
               className="
                 min-w-0
@@ -835,20 +764,19 @@ export default async function HomePage() {
               <p
                 className="
                   text-[9px]
-                  font-black
-                  text-stone-900
+                  font-extrabold
+                  text-[#333333]
                 "
               >
                 Gerakan Kebaikan Bersama
               </p>
-
 
               <p
                 className="
                   mt-1
                   text-[8px]
                   leading-relaxed
-                  text-stone-500
+                  text-[#666666]
                 "
               >
                 Temukan program zakat,
@@ -859,7 +787,7 @@ export default async function HomePage() {
                 <span
                   className="
                     font-bold
-                    text-stone-700
+                    text-[#444444]
                   "
                 >
                   {SITE_DOMAIN}
@@ -914,7 +842,7 @@ export default async function HomePage() {
         <div
           className="
             border-t
-            border-stone-200
+            border-[#d8d8d8]
             pb-2
             pt-4
             text-center
@@ -924,22 +852,21 @@ export default async function HomePage() {
           <p
             className="
               text-[8px]
-              font-black
+              font-extrabold
               uppercase
               tracking-[0.16em]
-              text-stone-600
+              text-[#555555]
             "
           >
             {SITE_NAME}
           </p>
-
 
           <p
             className="
               mt-1
               text-[7px]
               font-medium
-              text-stone-400
+              text-[#888888]
             "
           >
             {SITE_DOMAIN}
