@@ -238,6 +238,8 @@ export default function DonasiSayaPage() {
       })
     : '2026';
 
+  const displayName = profile?.name?.trim() || profile?.email?.split('@')[0] || 'Dermawan BMA';
+
   return (
     <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
       <div className="w-full max-w-[420px] space-y-3 px-0">
@@ -260,14 +262,12 @@ export default function DonasiSayaPage() {
                 {profile?.avatar ? (
                   <img
                     src={profile.avatar}
-                    alt={profile.name || 'Foto profil donatur'}
-                    className="w-[58px] h-[58px] object-cover border border-[#d7b66a]/50 shadow-xl"
+                    alt={displayName}
+                    className="w-[58px] h-[58px] rounded-full object-cover border border-[#d7b66a]/50 shadow-xl"
                   />
                 ) : (
-                  <div className="w-[58px] h-[58px] shrink-0 bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
-                    {(profile?.name || 'D')
-                      .charAt(0)
-                      .toUpperCase()}
+                  <div className="w-[58px] h-[58px] shrink-0 rounded-full bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
+                    {displayName.charAt(0).toUpperCase()}
                   </div>
                 )}
 
@@ -278,8 +278,7 @@ export default function DonasiSayaPage() {
                   </p>
 
                   <h1 className="mt-1 text-[16px] font-bold text-white truncate">
-                    {profile?.name ||
-                      'Dermawan BMA'}
+                    {displayName}
                   </h1>
 
                   <p className="mt-0.5 text-[9px] text-slate-200">

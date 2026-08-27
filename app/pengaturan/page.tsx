@@ -76,8 +76,24 @@ export default function PengaturanPage() {
 
         if (data) {
           setProfile(data);
-          setName(data.name || '');
+          setName(data.name || data.full_name || '');
           setPhone(data.phone || '');
+        } else {
+          const meta = user.user_metadata || {};
+          const defaultName = meta.full_name || meta.name || user.email?.split('@')[0] || 'Dermawan';
+          
+          const newProf = {
+            id: user.id,
+            email: user.email,
+            name: defaultName,
+            avatar: meta.avatar_url || meta.picture || '',
+            phone: '',
+          };
+
+          await supabase.from('profiles').upsert(newProf);
+          setProfile(newProf);
+          setName(defaultName);
+          setPhone('');
         }
       } catch (error) {
         console.error(
@@ -126,15 +142,17 @@ export default function PengaturanPage() {
         );
       }
 
+      const updatePayload = {
+        id: user.id,
+        email: user.email,
+        name: name.trim(),
+        phone: cleanPhone,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          name: name.trim(),
-          phone: cleanPhone,
-          updated_at:
-            new Date().toISOString(),
-        })
-        .eq('id', user.id);
+        .upsert(updatePayload);
 
       if (error) {
         throw error;
