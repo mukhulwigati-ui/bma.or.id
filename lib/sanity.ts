@@ -4,7 +4,7 @@ import { createClient } from "@sanity/client";
 import imageUrlBuilder from "@sanity/image-url";
 import type { Image } from "sanity";
 
-const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "ks29ggv6";
+const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "im4qx3kd";
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET || "production";
 
 const config = {
