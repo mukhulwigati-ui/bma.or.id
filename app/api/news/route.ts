@@ -1,65 +1,347 @@
 // app/api/news/route.ts
-import { NextResponse } from 'next/server';
-// 🚀 OPTIMASI UTAMA: Menggunakan clientPublik yang diarahkan ke Edge CDN Gratis Sanity
-import { clientPublik as client } from '@/lib/sanity';
 
-// 🚀 PROTEKSI 1: Hapus revalidate = 0, ganti dengan durasi simpan 60 detik di sisi server Next.js
+import { NextResponse } from 'next/server';
+import { createClient } from '@sanity/client';
+
+// ============================================================
+// SANITY BMA
+// Dikunci langsung ke project BMA agar tidak tertukar
+// dengan konfigurasi Sanity website lama.
+// ============================================================
+
+const PROJECT_ID = 'im4qx3kd';
+const DATASET = 'production';
+
+const client = createClient({
+  projectId: PROJECT_ID,
+  dataset: DATASET,
+  apiVersion: '2026-08-01',
+  useCdn: true,
+  perspective: 'published',
+
+  // Untuk membaca data published tidak perlu token
+});
+
+// ============================================================
+// CACHE
+// ============================================================
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 60;
 
-function timeAgo(dateString: string) {
+// ============================================================
+// HELPER TIME AGO
+// ============================================================
+
+function timeAgo(
+  dateString?: string
+): string {
+  if (!dateString) {
+    return 'Kabar Terbaru';
+  }
+
   const now = new Date();
   const past = new Date(dateString);
-  const diffMs = now.getTime() - past.getTime();
-  
-  const diffMins = Math.max(0, Math.floor(diffMs / 60000));
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMins < 60) return `${diffMins} menit lalu`;
-  if (diffHours < 24) return `${diffHours} jam lalu`;
-  return `${diffDays} hari lalu`;
+  if (
+    Number.isNaN(
+      past.getTime()
+    )
+  ) {
+    return 'Kabar Terbaru';
+  }
+
+  const diffMs =
+    Math.max(
+      0,
+      now.getTime() -
+        past.getTime()
+    );
+
+  const diffMins =
+    Math.floor(
+      diffMs / 60000
+    );
+
+  const diffHours =
+    Math.floor(
+      diffMins / 60
+    );
+
+  const diffDays =
+    Math.floor(
+      diffHours / 24
+    );
+
+  const diffMonths =
+    Math.floor(
+      diffDays / 30
+    );
+
+  const diffYears =
+    Math.floor(
+      diffDays / 365
+    );
+
+  if (diffMins < 1) {
+    return 'Baru saja';
+  }
+
+  if (diffMins < 60) {
+    return `${diffMins} menit lalu`;
+  }
+
+  if (diffHours < 24) {
+    return `${diffHours} jam lalu`;
+  }
+
+  if (diffDays < 30) {
+    return `${diffDays} hari lalu`;
+  }
+
+  if (diffMonths < 12) {
+    return `${diffMonths} bulan lalu`;
+  }
+
+  return `${diffYears} tahun lalu`;
 }
+
+// ============================================================
+// TYPE DATA SANITY
+// ============================================================
+
+interface SanityNewsItem {
+  id: string;
+  slug?: string;
+  title?: string;
+  image?: string;
+  category?: string;
+  publishedAt?: string;
+  createdAt?: string;
+}
+
+// ============================================================
+// GET NEWS
+// ============================================================
 
 export async function GET() {
   try {
-    // 🚀 QUERY GROQ TETAP DIJAGA KUALITASNYA
-    const query = `*[_type == "news"] | order(publishedAt desc)[0..11] {
-      "id": _id,
-      "slug": slug.current,
-      title,
-      "image": image.asset->url,
-      "category": coalesce(category->title, category, "Kabar Terbaru"),
-      publishedAt
-    }`;
+    // ========================================================
+    // QUERY GROQ
+    // Hanya mengambil news published yang punya slug
+    // ========================================================
 
-    // 🚀 PROTEKSI 2: Hapus properti no-store, percayakan penanganan cache pada Next.js + CDN
-    const sanityNews = await client.fetch(query);
+    const query = `
+      *[
+        _type == "news" &&
+        defined(slug.current)
+      ]
+      | order(
+          coalesce(
+            publishedAt,
+            _createdAt
+          ) desc
+        )
+      [0...12] {
 
-    const formattedNews = sanityNews.map((item: any) => ({
-      id: item.id,
-      slug: item.slug,
-      title: item.title,
-      image: item.image || '/images/placeholder.jpg',
-      category: item.category,
-      publishedAt: item.publishedAt,
-      timeAgo: timeAgo(item.publishedAt),
-    }));
+        "id": _id,
 
-    // 🚀 PROTEKSI 3: Gunakan Cache-Control tingkat server Next.js selama 1 menit (Bebas Bebas Kuota)
+        "slug":
+          slug.current,
+
+        title,
+
+        "image":
+          coalesce(
+            image.asset->url,
+            mainImage.asset->url,
+            thumbnail.asset->url,
+            coverImage.asset->url
+          ),
+
+        "category":
+          coalesce(
+            category->title,
+            category,
+            "Kabar Terbaru"
+          ),
+
+        publishedAt,
+
+        "createdAt":
+          _createdAt
+      }
+    `;
+
+    // ========================================================
+    // FETCH SANITY
+    // ========================================================
+
+    const sanityNews =
+      await client.fetch<
+        SanityNewsItem[]
+      >(
+        query,
+        {},
+        {
+          next: {
+            revalidate: 60,
+          },
+        }
+      );
+
+    // ========================================================
+    // FORMAT DATA
+    // ========================================================
+
+    const formattedNews =
+      Array.isArray(sanityNews)
+        ? sanityNews
+            .filter(
+              (item) =>
+                item &&
+                item.id &&
+                item.slug &&
+                item.title
+            )
+            .map((item) => {
+              const date =
+                item.publishedAt ||
+                item.createdAt;
+
+              return {
+                id:
+                  String(item.id),
+
+                slug:
+                  String(item.slug),
+
+                title:
+                  String(item.title),
+
+                image:
+                  typeof item.image ===
+                    'string' &&
+                  item.image.trim()
+                    ? item.image
+                    : '/images/placeholder.jpg',
+
+                category:
+                  item.category ||
+                  'Kabar Terbaru',
+
+                publishedAt:
+                  date || null,
+
+                timeAgo:
+                  timeAgo(date),
+
+                dateLabel:
+                  timeAgo(date),
+              };
+            })
+        : [];
+
+    // ========================================================
+    // DEBUG SERVER
+    // ========================================================
+
+    console.log(
+      '======================================'
+    );
+
+    console.log(
+      '✅ BMA NEWS API'
+    );
+
+    console.log(
+      'Project ID:',
+      PROJECT_ID
+    );
+
+    console.log(
+      'Dataset:',
+      DATASET
+    );
+
+    console.log(
+      'Total berita:',
+      formattedNews.length
+    );
+
+    console.log(
+      '======================================'
+    );
+
+    // ========================================================
+    // RESPONSE
+    // ========================================================
+
     return NextResponse.json(
-      { success: true, data: formattedNews },
+      {
+        success: true,
+
+        source: 'Sanity BMA',
+
+        projectId:
+          PROJECT_ID,
+
+        dataset:
+          DATASET,
+
+        count:
+          formattedNews.length,
+
+        data:
+          formattedNews,
+      },
       {
         status: 200,
+
         headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=30',
+          'Content-Type':
+            'application/json',
+
+          'Cache-Control':
+            'public, s-maxage=60, stale-while-revalidate=30',
         },
       }
     );
-
   } catch (error: any) {
-    console.error('🔥 Fetch News API Error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    console.error(
+      '🔥 Fetch BMA News API Error:',
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success: false,
+
+        source:
+          'Sanity BMA',
+
+        projectId:
+          PROJECT_ID,
+
+        dataset:
+          DATASET,
+
+        count: 0,
+
+        data: [],
+
+        error:
+          error?.message ||
+          'Gagal mengambil berita dari Sanity BMA.',
+      },
+      {
+        status: 500,
+
+        headers: {
+          'Cache-Control':
+            'no-store',
+        },
+      }
+    );
   }
 }
