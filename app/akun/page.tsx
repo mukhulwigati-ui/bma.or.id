@@ -252,13 +252,13 @@ export default function AkunPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-0 sm:px-4 flex justify-center">
+      <div className="w-full max-w-[480px] space-y-4">
 
         {/* =========================================================
             HEADER PROFILE
         ========================================================= */}
-        <section className="relative overflow-hidden rounded-[28px] bg-[#102a43] p-5 shadow-[0_18px_45px_rgba(16,42,67,0.16)]">
+        <section className="relative overflow-hidden sm:rounded-[28px] bg-[#102a43] p-5 shadow-[0_18px_45px_rgba(16,42,67,0.16)]">
 
           <div className="absolute -right-14 -top-16 w-44 h-44 rounded-full border border-white/8" />
 
@@ -315,7 +315,7 @@ export default function AkunPage() {
         {/* =========================================================
             DONATION SUMMARY
         ========================================================= */}
-        <section className="rounded-[28px] bg-white border border-slate-200/70 shadow-[0_8px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+        <section className="sm:rounded-[28px] bg-white border-y sm:border border-slate-200/70 shadow-[0_8px_30px_rgba(15,23,42,0.04)] overflow-hidden">
 
           <div className="p-5">
 
@@ -389,7 +389,7 @@ export default function AkunPage() {
         {/* =========================================================
             TARGET SEDEKAH
         ========================================================= */}
-        <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="sm:rounded-[26px] bg-white border-y sm:border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
 
           <div className="flex items-center justify-between">
 
@@ -447,7 +447,7 @@ export default function AkunPage() {
         {/* =========================================================
             WHATSAPP
         ========================================================= */}
-        <section className="rounded-[24px] bg-white border border-slate-200/70 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="sm:rounded-[24px] bg-white border-y sm:border border-slate-200/70 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
 
           <div className="flex items-center justify-between">
 
@@ -483,7 +483,7 @@ export default function AkunPage() {
         {/* =========================================================
             MENU
         ========================================================= */}
-        <section className="rounded-[26px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="sm:rounded-[26px] bg-white border-y sm:border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
 
           <div className="px-5 pt-5 pb-3">
             <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
