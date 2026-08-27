@@ -17,6 +17,7 @@ import {
   Mail,
   ShieldCheck,
   Sparkles,
+  CheckCircle2,
 } from 'lucide-react';
 
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
@@ -27,21 +28,30 @@ const SITE_LOCATION = 'Jepara';
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
 
-  const [mode, setMode] = useState<
-    'login' | 'register'
-  >('login');
-
-  const [showPassword, setShowPassword] =
+  const [loading, setLoading] =
     useState(false);
+
+  const [checkingAuth, setCheckingAuth] =
+    useState(true);
+
+  const [mode, setMode] =
+    useState<'login' | 'register'>(
+      'login'
+    );
+
+  const [
+    showPassword,
+    setShowPassword,
+  ] = useState(false);
 
   const supabase = useMemo(
     () =>
       createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        process.env
+          .NEXT_PUBLIC_SUPABASE_URL!,
+        process.env
+          .NEXT_PUBLIC_SUPABASE_ANON_KEY!
       ),
     []
   );
@@ -56,7 +66,8 @@ export default function LoginPage() {
       try {
         const {
           data: { session },
-        } = await supabase.auth.getSession();
+        } =
+          await supabase.auth.getSession();
 
         if (session) {
           router.replace('/akun');
@@ -79,7 +90,7 @@ export default function LoginPage() {
   // LOGIN / REGISTER EMAIL
   // ============================================================
   const handleAuth = async (
-    e: React.FormEvent
+    e: React.FormEvent<HTMLFormElement>
   ) => {
     e.preventDefault();
 
@@ -90,14 +101,15 @@ export default function LoginPage() {
         const {
           data,
           error,
-        } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo:
-              `${window.location.origin}/auth/callback`,
-          },
-        });
+        } =
+          await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo:
+                `${window.location.origin}/auth/callback`,
+            },
+          });
 
         if (error) {
           alert(error.message);
@@ -109,17 +121,19 @@ export default function LoginPage() {
           router.refresh();
         } else {
           alert(
-            'Pendaftaran berhasil! Silakan periksa email Anda untuk verifikasi sebelum masuk.'
+            'Pendaftaran berhasil! Silakan periksa email Anda untuk melakukan verifikasi sebelum masuk.'
           );
 
           setMode('login');
         }
       } else {
         const { error } =
-          await supabase.auth.signInWithPassword({
-            email,
-            password,
-          });
+          await supabase.auth.signInWithPassword(
+            {
+              email,
+              password,
+            }
+          );
 
         if (error) {
           alert(error.message);
@@ -140,112 +154,125 @@ export default function LoginPage() {
   };
 
   // ============================================================
-  // GOOGLE OAUTH
+  // GOOGLE AUTH
   // ============================================================
-  const handleGoogleAuth = async () => {
-    try {
-      const { error } =
-        await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo:
-              `${window.location.origin}/auth/callback`,
-          },
-        });
+  const handleGoogleAuth =
+    async () => {
+      try {
+        const { error } =
+          await supabase.auth.signInWithOAuth(
+            {
+              provider: 'google',
+              options: {
+                redirectTo:
+                  `${window.location.origin}/auth/callback`,
+              },
+            }
+          );
 
-      if (error) {
-        alert(error.message);
+        if (error) {
+          alert(error.message);
+        }
+      } catch (err: any) {
+        alert(
+          err?.message ||
+            'Gagal terhubung dengan Google.'
+        );
       }
-    } catch (err: any) {
-      alert(
-        err?.message ||
-          'Gagal terhubung dengan Google.'
-      );
-    }
-  };
+    };
 
   // ============================================================
-  // CHECKING SESSION
+  // LOADING SESSION
   // ============================================================
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
-
+      <div className="min-h-screen bg-[#FFF9DD] flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
 
-          <div className="w-12 h-12 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
-            <Loader2 className="w-5 h-5 text-white animate-spin" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFD900] shadow-[0_10px_30px_rgba(234,179,8,0.22)]">
+            <Loader2 className="h-5 w-5 animate-spin text-black" />
           </div>
 
-          <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
+          <p className="text-[9px] font-extrabold uppercase tracking-[0.18em] text-stone-500">
             Memeriksa sesi {SITE_SHORT_NAME}
           </p>
 
         </div>
-
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] px-4 py-5 sm:py-10 flex items-center justify-center">
+    <div className="min-h-screen bg-[#FFF9DD] px-4 py-6 sm:py-10">
 
-      <div className="w-full max-w-md space-y-4">
+      <div className="mx-auto w-full max-w-md space-y-4">
 
         {/* =====================================================
-            PREMIUM BRAND HEADER
+            BRAND HERO
         ====================================================== */}
-        <section className="relative overflow-hidden rounded-[30px] bg-[#102a43] shadow-[0_20px_55px_rgba(16,42,67,0.18)]">
+        <section className="relative overflow-hidden rounded-[32px] border border-[#F0C900] bg-[#FFD900] shadow-[0_18px_50px_rgba(180,140,0,0.16)]">
 
-          <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
+          {/* Decorative shapes */}
+          <div className="absolute -right-14 -top-14 h-44 w-44 rounded-full border border-black/10" />
 
-          <div className="absolute right-4 bottom-[-80px] w-44 h-44 rounded-full border border-[#d7b66a]/15" />
+          <div className="absolute right-2 bottom-[-70px] h-40 w-40 rounded-full border border-black/10" />
 
-          <div className="relative z-10 p-5 sm:p-6">
+          <div className="absolute -left-10 bottom-[-50px] h-32 w-32 rounded-full bg-white/20 blur-xl" />
 
+          <div className="relative z-10 px-5 py-6 sm:px-6">
+
+            {/* Top */}
             <div className="flex items-start justify-between gap-4">
 
-              <div className="flex items-center gap-3 min-w-0">
+              <div className="flex items-center gap-3">
 
-                <div className="w-12 h-12 shrink-0 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shadow-lg">
-                  <ShieldCheck className="w-5 h-5 text-[#d7b66a]" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-black/10 bg-white/55 shadow-sm backdrop-blur-sm">
+                  <ShieldCheck className="h-5 w-5 text-black" />
                 </div>
 
                 <div>
-                  <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-[#d7b66a]">
-                    {SITE_SHORT_NAME} Member Area
+                  <p className="text-[8px] font-black uppercase tracking-[0.2em] text-black/55">
+                    {SITE_SHORT_NAME} MEMBER AREA
                   </p>
 
-                  <h1 className="mt-1 text-[18px] font-bold tracking-tight text-white">
+                  <h1 className="mt-1 text-[20px] font-black tracking-tight text-black">
                     {mode === 'login'
                       ? 'Selamat Datang Kembali'
-                      : 'Buat Akun Donatur'}
+                      : 'Daftar Akun BMA'}
                   </h1>
                 </div>
 
               </div>
 
-              <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/8 px-2.5 py-1.5">
-                <LockKeyhole className="w-3 h-3 text-[#d7b66a]" />
+              <div className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white/40 px-2.5 py-1.5 backdrop-blur-sm">
+                <LockKeyhole className="h-3 w-3 text-black" />
 
-                <span className="text-[7px] font-bold uppercase tracking-wider text-[#e7d5a4]">
+                <span className="text-[7px] font-black uppercase tracking-wider text-black/70">
                   Secure
                 </span>
               </div>
 
             </div>
 
-            <p className="mt-5 text-[10px] leading-relaxed text-slate-300">
-              {mode === 'login'
-                ? 'Masuk untuk melihat riwayat donasi, kuitansi, program favorit, dan aktivitas akun Anda.'
-                : 'Daftar untuk memudahkan pencatatan donasi dan mengakses layanan digital Baitul Maal Al Muttaqin.'}
-            </p>
+            {/* Main copy */}
+            <div className="mt-6">
 
-            <div className="mt-4 flex items-center gap-1.5">
+              <p className="max-w-[340px] text-[11px] font-semibold leading-[1.75] text-black/70">
+                {mode === 'login'
+                  ? 'Masuk untuk melihat riwayat donasi, kuitansi, program favorit, dan aktivitas akun Anda.'
+                  : 'Daftar untuk memudahkan pencatatan donasi dan mengakses berbagai layanan digital Baitul Maal Al Muttaqin.'}
+              </p>
 
-              <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
+            </div>
 
-              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e7d5a4]">
+            {/* Footer brand */}
+            <div className="mt-5 flex items-center gap-2">
+
+              <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-black">
+                <CheckCircle2 className="h-3 w-3 text-[#FFD900]" />
+              </div>
+
+              <span className="text-[8px] font-black uppercase tracking-[0.16em] text-black/65">
                 {SITE_DOMAIN} • {SITE_LOCATION}
               </span>
 
@@ -253,52 +280,56 @@ export default function LoginPage() {
 
           </div>
 
-          <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
-
         </section>
 
         {/* =====================================================
-            AUTH CARD
+            LOGIN / REGISTER CARD
         ====================================================== */}
-        <section className="rounded-[28px] bg-white border border-slate-200/70 p-5 sm:p-6 shadow-[0_10px_35px_rgba(15,23,42,0.05)]">
+        <section className="rounded-[30px] border border-[#E9DFC1] bg-white p-5 shadow-[0_18px_50px_rgba(76,60,10,0.08)] sm:p-6">
 
-          {/* MODE HEADER */}
+          {/* Heading */}
           <div className="flex items-start justify-between gap-4">
 
             <div>
-
-              <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-slate-400">
+              <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#B89200]">
                 {mode === 'login'
-                  ? 'Akses Akun'
-                  : 'Pendaftaran'}
+                  ? 'AKSES AKUN'
+                  : 'PENDAFTARAN'}
               </p>
 
-              <h2 className="mt-1 text-[15px] font-bold text-[#102a43]">
+              <h2 className="mt-1 text-[17px] font-black tracking-tight text-stone-900">
                 {mode === 'login'
                   ? 'Masuk ke Akun'
-                  : 'Daftar Akun Baru'}
+                  : 'Buat Akun Baru'}
               </h2>
 
+              <p className="mt-1 text-[9px] text-stone-400">
+                {mode === 'login'
+                  ? 'Silakan masukkan data akun Anda.'
+                  : 'Daftar hanya dalam beberapa langkah.'}
+              </p>
             </div>
 
-            <div className="w-10 h-10 shrink-0 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-[#a37c32]" />
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF5B7]">
+              <Sparkles className="h-4 w-4 text-[#A17800]" />
             </div>
 
           </div>
 
-          {/* MODE SWITCH */}
-          <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1">
+          {/* ===================================================
+              MODE SWITCH
+          =================================================== */}
+          <div className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-[#EFE7C9] bg-[#FFF9E5] p-1">
 
             <button
               type="button"
               onClick={() =>
                 setMode('login')
               }
-              className={`rounded-xl py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] transition ${
+              className={`rounded-xl py-3 text-[9px] font-black uppercase tracking-[0.15em] transition-all ${
                 mode === 'login'
-                  ? 'bg-white text-[#102a43] shadow-sm'
-                  : 'text-slate-400'
+                  ? 'bg-[#FFD900] text-black shadow-sm'
+                  : 'text-stone-400 hover:text-stone-700'
               }`}
             >
               Masuk
@@ -309,10 +340,10 @@ export default function LoginPage() {
               onClick={() =>
                 setMode('register')
               }
-              className={`rounded-xl py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] transition ${
+              className={`rounded-xl py-3 text-[9px] font-black uppercase tracking-[0.15em] transition-all ${
                 mode === 'register'
-                  ? 'bg-white text-[#102a43] shadow-sm'
-                  : 'text-slate-400'
+                  ? 'bg-[#FFD900] text-black shadow-sm'
+                  : 'text-stone-400 hover:text-stone-700'
               }`}
             >
               Daftar
@@ -325,25 +356,23 @@ export default function LoginPage() {
           =================================================== */}
           <form
             onSubmit={handleAuth}
-            className="mt-5 space-y-4"
+            className="mt-6 space-y-4"
           >
 
             {/* EMAIL */}
             <div>
 
-              <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400 block">
+              <label className="block text-[9px] font-black uppercase tracking-[0.14em] text-stone-500">
                 Alamat Email
               </label>
 
               <div className="relative mt-2">
 
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
 
                 <input
                   type="email"
                   autoComplete="email"
-                  className="w-full h-12 pl-11 pr-4 bg-[#f8f8f6] border border-slate-200 rounded-2xl focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8 focus:outline-none transition text-slate-800 text-[11px] font-semibold placeholder:text-slate-400"
-                  placeholder="nama@email.com"
                   value={email}
                   onChange={(e) =>
                     setEmail(
@@ -351,6 +380,29 @@ export default function LoginPage() {
                     )
                   }
                   required
+                  placeholder="nama@email.com"
+                  className="
+                    h-13
+                    w-full
+                    rounded-2xl
+                    border
+                    border-[#E7E0CB]
+                    bg-[#FFFDF5]
+                    py-3.5
+                    pl-11
+                    pr-4
+                    text-[11px]
+                    font-bold
+                    text-stone-900
+                    outline-none
+                    transition-all
+                    placeholder:font-medium
+                    placeholder:text-stone-300
+                    focus:border-[#E0B900]
+                    focus:bg-white
+                    focus:ring-4
+                    focus:ring-[#FFD900]/20
+                  "
                 />
 
               </div>
@@ -360,13 +412,13 @@ export default function LoginPage() {
             {/* PASSWORD */}
             <div>
 
-              <label className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400 block">
+              <label className="block text-[9px] font-black uppercase tracking-[0.14em] text-stone-500">
                 Kata Sandi
               </label>
 
               <div className="relative mt-2">
 
-                <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <LockKeyhole className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
 
                 <input
                   type={
@@ -379,8 +431,6 @@ export default function LoginPage() {
                       ? 'current-password'
                       : 'new-password'
                   }
-                  className="w-full h-12 pl-11 pr-12 bg-[#f8f8f6] border border-slate-200 rounded-2xl focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8 focus:outline-none transition text-slate-800 text-[11px] font-semibold placeholder:text-slate-400"
-                  placeholder="••••••••"
                   value={password}
                   onChange={(e) =>
                     setPassword(
@@ -389,6 +439,28 @@ export default function LoginPage() {
                   }
                   required
                   minLength={6}
+                  placeholder="••••••••"
+                  className="
+                    h-13
+                    w-full
+                    rounded-2xl
+                    border
+                    border-[#E7E0CB]
+                    bg-[#FFFDF5]
+                    py-3.5
+                    pl-11
+                    pr-12
+                    text-[11px]
+                    font-bold
+                    text-stone-900
+                    outline-none
+                    transition-all
+                    placeholder:text-stone-300
+                    focus:border-[#E0B900]
+                    focus:bg-white
+                    focus:ring-4
+                    focus:ring-[#FFD900]/20
+                  "
                 />
 
                 <button
@@ -403,21 +475,20 @@ export default function LoginPage() {
                       ? 'Sembunyikan kata sandi'
                       : 'Tampilkan kata sandi'
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-white transition"
+                  className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-stone-400 transition hover:bg-[#FFF4B8] hover:text-black"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="h-4 w-4" />
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    <Eye className="h-4 w-4" />
                   )}
                 </button>
 
               </div>
 
               {mode === 'register' && (
-                <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
-                  Gunakan minimal 6 karakter untuk
-                  membantu menjaga keamanan akun.
+                <p className="mt-2 text-[8px] leading-relaxed text-stone-400">
+                  Gunakan minimal 6 karakter untuk membantu menjaga keamanan akun.
                 </p>
               )}
 
@@ -427,11 +498,34 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 rounded-2xl bg-[#102a43] hover:bg-[#173d5d] disabled:bg-slate-300 text-white font-bold text-[9px] uppercase tracking-[0.16em] transition shadow-lg shadow-[#102a43]/10 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+              className="
+                flex
+                h-13
+                w-full
+                items-center
+                justify-center
+                gap-2
+                rounded-2xl
+                bg-[#FFD900]
+                py-3.5
+                text-[9px]
+                font-black
+                uppercase
+                tracking-[0.17em]
+                text-black
+                shadow-[0_10px_25px_rgba(218,173,0,0.20)]
+                transition-all
+                hover:bg-[#F4C900]
+                active:scale-[0.99]
+                disabled:cursor-not-allowed
+                disabled:bg-stone-200
+                disabled:text-stone-400
+                disabled:shadow-none
+              "
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Memproses
                 </>
               ) : (
@@ -440,7 +534,7 @@ export default function LoginPage() {
                     ? 'Masuk ke Akun'
                     : 'Daftar dengan Email'}
 
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </button>
@@ -453,31 +547,48 @@ export default function LoginPage() {
           <div className="relative my-6">
 
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-100" />
+              <div className="w-full border-t border-[#EFE9D8]" />
             </div>
 
             <div className="relative flex justify-center">
-
-              <span className="bg-white px-3 text-[8px] font-bold uppercase tracking-[0.14em] text-slate-400">
+              <span className="bg-white px-3 text-[8px] font-bold uppercase tracking-[0.14em] text-stone-400">
                 Atau lanjutkan dengan
               </span>
-
             </div>
 
           </div>
 
           {/* ===================================================
-              GOOGLE
+              GOOGLE LOGIN
           =================================================== */}
           <button
             type="button"
             onClick={handleGoogleAuth}
-            className="w-full h-12 flex items-center justify-center gap-2.5 border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-2xl font-semibold text-slate-700 transition text-[10px] shadow-sm cursor-pointer"
+            className="
+              flex
+              h-13
+              w-full
+              items-center
+              justify-center
+              gap-2.5
+              rounded-2xl
+              border
+              border-[#E7E0CB]
+              bg-white
+              py-3.5
+              text-[10px]
+              font-bold
+              text-stone-700
+              shadow-sm
+              transition-all
+              hover:border-[#D5C89E]
+              hover:bg-[#FFFDF5]
+            "
           >
             <img
               src="/google-icon.svg"
               alt="Google"
-              className="w-5 h-5"
+              className="h-5 w-5"
             />
 
             <span>
@@ -492,7 +603,7 @@ export default function LoginPage() {
           =================================================== */}
           <div className="mt-5 text-center">
 
-            <p className="text-[9px] text-slate-400">
+            <p className="text-[9px] text-stone-400">
 
               {mode === 'login'
                 ? 'Belum memiliki akun?'
@@ -509,7 +620,7 @@ export default function LoginPage() {
                       : 'login'
                   )
                 }
-                className="font-bold text-[#a37c32] hover:text-[#876725] transition cursor-pointer"
+                className="font-black text-[#A17800] transition hover:text-black"
               >
                 {mode === 'login'
                   ? 'Daftar sekarang'
@@ -525,21 +636,22 @@ export default function LoginPage() {
         {/* =====================================================
             SECURITY INFO
         ====================================================== */}
-        <section className="rounded-[22px] border border-[#eadfca] bg-[#f7f2e7]/60 p-4">
+        <section className="rounded-[24px] border border-[#EAD88C] bg-[#FFF2A8] p-4">
 
           <div className="flex items-start gap-3">
 
-            <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5 text-[#a37c32]" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/60">
+              <ShieldCheck className="h-4 w-4 text-black" />
+            </div>
 
             <div>
 
-              <p className="text-[9px] font-bold text-[#102a43]">
+              <p className="text-[9px] font-black text-stone-900">
                 Akun & Keamanan
               </p>
 
-              <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
-                Gunakan email aktif dan jangan membagikan
-                kata sandi atau akses akun kepada pihak lain.
+              <p className="mt-1 text-[8px] leading-relaxed text-stone-600">
+                Gunakan email aktif dan jangan pernah membagikan kata sandi atau akses akun kepada pihak lain.
               </p>
 
             </div>
@@ -551,13 +663,13 @@ export default function LoginPage() {
         {/* =====================================================
             BRAND FOOTER
         ====================================================== */}
-        <div className="pt-2 pb-3 text-center">
+        <div className="pb-3 pt-1 text-center">
 
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+          <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#9B7C00]">
             {SITE_NAME}
           </p>
 
-          <p className="mt-1 text-[7px] text-slate-300">
+          <p className="mt-1 text-[7px] font-medium text-stone-400">
             {SITE_DOMAIN} • {SITE_LOCATION}
           </p>
 

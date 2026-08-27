@@ -15,6 +15,9 @@ import Campaign from '@/components/Campaign';
 import News from '@/components/News';
 import Footer from '@/components/Footer';
 
+// ============================================================
+// IDENTITAS WEBSITE
+// ============================================================
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
 const SITE_SHORT_NAME = 'BMA';
 const SITE_DOMAIN = 'bma.or.id';
@@ -144,7 +147,7 @@ interface ProgramItem {
   title: string;
   slug: string;
 
-  // WAJIB STRING
+  // WAJIB STRING AGAR SESUAI DENGAN CampaignItem
   image: string;
 
   collectedAmount: number;
@@ -189,10 +192,14 @@ function normalizePrograms(
     )
     .map((item) => ({
       id: String(item.id),
+
       title: String(item.title),
+
       slug: String(item.slug),
 
       // SELALU STRING
+      // Mencegah error:
+      // string | undefined is not assignable to string
       image:
         typeof item.image === 'string' &&
         item.image.trim()
@@ -218,7 +225,8 @@ function normalizePrograms(
         ) || 50000000,
 
       daysLeft:
-        item.daysLeft !== undefined
+        item.daysLeft !== undefined &&
+        item.daysLeft !== null
           ? Number(item.daysLeft)
           : undefined,
 
@@ -228,7 +236,8 @@ function normalizePrograms(
           : [],
 
       donorsCount:
-        item.donorsCount !== undefined
+        item.donorsCount !== undefined &&
+        item.donorsCount !== null
           ? Number(item.donorsCount)
           : Array.isArray(item.donors)
           ? item.donors.length
@@ -252,6 +261,9 @@ export default async function HomePage() {
     [];
 
   try {
+    // ==========================================================
+    // QUERY SANITY
+    // ==========================================================
     const query = `{
       "heroBanners":
         *[
@@ -262,10 +274,12 @@ export default async function HomePage() {
         [0...10] {
           "id": _id,
           "title": coalesce(title, name),
+
           "imageUrl": coalesce(
             image.asset->url,
             banner.asset->url
           ),
+
           "linkUrl": link
         },
 
@@ -278,7 +292,9 @@ export default async function HomePage() {
         | order(_createdAt desc)
         [0...5] {
           "id": _id,
+
           title,
+
           "slug": slug.current,
 
           "image": coalesce(
@@ -307,8 +323,11 @@ export default async function HomePage() {
             ),
 
           daysLeft,
+
           donors,
-          "donorsCount": count(donors)
+
+          "donorsCount":
+            count(donors)
         },
 
       "unggulan":
@@ -320,7 +339,9 @@ export default async function HomePage() {
         | order(_createdAt desc)
         [0...5] {
           "id": _id,
+
           title,
+
           "slug": slug.current,
 
           "image": coalesce(
@@ -349,8 +370,11 @@ export default async function HomePage() {
             ),
 
           daysLeft,
+
           donors,
-          "donorsCount": count(donors)
+
+          "donorsCount":
+            count(donors)
         },
 
       "pilihan":
@@ -365,7 +389,9 @@ export default async function HomePage() {
         | order(_createdAt desc)
         [0...5] {
           "id": _id,
+
           title,
+
           "slug": slug.current,
 
           "image": coalesce(
@@ -394,19 +420,25 @@ export default async function HomePage() {
             ),
 
           daysLeft,
+
           donors,
-          "donorsCount": count(donors)
+
+          "donorsCount":
+            count(donors)
         }
     }`;
 
+    // ==========================================================
+    // FETCH DATA
+    // ==========================================================
     const data =
       await serverClient.fetch<HomeSanityData>(
         query
       );
 
-    // ========================================================
+    // ==========================================================
     // HERO BANNERS
-    // ========================================================
+    // ==========================================================
     if (
       Array.isArray(
         data?.heroBanners
@@ -439,9 +471,9 @@ export default async function HomePage() {
           }));
     }
 
-    // ========================================================
+    // ==========================================================
     // PROGRAMS
-    // ========================================================
+    // ==========================================================
     mendesakPrograms =
       normalizePrograms(
         data?.mendesak
@@ -456,6 +488,7 @@ export default async function HomePage() {
       normalizePrograms(
         data?.pilihan
       );
+
   } catch (error) {
     console.error(
       'Gagal mengambil data homepage BMA dari Sanity:',
@@ -463,13 +496,16 @@ export default async function HomePage() {
     );
   }
 
+  // ============================================================
+  // RENDER HOMEPAGE
+  // ============================================================
   return (
-    <main className="min-h-screen w-full overflow-x-hidden bg-[#f8f8f6] pb-24">
+    <main className="min-h-screen w-full overflow-x-hidden bg-[#fffdf5] pb-24">
 
       <div className="w-full max-w-md mx-auto px-3.5 pt-4 space-y-4">
 
         {/* =====================================================
-            HERO
+            HERO BANNER
         ====================================================== */}
         <Hero
           initialBanners={
@@ -479,32 +515,42 @@ export default async function HomePage() {
 
         {/* =====================================================
             BRAND INTRO
+            IDENTITAS BMA:
+            KUNING + PUTIH + HITAM
+            TANPA ROUNDED CORNER
         ====================================================== */}
-        <section className="relative overflow-hidden rounded-[26px] bg-[#102a43] px-5 py-4 shadow-[0_12px_35px_rgba(16,42,67,0.12)]">
+        <section className="relative overflow-hidden border border-[#e3c200] bg-[#FFD900] px-5 py-4 shadow-[0_8px_24px_rgba(180,145,0,0.12)]">
 
-          <div className="absolute -right-10 -top-12 h-28 w-28 rounded-full border border-white/8" />
+          {/* Dekorasi lingkaran sangat halus */}
+          <div className="pointer-events-none absolute -right-10 -top-14 h-28 w-28 rounded-full border border-black/[0.06]" />
 
-          <div className="absolute -right-2 -bottom-16 h-28 w-28 rounded-full border border-[#d7b66a]/15" />
+          <div className="pointer-events-none absolute right-2 -bottom-16 h-28 w-28 rounded-full border border-black/[0.05]" />
+
+          {/* Highlight transparan */}
+          <div className="pointer-events-none absolute -left-8 -bottom-12 h-24 w-24 rounded-full bg-white/20 blur-xl" />
 
           <div className="relative z-10 flex items-center gap-3">
 
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10">
-              <Sparkles className="h-4 w-4 text-[#d7b66a]" />
+            {/* ICON BOX */}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-black/10 bg-white/50">
+
+              <Sparkles className="h-4 w-4 text-black" />
+
             </div>
 
+            {/* BRAND INFORMATION */}
             <div className="min-w-0">
 
-              <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-[#d7b66a]">
+              <p className="text-[8px] font-black uppercase tracking-[0.18em] text-black/55">
                 {SITE_SHORT_NAME} • {SITE_LOCATION}
               </p>
 
-              <h1 className="mt-0.5 text-[13px] font-bold text-white">
+              <h1 className="mt-0.5 text-[14px] font-black tracking-tight text-black">
                 {SITE_NAME}
               </h1>
 
-              <p className="mt-1 text-[8px] leading-relaxed text-slate-300">
-                Menghubungkan amanah,
-                menghadirkan manfaat.
+              <p className="mt-1 text-[8px] font-medium leading-relaxed text-black/60">
+                Menghubungkan amanah, menghadirkan manfaat.
               </p>
 
             </div>
@@ -514,31 +560,42 @@ export default async function HomePage() {
         </section>
 
         {/* =====================================================
-            TOTAL ACCUMULATION
+            TOTAL AKUMULASI DONASI
         ====================================================== */}
         <TotalAccumulationWidget />
 
         {/* =====================================================
             TRUST STRIP
+            TANPA ROUNDED CORNER
         ====================================================== */}
-        <section className="rounded-[22px] border border-[#eadfca] bg-[#f7f2e7]/60 px-4 py-3.5">
+        <section className="border border-[#eadb8b] bg-[#fff8cf] px-4 py-3.5">
 
           <div className="flex items-start gap-3">
 
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#a37c32]" />
+            {/* ICON */}
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[#FFD900]">
 
-            <div>
+              <ShieldCheck className="h-4 w-4 text-black" />
 
-              <p className="text-[9px] font-bold text-[#102a43]">
+            </div>
+
+            {/* CONTENT */}
+            <div className="min-w-0">
+
+              <p className="text-[9px] font-black text-stone-900">
                 Gerakan Kebaikan Bersama
               </p>
 
-              <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
+              <p className="mt-1 text-[8px] leading-relaxed text-stone-600">
                 Temukan program zakat,
                 infak, sedekah, wakaf,
                 pendidikan, dakwah, dan
                 kemanusiaan melalui{' '}
-                {SITE_DOMAIN}.
+
+                <span className="font-bold text-stone-800">
+                  {SITE_DOMAIN}
+                </span>
+                .
               </p>
 
             </div>
@@ -575,13 +632,13 @@ export default async function HomePage() {
         {/* =====================================================
             MINI BRAND SIGNATURE
         ====================================================== */}
-        <div className="pb-2 pt-1 text-center">
+        <div className="border-t border-[#eee5bd] pb-2 pt-4 text-center">
 
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+          <p className="text-[8px] font-black uppercase tracking-[0.16em] text-[#9a7b00]">
             {SITE_NAME}
           </p>
 
-          <p className="mt-1 text-[7px] text-slate-300">
+          <p className="mt-1 text-[7px] font-medium text-stone-400">
             {SITE_DOMAIN} •{' '}
             {SITE_LOCATION},{' '}
             {SITE_REGION}
