@@ -8,10 +8,7 @@ import React, {
 } from 'react';
 
 import Link from 'next/link';
-
-import {
-  usePathname,
-} from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 import {
   HeartHandshake,
@@ -25,16 +22,25 @@ import {
   createBrowserClient,
 } from '@supabase/ssr';
 
+// ============================================================
+// TYPES
+// ============================================================
+
 interface NavItem {
   label: string;
   href: string;
-  icon:
-    React.ComponentType<{
-      className?: string;
-      strokeWidth?: number;
-    }>;
+
+  icon: React.ComponentType<{
+    className?: string;
+    strokeWidth?: number;
+  }>;
+
   badge?: string;
 }
+
+// ============================================================
+// COMPONENT
+// ============================================================
 
 export default function BottomNav() {
   const pathname =
@@ -45,6 +51,10 @@ export default function BottomNav() {
     setShowLoginModal,
   ] =
     useState(false);
+
+  // ==========================================================
+  // SUPABASE CLIENT
+  // ==========================================================
 
   const supabase =
     useMemo(
@@ -58,7 +68,15 @@ export default function BottomNav() {
       []
     );
 
-  // Sembunyikan di detail campaign & studio
+  // ==========================================================
+  // HIDE NAV
+  //
+  // Tidak tampil di:
+  // - detail campaign
+  // - Sanity Studio
+  // - callback auth
+  // ==========================================================
+
   if (
     !pathname ||
     pathname.startsWith(
@@ -66,43 +84,81 @@ export default function BottomNav() {
     ) ||
     pathname.startsWith(
       '/studio'
+    ) ||
+    pathname.startsWith(
+      '/auth/'
     )
   ) {
     return null;
   }
 
+  // ==========================================================
+  // NAVIGATION ITEMS
+  // ==========================================================
+
   const navItems:
     NavItem[] = [
     {
-      label: 'Home',
-      href: '/',
-      icon: Home,
+      label:
+        'Home',
+
+      href:
+        '/',
+
+      icon:
+        Home,
     },
+
     {
-      label: 'Donasi Saya',
-      href: '/donasi-saya',
-      icon: HeartHandshake,
+      label:
+        'Donasi Saya',
+
+      href:
+        '/donasi-saya',
+
+      icon:
+        HeartHandshake,
     },
+
     {
-      label: 'Berita',
-      href: '/news',
-      icon: Newspaper,
-      badge: '21.8k',
+      label:
+        'Berita',
+
+      href:
+        '/news',
+
+      icon:
+        Newspaper,
+
+      badge:
+        '21.8k',
     },
+
     {
-      label: 'Akun',
-      href: '/akun',
-      icon: User,
+      label:
+        'Akun',
+
+      href:
+        '/akun',
+
+      icon:
+        User,
     },
   ];
+
+  // ==========================================================
+  // AUTH CHECK UNTUK MENU AKUN
+  // ==========================================================
 
   const handleNavClick =
     async (
       e:
         React.MouseEvent<HTMLAnchorElement>,
+
       href:
         string
     ) => {
+      // Menu selain Akun langsung jalan normal
       if (
         href !==
         '/akun'
@@ -116,14 +172,18 @@ export default function BottomNav() {
             user,
           },
         } =
-          await supabase.auth.getUser();
+          await supabase
+            .auth
+            .getUser();
 
+        // Sudah login
         if (
           user
         ) {
           return;
         }
 
+        // Belum login
         e.preventDefault();
 
         setShowLoginModal(
@@ -145,10 +205,15 @@ export default function BottomNav() {
       }
     };
 
+  // ==========================================================
+  // RENDER
+  // ==========================================================
+
   return (
     <>
+
       {/* ======================================================
-          BOTTOM NAV
+          BOTTOM NAVIGATION
       ====================================================== */}
 
       <div
@@ -158,29 +223,31 @@ export default function BottomNav() {
           bottom-0
           left-0
           right-0
-          z-40
+          z-50
           flex
           justify-center
+          px-3
         "
       >
+
         <nav
           aria-label="Navigasi bawah"
           className="
             pointer-events-auto
             flex
-            w-[calc(100%-0.5rem)]
-            max-w-[29rem]
+            w-full
+            max-w-md
             items-center
-            justify-around
             border-x
             border-t
-            border-[#d8dedb]
+            border-[#d6ddd9]
             bg-white
             px-1
             py-1.5
-            shadow-[0_-4px_14px_rgba(0,0,0,0.07)]
+            shadow-[0_-4px_16px_rgba(0,0,0,0.07)]
           "
         >
+
           {navItems.map(
             (
               item,
@@ -189,9 +256,18 @@ export default function BottomNav() {
               const Icon =
                 item.icon;
 
+              // =================================================
+              // ACTIVE STATE
+              // =================================================
+
               const isActive =
-                pathname ===
-                item.href;
+                item.href === '/'
+                  ? pathname === '/'
+                  : pathname ===
+                      item.href ||
+                    pathname.startsWith(
+                      `${item.href}/`
+                    );
 
               return (
                 <Link
@@ -216,38 +292,58 @@ export default function BottomNav() {
                     flex-col
                     items-center
                     justify-center
-                    px-1
-                    py-1
+                    py-1.5
                     transition-colors
+                    duration-200
+
                     ${
                       isActive
                         ? 'text-[#073f2e]'
-                        : 'text-slate-500 hover:text-[#073f2e]'
+                        : 'text-[#6f8196] hover:text-[#073f2e]'
                     }
                   `}
                 >
-                  <div className="relative">
+
+                  {/* =============================================
+                      ICON
+                  ============================================== */}
+
+                  <div
+                    className="
+                      relative
+                      flex
+                      h-6
+                      items-center
+                      justify-center
+                    "
+                  >
 
                     <Icon
-                      className="h-5 w-5"
+                      className="
+                        h-[21px]
+                        w-[21px]
+                      "
                       strokeWidth={
                         isActive
-                          ? 2.3
+                          ? 2.4
                           : 1.8
                       }
                     />
 
+                    {/* BADGE */}
                     {item.badge && (
                       <span
                         className="
                           absolute
-                          -right-4
-                          -top-2
+                          -right-[18px]
+                          -top-[7px]
+                          min-w-[31px]
                           border
                           border-white
-                          bg-rose-500
-                          px-1.5
-                          py-0.5
+                          bg-[#ff315f]
+                          px-1
+                          py-[2px]
+                          text-center
                           text-[9px]
                           font-bold
                           leading-none
@@ -262,12 +358,19 @@ export default function BottomNav() {
 
                   </div>
 
+                  {/* =============================================
+                      LABEL
+                  ============================================== */}
+
                   <span
                     className={`
                       mt-0.5
+                      max-w-full
                       truncate
                       text-[11px]
+                      leading-tight
                       tracking-tight
+
                       ${
                         isActive
                           ? 'font-semibold'
@@ -284,7 +387,9 @@ export default function BottomNav() {
               );
             }
           )}
+
         </nav>
+
       </div>
 
       {/* ======================================================
@@ -292,6 +397,7 @@ export default function BottomNav() {
       ====================================================== */}
 
       {showLoginModal && (
+
         <div
           className="
             fixed
@@ -305,6 +411,10 @@ export default function BottomNav() {
             backdrop-blur-[2px]
           "
         >
+
+          {/* ==================================================
+              BACKDROP
+          =================================================== */}
 
           <button
             type="button"
@@ -321,20 +431,28 @@ export default function BottomNav() {
             "
           />
 
+          {/* ==================================================
+              MODAL
+          =================================================== */}
+
           <section
             className="
               relative
               z-10
-              w-[calc(100%-1rem)]
-              max-w-md
+              w-full
+              max-w-sm
               border
-              border-[#d4d8d5]
+              border-[#d3d8d5]
               bg-white
-              p-6
+              p-5
               text-center
               shadow-[0_24px_60px_rgba(0,0,0,0.24)]
             "
           >
+
+            {/* ================================================
+                CLOSE
+            ================================================= */}
 
             <button
               type="button"
@@ -343,6 +461,7 @@ export default function BottomNav() {
                   false
                 )
               }
+              aria-label="Tutup"
               className="
                 absolute
                 right-3
@@ -353,32 +472,50 @@ export default function BottomNav() {
                 items-center
                 justify-center
                 border
-                border-[#dedede]
+                border-[#dddddd]
                 bg-[#f5f5f5]
                 text-slate-400
                 transition
                 hover:bg-[#ececec]
                 hover:text-slate-700
               "
-              aria-label="Tutup"
             >
-              <X className="h-4 w-4" />
+              <X
+                className="
+                  h-4
+                  w-4
+                "
+              />
             </button>
 
-            <div className="flex flex-col items-center">
+            {/* ================================================
+                CONTENT
+            ================================================= */}
+
+            <div
+              className="
+                flex
+                flex-col
+                items-center
+              "
+            >
+
+              {/* IMAGE */}
 
               <img
                 src="/images/empty.svg"
                 alt="Silakan masuk"
                 className="
-                  mb-5
-                  h-40
-                  w-40
+                  mb-4
+                  h-36
+                  w-36
                   object-contain
-                  sm:h-44
-                  sm:w-44
+                  sm:h-40
+                  sm:w-40
                 "
               />
+
+              {/* TITLE */}
 
               <h2
                 className="
@@ -391,11 +528,12 @@ export default function BottomNav() {
                 Silakan Masuk
               </h2>
 
+              {/* DESCRIPTION */}
+
               <p
                 className="
                   mt-2
-                  max-w-[390px]
-                  px-2
+                  max-w-[340px]
                   text-[13px]
                   leading-[1.7]
                   text-slate-600
@@ -404,8 +542,10 @@ export default function BottomNav() {
                 Anda belum masuk ke akun BMA.
                 Silakan login terlebih dahulu
                 untuk melihat profil, riwayat
-                aktivitas, dan layanan akun Anda.
+                donasi, dan layanan akun Anda.
               </p>
+
+              {/* LOGIN BUTTON */}
 
               <Link
                 href="/login"
@@ -415,7 +555,7 @@ export default function BottomNav() {
                   )
                 }
                 className="
-                  mt-6
+                  mt-5
                   flex
                   w-full
                   items-center
@@ -431,7 +571,7 @@ export default function BottomNav() {
                   text-[#292929]
                   shadow-[0_5px_14px_rgba(140,115,0,0.14)]
                   transition
-                  hover:bg-[#f1ca00]
+                  hover:bg-[#f0c900]
                 "
               >
                 Masuk ke Akun
@@ -443,6 +583,7 @@ export default function BottomNav() {
 
         </div>
       )}
+
     </>
   );
 }
