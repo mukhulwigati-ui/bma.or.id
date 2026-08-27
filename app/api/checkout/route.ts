@@ -39,13 +39,13 @@ export async function POST(request: Request) {
       );
     }
 
-    // Kustomisasi invoice prefix berdasarkan slug program donasi
+    // Kustomisasi invoice prefix berdasarkan identitas BMA & slug program donasi
     const cleanSlug = String(slug).toUpperCase();
-    const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
-    const generatedOrderId = `INV-BDB-${prefix}-${Date.now()}`;
+    const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'BMA';
+    const generatedOrderId = `INV-BMA-${prefix}-${Date.now()}`;
 
-    // 🚀 KONFIGURASI KREDENSIAL PAKASIR
-    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || 'depodomain';
+    // 🚀 KONFIGURASI KREDENSIAL PAKASIR (Disesuaikan dengan domain bma.or.id)
+    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || 'bma';
     const apiKey = process.env.PAKASIR_API_KEY || '';
 
     if (!apiKey) {
@@ -96,8 +96,8 @@ export async function POST(request: Request) {
     const totalPayment = Number(paymentInfo.total_payment || cleanAmountNumber);
     const expiredAt = paymentInfo.expired_at || '';
 
-    // URL Redirect sukses milik bdb.or.id
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bdb.or.id';
+    // URL Redirect sukses milik bma.or.id
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bma.or.id';
     const returnUrl = `${siteUrl}/thank-you?order_id=${generatedOrderId}`;
 
     // 🚀 MEMBUAT URL PEMBAYARAN RESMI PAKASIR
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       orderId: String(generatedOrderId),
       donorName: String(donorName),
       donorPhone: String(donorPhone),
-      amount: Number(cleanAmountNumber),            
+      amount: Number(cleanAmountNumber),         
       totalAmount: Number(totalPayment), 
       status: 'pending',
       slug: String(slug),
