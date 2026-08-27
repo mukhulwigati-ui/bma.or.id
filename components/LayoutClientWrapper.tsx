@@ -1,4 +1,5 @@
 // components/LayoutClientWrapper.tsx
+
 'use client';
 
 import React, {
@@ -7,8 +8,12 @@ import React, {
   useState,
 } from 'react';
 
-import { usePathname } from 'next/navigation';
+import {
+  usePathname,
+} from 'next/navigation';
+
 import Header from '@/components/Header';
+import BottomNav from '@/components/BottomNav';
 
 import {
   CheckCircle2,
@@ -23,29 +28,41 @@ import {
 // IDENTITAS BMA
 // ============================================================
 
-const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_SHORT_NAME = 'BMA';
-const SITE_DOMAIN = 'bma.or.id';
-const SITE_LOCATION = 'Jepara';
+const SITE_NAME =
+  'Baitul Maal Al Muttaqin';
+
+const SITE_SHORT_NAME =
+  'BMA';
+
+const SITE_DOMAIN =
+  'bma.or.id';
+
+const SITE_LOCATION =
+  'Jepara';
 
 // ============================================================
 // TYPES
 // ============================================================
 
 interface LayoutClientWrapperProps {
-  children: React.ReactNode;
+  children:
+    React.ReactNode;
 }
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
+interface BeforeInstallPromptEvent
+  extends Event {
+  prompt:
+    () => Promise<void>;
 
-  userChoice: Promise<{
-    outcome:
-      | 'accepted'
-      | 'dismissed';
+  userChoice:
+    Promise<{
+      outcome:
+        | 'accepted'
+        | 'dismissed';
 
-    platform: string;
-  }>;
+      platform:
+        string;
+    }>;
 }
 
 // ============================================================
@@ -58,6 +75,10 @@ export default function LayoutClientWrapper({
   const pathname =
     usePathname();
 
+  // ==========================================================
+  // PATH CHECK
+  // ==========================================================
+
   const isStudioPage =
     pathname?.startsWith(
       '/studio'
@@ -66,8 +87,35 @@ export default function LayoutClientWrapper({
   const isHomePage =
     pathname === '/';
 
+  const isLoginPage =
+    pathname ===
+      '/login' ||
+    pathname?.startsWith(
+      '/login/'
+    );
+
+  const isAuthPage =
+    pathname?.startsWith(
+      '/auth/'
+    );
+
   // ==========================================================
-  // PWA STATES
+  // HALAMAN YANG TIDAK BOLEH MEMUNCULKAN BOTTOM NAV
+  //
+  // Ini penting supaya modal login dari BottomNav tidak
+  // muncul lagi di halaman login / OAuth callback.
+  // ==========================================================
+
+  const hideBottomNav =
+    isStudioPage ||
+    isLoginPage ||
+    isAuthPage;
+
+  const hideHeader =
+    isStudioPage;
+
+  // ==========================================================
+  // PWA STATE
   // ==========================================================
 
   const [
@@ -113,7 +161,7 @@ export default function LayoutClientWrapper({
     > | null>(null);
 
   // ==========================================================
-  // HELPER: APAKAH PWA SUDAH BERJALAN STANDALONE?
+  // CEK STANDALONE PWA
   // ==========================================================
 
   const isRunningStandalone =
@@ -146,7 +194,7 @@ export default function LayoutClientWrapper({
     };
 
   // ==========================================================
-  // HELPER: BERSIHKAN TIMER
+  // CLEAR TIMERS
   // ==========================================================
 
   const clearTimers =
@@ -175,7 +223,7 @@ export default function LayoutClientWrapper({
     };
 
   // ==========================================================
-  // PWA PROMPT EFFECT
+  // PWA PROMPT
   // ==========================================================
 
   useEffect(() => {
@@ -196,7 +244,9 @@ export default function LayoutClientWrapper({
 
     if (
       !isHomePage ||
-      isStudioPage
+      isStudioPage ||
+      isLoginPage ||
+      isAuthPage
     ) {
       setShowPrompt(
         false
@@ -206,7 +256,7 @@ export default function LayoutClientWrapper({
     }
 
     // ========================================================
-    // JANGAN TAMPILKAN JIKA SUDAH STANDALONE
+    // JIKA SUDAH PWA
     // ========================================================
 
     if (
@@ -220,11 +270,13 @@ export default function LayoutClientWrapper({
     }
 
     // ========================================================
-    // DETEKSI DEVICE
+    // DEVICE DETECTION
     // ========================================================
 
     const userAgent =
-      window.navigator.userAgent.toLowerCase();
+      window.navigator
+        .userAgent
+        .toLowerCase();
 
     const isMobileDevice =
       /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
@@ -242,7 +294,7 @@ export default function LayoutClientWrapper({
     }
 
     // ========================================================
-    // SESSION CLOSED
+    // SESSION CLOSE
     // ========================================================
 
     const closedInSession =
@@ -275,7 +327,7 @@ export default function LayoutClientWrapper({
     );
 
     // ========================================================
-    // CEK MODAL LAIN
+    // SHOW
     // ========================================================
 
     const checkAndShow =
@@ -283,10 +335,6 @@ export default function LayoutClientWrapper({
         if (
           isRunningStandalone()
         ) {
-          setShowPrompt(
-            false
-          );
-
           return;
         }
 
@@ -296,12 +344,12 @@ export default function LayoutClientWrapper({
           );
 
         if (
-          closed === 'true'
+          closed ===
+          'true'
         ) {
           return;
         }
 
-        // Hindari tabrakan dengan modal lain
         const activeModals =
           document.querySelectorAll(
             '[data-app-modal="true"]'
@@ -327,8 +375,6 @@ export default function LayoutClientWrapper({
 
     // ========================================================
     // IOS
-    //
-    // iOS tidak memakai beforeinstallprompt.
     // ========================================================
 
     if (
@@ -342,12 +388,13 @@ export default function LayoutClientWrapper({
     }
 
     // ========================================================
-    // ANDROID / CHROME
+    // ANDROID
     // ========================================================
 
     const handleBeforeInstallPrompt =
       (
-        event: Event
+        event:
+          Event
       ) => {
         event.preventDefault();
 
@@ -368,15 +415,11 @@ export default function LayoutClientWrapper({
       };
 
     // ========================================================
-    // APP INSTALLED
+    // INSTALLED
     // ========================================================
 
     const handleAppInstalled =
       () => {
-        console.log(
-          '✅ PWA BMA berhasil diinstal'
-        );
-
         setDeferredPrompt(
           null
         );
@@ -411,10 +454,6 @@ export default function LayoutClientWrapper({
       handleAppInstalled
     );
 
-    // ========================================================
-    // CLEANUP
-    // ========================================================
-
     return () => {
       clearTimers();
 
@@ -431,6 +470,8 @@ export default function LayoutClientWrapper({
   }, [
     isHomePage,
     isStudioPage,
+    isLoginPage,
+    isAuthPage,
   ]);
 
   // ==========================================================
@@ -439,21 +480,15 @@ export default function LayoutClientWrapper({
 
   const handleInstallClick =
     async () => {
-      // ======================================================
-      // IOS
-      // ======================================================
-
-      if (isIOS) {
+      if (
+        isIOS
+      ) {
         setShowIOSGuide(
           true
         );
 
         return;
       }
-
-      // ======================================================
-      // ANDROID
-      // ======================================================
 
       if (
         !deferredPrompt
@@ -464,23 +499,8 @@ export default function LayoutClientWrapper({
       try {
         await deferredPrompt.prompt();
 
-        const {
-          outcome,
-        } =
-          await deferredPrompt.userChoice;
-
-        if (
-          outcome ===
-          'accepted'
-        ) {
-          console.log(
-            '✅ User menerima instalasi PWA BMA'
-          );
-        } else {
-          console.log(
-            'ℹ️ User membatalkan instalasi PWA BMA'
-          );
-        }
+        await deferredPrompt
+          .userChoice;
       } catch (
         error
       ) {
@@ -509,7 +529,7 @@ export default function LayoutClientWrapper({
     };
 
   // ==========================================================
-  // CLOSE
+  // CLOSE PWA
   // ==========================================================
 
   const handleClose =
@@ -543,16 +563,14 @@ export default function LayoutClientWrapper({
 
       {/* ======================================================
           HEADER
-
-          Header tidak ditampilkan di Sanity Studio.
       ====================================================== */}
 
-      {!isStudioPage && (
+      {!hideHeader && (
         <Header />
       )}
 
       {/* ======================================================
-          MAIN CONTENT
+          CONTENT
       ====================================================== */}
 
       <main className="flex-grow">
@@ -560,11 +578,26 @@ export default function LayoutClientWrapper({
       </main>
 
       {/* ======================================================
-          PWA INSTALL MODAL
+          BOTTOM NAV
+
+          TIDAK ADA DI:
+          /login
+          /auth/*
+          /studio/*
+      ====================================================== */}
+
+      {!hideBottomNav && (
+        <BottomNav />
+      )}
+
+      {/* ======================================================
+          PWA MODAL
       ====================================================== */}
 
       {isHomePage &&
         !isStudioPage &&
+        !isLoginPage &&
+        !isAuthPage &&
         showPrompt &&
         !hasClosedPrompt && (
 
@@ -584,7 +617,6 @@ export default function LayoutClientWrapper({
             "
           >
 
-            {/* BACKDROP */}
             <button
               type="button"
               onClick={
@@ -594,10 +626,6 @@ export default function LayoutClientWrapper({
               aria-label="Tutup modal instalasi"
             />
 
-            {/* =================================================
-                MODAL
-            ================================================== */}
-
             <section
               className="
                 relative
@@ -606,31 +634,27 @@ export default function LayoutClientWrapper({
                 max-w-sm
                 overflow-hidden
                 border
-                border-[#CFCFC9]
+                border-[#cfcfc9]
                 bg-white
                 shadow-[0_24px_60px_rgba(0,0,0,0.22)]
               "
             >
 
-              {/* ===============================================
-                  HEADER KUNING BMA
-              =============================================== */}
+              {/* HEADER */}
 
               <div
                 className="
                   relative
                   border-b
-                  border-[#D4B300]
-                  bg-[#FFD600]
+                  border-[#d4b300]
+                  bg-[#ffd600]
                   px-5
                   py-5
                 "
               >
 
-                {/* TOP DARK LINE */}
-                <div className="absolute left-0 top-0 h-[4px] w-full bg-[#2E2E2E]" />
+                <div className="absolute left-0 top-0 h-[4px] w-full bg-[#2e2e2e]" />
 
-                {/* CLOSE */}
                 <button
                   type="button"
                   onClick={
@@ -649,16 +673,12 @@ export default function LayoutClientWrapper({
                     border-black/15
                     bg-white/55
                     text-[#555555]
-                    transition
-                    hover:bg-white
-                    hover:text-black
                   "
                   aria-label="Tutup"
                 >
                   <X className="h-4 w-4" />
                 </button>
 
-                {/* ICON */}
                 <div
                   className="
                     flex
@@ -674,43 +694,17 @@ export default function LayoutClientWrapper({
                   <Smartphone className="h-6 w-6 text-[#333333]" />
                 </div>
 
-                {/* BRAND */}
                 <div className="mt-4 pr-10">
 
-                  <p
-                    className="
-                      text-[10px]
-                      font-extrabold
-                      uppercase
-                      tracking-[0.16em]
-                      text-black/55
-                    "
-                  >
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-black/55">
                     Aplikasi Resmi {SITE_SHORT_NAME}
                   </p>
 
-                  <h2
-                    className="
-                      mt-1
-                      text-[21px]
-                      font-extrabold
-                      leading-tight
-                      tracking-tight
-                      text-[#303030]
-                    "
-                  >
+                  <h2 className="mt-1 text-[21px] font-extrabold text-[#303030]">
                     Install {SITE_DOMAIN}
                   </h2>
 
-                  <p
-                    className="
-                      mt-2
-                      text-[12px]
-                      font-medium
-                      leading-[1.65]
-                      text-[#514B31]
-                    "
-                  >
+                  <p className="mt-2 text-[12px] font-medium text-[#514b31]">
                     {SITE_NAME}
                     {' • '}
                     {SITE_LOCATION}
@@ -720,15 +714,12 @@ export default function LayoutClientWrapper({
 
               </div>
 
-              {/* ===============================================
-                  CONTENT
-              =============================================== */}
+              {/* CONTENT */}
 
               <div className="space-y-5 p-5">
 
                 {showIOSGuide ? (
                   <>
-                    {/* IOS GUIDE */}
 
                     <div>
 
@@ -736,58 +727,16 @@ export default function LayoutClientWrapper({
 
                         <Share2 className="h-5 w-5 text-[#555555]" />
 
-                        <h3 className="text-[15px] font-bold text-[#3D3D3D]">
+                        <h3 className="text-[15px] font-bold text-[#3d3d3d]">
                           Tambahkan ke Layar Utama
                         </h3>
 
                       </div>
 
                       <p className="mt-3 text-[13px] leading-[1.75] text-[#666666]">
-                        Di Safari, ketuk tombol
-                        {' '}
-                        <strong className="font-bold text-[#444444]">
-                          Bagikan
-                        </strong>
-                        , kemudian pilih
-                        {' '}
-                        <strong className="font-bold text-[#444444]">
-                          Tambah ke Layar Utama
-                        </strong>
-                        {' '}
-                        atau
-                        {' '}
-                        <strong className="font-bold text-[#444444]">
-                          Add to Home Screen
-                        </strong>
-                        .
+                        Ketuk tombol Bagikan di Safari,
+                        kemudian pilih Tambah ke Layar Utama.
                       </p>
-
-                    </div>
-
-                    <div
-                      className="
-                        border
-                        border-[#D8D8D3]
-                        bg-[#EEEEEB]
-                        p-4
-                      "
-                    >
-
-                      <div className="flex items-start gap-3">
-
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-[#555555]" />
-
-                        <p className="text-[12px] leading-[1.7] text-[#5F5F5F]">
-                          Setelah ditambahkan, ikon
-                          {' '}
-                          <strong className="text-[#3F3F3F]">
-                            BMA
-                          </strong>
-                          {' '}
-                          akan tersedia langsung di layar utama perangkat Anda.
-                        </p>
-
-                      </div>
 
                     </div>
 
@@ -799,106 +748,48 @@ export default function LayoutClientWrapper({
                       className="
                         w-full
                         border
-                        border-[#CCCCCC]
-                        bg-[#EFEFED]
+                        border-[#cccccc]
+                        bg-[#efefed]
                         px-4
                         py-3.5
                         text-[12px]
                         font-bold
                         uppercase
-                        tracking-[0.12em]
-                        text-[#4A4A4A]
-                        transition
-                        hover:bg-[#E4E4E1]
+                        text-[#4a4a4a]
                       "
                     >
                       Mengerti
                     </button>
+
                   </>
                 ) : (
                   <>
-                    {/* =========================================
-                        DESCRIPTION
-                    ========================================== */}
 
                     <div>
 
-                      <h3 className="text-[15px] font-bold text-[#3D3D3D]">
+                      <h3 className="text-[15px] font-bold text-[#3d3d3d]">
                         Akses BMA lebih mudah dari HP
                       </h3>
 
-                      <p
-                        className="
-                          mt-2
-                          text-[13px]
-                          leading-[1.75]
-                          text-[#666666]
-                        "
-                      >
-                        Pasang
-                        {' '}
-                        <strong className="font-bold text-[#444444]">
-                          {SITE_DOMAIN}
-                        </strong>
-                        {' '}
-                        di perangkat Anda untuk mengakses program zakat, infak, sedekah, wakaf, riwayat donasi, dan layanan BMA dengan lebih cepat.
+                      <p className="mt-2 text-[13px] leading-[1.75] text-[#666666]">
+                        Pasang {SITE_DOMAIN} untuk mengakses program BMA lebih cepat.
                       </p>
 
                     </div>
 
-                    {/* =========================================
-                        BENEFIT
-                    ========================================== */}
+                    <div className="border border-[#e0e0dc] bg-[#f5f5f2] p-4">
 
-                    <div
-                      className="
-                        border-y
-                        border-[#E0E0DC]
-                        bg-[#F5F5F2]
-                      "
-                    >
+                      <div className="flex items-start gap-3">
 
-                      <div className="flex items-start gap-3 border-b border-[#E0E0DC] px-4 py-3.5">
+                        <ShieldCheck className="mt-0.5 h-5 w-5 text-[#666666]" />
 
-                        <Smartphone className="mt-0.5 h-4 w-4 shrink-0 text-[#666666]" />
-
-                        <div>
-
-                          <p className="text-[12px] font-bold text-[#444444]">
-                            Akses Cepat
-                          </p>
-
-                          <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
-                            Buka BMA langsung dari layar utama tanpa mengetik alamat website.
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                      <div className="flex items-start gap-3 px-4 py-3.5">
-
-                        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#666666]" />
-
-                        <div>
-
-                          <p className="text-[12px] font-bold text-[#444444]">
-                            Aplikasi Resmi
-                          </p>
-
-                          <p className="mt-1 text-[11px] leading-relaxed text-[#777777]">
-                            Terhubung langsung dengan layanan digital resmi {SITE_NAME}.
-                          </p>
-
-                        </div>
+                        <p className="text-[12px] leading-[1.7] text-[#5f5f5f]">
+                          Terhubung langsung dengan layanan resmi {SITE_NAME}.
+                        </p>
 
                       </div>
 
                     </div>
-
-                    {/* =========================================
-                        INSTALL BUTTON
-                    ========================================== */}
 
                     <button
                       type="button"
@@ -916,25 +807,19 @@ export default function LayoutClientWrapper({
                         justify-center
                         gap-2.5
                         border
-                        border-[#C7A700]
-                        bg-[#FFD600]
+                        border-[#c7a700]
+                        bg-[#ffd600]
                         px-4
                         py-4
                         text-[12px]
                         font-extrabold
                         uppercase
-                        tracking-[0.12em]
                         text-[#292929]
-                        shadow-[0_5px_12px_rgba(120,100,0,0.12)]
-                        transition
-                        hover:bg-[#F2CA00]
-                        disabled:cursor-not-allowed
-                        disabled:border-[#D5D5D0]
-                        disabled:bg-[#E6E6E3]
+                        disabled:bg-[#e6e6e3]
                         disabled:text-[#999999]
-                        disabled:shadow-none
                       "
                     >
+
                       <Download className="h-[18px] w-[18px]" />
 
                       {isIOS
@@ -942,22 +827,8 @@ export default function LayoutClientWrapper({
                         : deferredPrompt
                         ? 'Install Aplikasi BMA'
                         : 'Belum Tersedia untuk Install'}
+
                     </button>
-
-                    {/* =========================================
-                        FOOTER NOTE
-                    ========================================== */}
-
-                    <p
-                      className="
-                        text-center
-                        text-[10px]
-                        leading-relaxed
-                        text-[#999999]
-                      "
-                    >
-                      Instalasi tidak memerlukan unduhan melalui Play Store.
-                    </p>
 
                   </>
                 )}

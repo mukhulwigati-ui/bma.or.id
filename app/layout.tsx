@@ -1,9 +1,11 @@
 // app/layout.tsx
+
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import LayoutClientWrapper from '@/components/LayoutClientWrapper';
-import BottomNav from '@/components/BottomNav';
 import Script from 'next/script';
+
+import LayoutClientWrapper from '@/components/LayoutClientWrapper';
+
 import './globals.css';
 
 const geistSans = Geist({
@@ -16,65 +18,54 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_SHORT_NAME = 'BMA';
-const SITE_DOMAIN = 'bma.or.id';
-const SITE_URL = 'https://bma.or.id';
-const SITE_LOCATION = 'Jepara';
-
-// ============================================================
-// MASTER SEO & PWA METADATA BMA.OR.ID
-// ============================================================
 export const metadata: Metadata = {
+  metadataBase: new URL('https://bma.or.id'),
+
   title: {
     default:
-      'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
-    template: '%s | bma.or.id',
+      'bma.or.id | Baitul Maal Al Muttaqin',
+    template:
+      '%s | bma.or.id',
   },
 
   description:
-    'Salurkan zakat, infak, sedekah, wakaf, dan donasi program sosial melalui Baitul Maal Al Muttaqin di bma.or.id. Berpusat di Jepara dan hadir untuk memperluas manfaat bagi umat dan masyarakat.',
+    'Platform resmi Baitul Maal Al Muttaqin Jepara untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.',
 
-  manifest: '/manifest.json',
-
-  applicationName: SITE_NAME,
+  manifest:
+    '/manifest.json',
 
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: SITE_NAME,
+    title: 'BMA',
   },
 
   keywords: [
+    'bma',
+    'bma.or.id',
     'Baitul Maal Al Muttaqin',
     'BMA Jepara',
-    'bma.or.id',
-    'baitul maal jepara',
-    'zakat jepara',
     'zakat online',
     'infak online',
     'sedekah online',
-    'sedekah subuh',
     'wakaf online',
-    'wakaf quran',
-    'donasi yatim dhuafa',
-    'donasi santri',
-    'donasi kemanusiaan',
-    'donasi online jepara',
-    'kalkulator zakat',
+    'donasi online',
   ],
 
   authors: [
     {
-      name: SITE_NAME,
-      url: SITE_URL,
+      name:
+        'Baitul Maal Al Muttaqin',
+      url:
+        'https://bma.or.id',
     },
   ],
 
-  creator: SITE_NAME,
-  publisher: SITE_NAME,
+  creator:
+    'Baitul Maal Al Muttaqin',
 
-  metadataBase: new URL(SITE_URL),
+  publisher:
+    'Baitul Maal Al Muttaqin',
 
   alternates: {
     canonical: '/',
@@ -82,73 +73,84 @@ export const metadata: Metadata = {
 
   openGraph: {
     title:
-      'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
+      'bma.or.id | Baitul Maal Al Muttaqin',
 
     description:
-      'Bersama Baitul Maal Al Muttaqin, tunaikan zakat, infak, sedekah, wakaf, dan dukung berbagai program sosial, pendidikan, dakwah, serta kemanusiaan melalui layanan digital bma.or.id.',
+      'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin Jepara.',
 
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    locale: 'id_ID',
-    type: 'website',
+    url:
+      'https://bma.or.id',
+
+    siteName:
+      'Baitul Maal Al Muttaqin',
+
+    locale:
+      'id_ID',
+
+    type:
+      'website',
 
     images: [
       {
-        url: `${SITE_URL}/images/banner.png`,
-        width: 1200,
-        height: 630,
-        type: 'image/png',
-        alt: `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
+        url:
+          'https://bma.or.id/images/banner.png',
+
+        width:
+          1200,
+
+        height:
+          630,
+
+        type:
+          'image/png',
+
+        alt:
+          'Baitul Maal Al Muttaqin',
       },
     ],
   },
 
   twitter: {
-    card: 'summary_large_image',
+    card:
+      'summary_large_image',
 
     title:
       'bma.or.id | Baitul Maal Al Muttaqin',
 
     description:
-      'Platform digital Baitul Maal Al Muttaqin untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.',
+      'Platform resmi Baitul Maal Al Muttaqin Jepara.',
 
     images: [
-      `${SITE_URL}/images/banner.png`,
+      'https://bma.or.id/images/banner.png',
     ],
   },
 
   robots: {
-    index: true,
-    follow: true,
+    index:
+      true,
+
+    follow:
+      true,
 
     googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      index:
+        true,
+
+      follow:
+        true,
+
+      'max-video-preview':
+        -1,
+
+      'max-image-preview':
+        'large',
+
+      'max-snippet':
+        -1,
     },
-  },
-
-  verification: {
-    google:
-      'google-site-verification-token-anda',
-  },
-
-  category: 'Nonprofit Organization',
-
-  other: {
-    'organization-name': SITE_NAME,
-    'organization-short-name':
-      SITE_SHORT_NAME,
-    'organization-location':
-      `${SITE_LOCATION}, Jawa Tengah, Indonesia`,
   },
 };
 
-// ============================================================
-// ROOT LAYOUT
-// ============================================================
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -159,14 +161,16 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
+
       <body
-        className="min-h-screen bg-[#f8f8f6] flex flex-col text-slate-800"
+        className="min-h-screen bg-slate-100 text-slate-800"
         suppressHydrationWarning
       >
 
         {/* =====================================================
-            GOOGLE ANALYTICS GA4
+            GOOGLE ANALYTICS
         ====================================================== */}
+
         <Script
           strategy="afterInteractive"
           src="https://www.googletagmanager.com/gtag/js?id=G-FG813S8GLF"
@@ -185,40 +189,45 @@ export default function RootLayout({
 
               gtag('js', new Date());
 
-              gtag('config', 'G-FG813S8GLF', {
-                page_path: window.location.pathname,
-              });
+              gtag(
+                'config',
+                'G-FG813S8GLF',
+                {
+                  page_path:
+                    window.location.pathname
+                }
+              );
             `,
           }}
         />
 
         {/* =====================================================
-            MIDTRANS SNAP
+            MIDTRANS
         ====================================================== */}
+
         <Script
           src="https://app.midtrans.com/snap/snap.js"
           data-client-key={
             process.env
               .NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
-            'Mid-client-NVjY5ccbH7M47czA'
+            ''
           }
           strategy="lazyOnload"
           crossOrigin="anonymous"
         />
 
         {/* =====================================================
-            MAIN APPLICATION
+            GLOBAL CLIENT LAYOUT
+
+            Header + BottomNav sekarang dikontrol dari sini.
         ====================================================== */}
+
         <LayoutClientWrapper>
           {children}
         </LayoutClientWrapper>
 
-        {/* =====================================================
-            GLOBAL BOTTOM NAVIGATION
-        ====================================================== */}
-        <BottomNav />
-
       </body>
+
     </html>
   );
 }
