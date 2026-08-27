@@ -1,379 +1,170 @@
 // app/login/page.tsx
-
 'use client';
 
-import React, {
-  Suspense,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
 
-import {
-  createBrowserClient,
-} from '@supabase/ssr';
-
-import {
-  useRouter,
-  useSearchParams,
-} from 'next/navigation';
-
-import {
-  ArrowRight,
-  Eye,
-  EyeOff,
-  Loader2,
-  LockKeyhole,
-  Mail,
-} from 'lucide-react';
-
-// 1. Buat komponen utama pembungkus Suspense untuk mengatasi prerender error
 export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#f3f3f1] flex items-center justify-center">
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            Memuat halaman...
-          </div>
-        </div>
-      }
-    >
-      <LoginContent />
-    </Suspense>
-  );
-}
-
-// 2. Pindahkan seluruh logika asli ke dalam komponen ini
-function LoginContent() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mode, setMode] = useState<'login' | 'register'>('login');
   const [loading, setLoading] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-
-  // ==========================================================
-  // SUPABASE
-  // ==========================================================
-
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
-
-  // ==========================================================
-  // CEK ERROR CALLBACK
-  // ==========================================================
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  
+  const supabase = useMemo(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ), []);
+  
+  const router = useRouter();
 
   useEffect(() => {
-    const error = searchParams.get('error');
-
-    if (error) {
-      console.error('Auth error:', error);
-    }
-  }, [searchParams]);
-
-  // ==========================================================
-  // CEK SESSION SAAT PAGE DIBUKA
-  // ==========================================================
-
-  useEffect(() => {
-    let mounted = true;
-
-    const checkSession = async () => {
+    async function checkUserSession() {
       try {
-        const {
-          data: { session },
-          error,
-        } = await supabase.auth.getSession();
-
-        if (error) {
-          console.error('getSession error:', error);
-        }
-
-        if (session && mounted) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
           router.replace('/akun');
-          router.refresh();
-          return;
         }
-      } catch (error) {
-        console.error('Session check error:', error);
+      } catch (err) {
+        console.error('Error checking session:', err);
       } finally {
-        if (mounted) {
-          setCheckingAuth(false);
+        setCheckingAuth(false);
+      }
+    }
+    checkUserSession();
+  }, [supabase, router]);
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    if (mode === 'register') {
+      const { data, error } = await supabase.auth.signUp({ 
+        email, 
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`
+        }
+      });
+      
+      if (error) {
+        alert(error.message);
+      } else {
+        if (data.session) {
+          router.push('/akun');
+          router.refresh();
+        } else {
+          alert('Pendaftaran berhasil! Silakan periksa email atau langsung masuk.');
+          setMode('login');
         }
       }
-    };
-
-    checkSession();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event);
-
-      if (session && event === 'SIGNED_IN') {
-        router.replace('/akun');
+    } else {
+      const { error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+      
+      if (error) {
+        alert(error.message);
+      } else {
+        router.push('/akun');
         router.refresh();
+      }
+    }
+    
+    setLoading(false);
+  };
+
+  const handleGoogleAuth = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { 
+        redirectTo: `${window.location.origin}/auth/callback` 
       }
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
-  }, [supabase, router]);
-
-  // ==========================================================
-  // EMAIL LOGIN / REGISTER
-  // ==========================================================
-
-  const handleAuth = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (mode === 'register') {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=/akun`,
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.session) {
-          router.replace('/akun');
-          router.refresh();
-          return;
-        }
-
-        alert('Pendaftaran berhasil. Silakan periksa email untuk verifikasi.');
-        setMode('login');
-        return;
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) throw error;
-
-      if (!data.session) {
-        throw new Error('Session login tidak terbentuk.');
-      }
-
-      router.replace('/akun');
-      router.refresh();
-    } catch (error: any) {
-      console.error('Login error:', error);
-      alert(error?.message || 'Login gagal.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // ==========================================================
-  // GOOGLE OAUTH
-  // ==========================================================
-
-  const handleGoogleAuth = async () => {
-    try {
-      setLoading(true);
-      const callbackUrl = `${window.location.origin}/auth/callback?next=/akun`;
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: callbackUrl,
-          skipBrowserRedirect: false,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account',
-          },
-        },
-      });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error('Google OAuth error:', error);
-      alert(error?.message || 'Login Google gagal.');
-      setLoading(false);
+    if (error) {
+      alert(error.message);
     }
   };
 
   if (checkingAuth) {
     return (
-      <div className="min-h-screen bg-[#f3f3f1] flex items-center justify-center">
-        <div className="flex items-center gap-2 text-sm font-semibold text-slate-500">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Memeriksa sesi...
-        </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <p className="text-sm font-bold text-slate-500 animate-pulse">Memeriksa sesi...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f3f1] px-3 pb-28 pt-5">
-      {/* Lebar container diperlebar menggunakan max-w-md agar sejajar dengan header dan navbar bawah */}
-      <div className="mx-auto w-full max-w-md border border-[#d7d7d2] bg-white shadow-sm">
-        {/* HEADER */}
-        <div className="border-b border-[#e1e1dd] px-6 py-5">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#a08200]">
-            Akses Akun
-          </p>
-          <h1 className="mt-1 text-[24px] font-extrabold tracking-tight text-[#303030]">
-            {mode === 'login' ? 'Masuk ke Akun' : 'Daftar Akun'}
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-left">
+        
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-extrabold text-slate-900">
+            {mode === 'login' ? 'Masuk' : 'Daftar Akun'}
           </h1>
-          <p className="mt-1 text-[13px] text-stone-500">
-            {mode === 'login'
-              ? 'Gunakan email dan kata sandi akun Anda.'
-              : 'Buat akun baru BMA.'}
-          </p>
-        </div>
-
-        <div className="p-6">
-          {/* TAB */}
-          <div className="grid grid-cols-2 border border-[#d8d8d3] bg-[#f1f1ee]">
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className={`py-3.5 text-[11px] font-extrabold uppercase tracking-[0.13em] ${
-                mode === 'login'
-                  ? 'bg-[#ffd600] text-[#292929]'
-                  : 'text-stone-500'
-              }`}
-            >
-              Masuk
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMode('register')}
-              className={`py-3.5 text-[11px] font-extrabold uppercase tracking-[0.13em] ${
-                mode === 'register'
-                  ? 'bg-[#ffd600] text-[#292929]'
-                  : 'text-stone-500'
-              }`}
-            >
-              Daftar
-            </button>
-          </div>
-
-          {/* FORM */}
-          <form onSubmit={handleAuth} className="mt-6 space-y-5">
-            <div>
-              <label className="block text-[11px] font-extrabold uppercase tracking-[0.12em] text-stone-600">
-                Alamat Email
-              </label>
-              <div className="relative mt-2">
-                <Mail className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-stone-400" />
-                <input
-                  type="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="nama@email.com"
-                  className="h-[58px] w-full border border-[#d8d8d3] bg-[#fafaf8] pl-12 pr-4 text-[14px] font-semibold text-[#333333] outline-none focus:border-[#c4a300] focus:bg-white"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-extrabold uppercase tracking-[0.12em] text-stone-600">
-                Kata Sandi
-              </label>
-              <div className="relative mt-2">
-                <LockKeyhole className="absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-stone-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-                  required
-                  minLength={6}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="h-[58px] w-full border border-[#d8d8d3] bg-[#fafaf8] pl-12 pr-14 text-[14px] font-semibold text-[#333333] outline-none focus:border-[#c4a300] focus:bg-white"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((current) => !current)}
-                  className="absolute right-0 top-0 flex h-full w-14 items-center justify-center border-l border-[#deded9] text-stone-400"
-                >
-                  {showPassword ? <EyeOff className="h-[18px] w-[18px]" /> : <Eye className="h-[18px] w-[18px]" />}
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-[58px] w-full items-center justify-center gap-2 border border-[#c7a700] bg-[#ffd600] text-[11px] font-extrabold uppercase tracking-[0.16em] text-[#292929] shadow-sm transition hover:bg-[#f0ca00] disabled:opacity-60"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Memproses
-                </>
-              ) : (
-                <>
-                  {mode === 'login' ? 'Masuk ke Akun' : 'Daftar Akun'}
-                  <ArrowRight className="h-4 w-4" />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* DIVIDER */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#e0e0dc]" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-white px-3 text-[10px] font-bold uppercase tracking-[0.12em] text-stone-400">
-                Atau lanjutkan dengan
-              </span>
-            </div>
-          </div>
-
-          {/* GOOGLE */}
-          <button
+          <button 
             type="button"
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            className="flex h-[58px] w-full items-center justify-center gap-3 border border-[#d8d8d3] bg-white text-[14px] font-bold text-stone-700 transition hover:bg-[#f7f7f5] disabled:opacity-60"
+            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            className="text-xs font-bold text-[#0d5c91] hover:underline cursor-pointer"
           >
-            <img src="/google-icon.svg" alt="Google" className="h-5 w-5" />
-            Masuk dengan Google
+            {mode === 'login' ? 'Belum punya akun? Daftar' : 'Sudah punya akun? Masuk'}
           </button>
+        </div>
 
-          {/* MODE SWITCH */}
-          <div className="mt-7 border-t border-[#e4e4df] pt-5 text-center">
-            <p className="text-[13px] text-stone-500">
-              {mode === 'login' ? 'Belum memiliki akun?' : 'Sudah memiliki akun?'}{' '}
-              <button
-                type="button"
-                onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-                className="font-extrabold text-[#927800]"
-              >
-                {mode === 'login' ? 'Daftar sekarang' : 'Masuk sekarang'}
-              </button>
-            </p>
+        <form onSubmit={handleAuth} className="space-y-4">
+          <div>
+            <label className="text-sm font-semibold text-slate-600 mb-1.5 block">Email</label>
+            <input
+              type="email"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition text-slate-800 text-sm font-medium"
+              placeholder="nama@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-semibold text-slate-600 mb-1.5 block">Kata Sandi</label>
+            <input
+              type="password"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-500 focus:outline-none transition text-slate-800 text-sm font-medium"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#ffd600] hover:bg-[#e6c200] text-slate-900 font-extrabold py-3 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 text-sm cursor-pointer"
+          >
+            {loading ? 'Memproses...' : mode === 'login' ? 'Masuk ke Akun' : 'Daftar Akun'}
+          </button>
+        </form>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-100"></div>
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-white px-2 text-slate-400 font-medium">Atau lanjutkan dengan</span>
           </div>
         </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleAuth}
+          className="w-full flex items-center justify-center gap-2.5 border border-slate-200 hover:bg-slate-50 py-3 rounded-xl font-semibold text-slate-700 transition text-sm shadow-2xs cursor-pointer"
+        >
+          <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
+          <span>Masuk dengan Google</span>
+        </button>
       </div>
     </div>
   );
