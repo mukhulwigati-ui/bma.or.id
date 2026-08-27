@@ -22,6 +22,12 @@ import {
 // TYPES
 // ============================================================
 
+type SectionType =
+  | 'mendesak'
+  | 'unggulan'
+  | 'pilihan'
+  | '';
+
 interface CampaignItem {
   id: string;
   _id?: string;
@@ -32,11 +38,7 @@ interface CampaignItem {
 
   category?: string;
 
-  sectionType?:
-    | 'mendesak'
-    | 'unggulan'
-    | 'pilihan'
-    | string;
+  sectionType?: SectionType;
 
   collectedAmount?: number;
   collectedRaw?: number;
@@ -47,7 +49,7 @@ interface CampaignItem {
   daysLeft?: number;
 
   donorsCount?: number;
-  donors?: any[];
+  donors?: unknown[];
 }
 
 interface CampaignProps {
@@ -58,8 +60,90 @@ interface CampaignProps {
   pilihan?: CampaignItem[];
 }
 
+interface ApiResponse {
+  success?: boolean;
+  data?: unknown[];
+  error?: string;
+}
+
 // ============================================================
-// HELPERS
+// BASIC HELPERS
+// ============================================================
+
+function isRecord(
+  value: unknown
+): value is Record<string, unknown> {
+  return (
+    typeof value === 'object' &&
+    value !== null
+  );
+}
+
+function getString(
+  value: unknown
+): string {
+  return typeof value === 'string'
+    ? value.trim()
+    : '';
+}
+
+function getNumber(
+  value: unknown,
+  fallback = 0
+): number {
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : fallback;
+}
+
+function formatRupiah(
+  value: number
+): string {
+  return Number(
+    value || 0
+  ).toLocaleString('id-ID');
+}
+
+function normalizeSectionType(
+  value: unknown
+): SectionType {
+  if (
+    typeof value !== 'string'
+  ) {
+    return '';
+  }
+
+  const normalized =
+    value
+      .trim()
+      .toLowerCase();
+
+  if (
+    normalized === 'mendesak'
+  ) {
+    return 'mendesak';
+  }
+
+  if (
+    normalized === 'unggulan'
+  ) {
+    return 'unggulan';
+  }
+
+  if (
+    normalized === 'pilihan'
+  ) {
+    return 'pilihan';
+  }
+
+  return '';
+}
+
+// ============================================================
+// CAMPAIGN HELPERS
 // ============================================================
 
 function getCollected(
@@ -67,11 +151,11 @@ function getCollected(
 ): number {
   return Math.max(
     0,
-    Number(
+    getNumber(
       item.collectedAmount ??
-        item.collectedRaw ??
-        0
-    ) || 0
+        item.collectedRaw,
+      0
+    )
   );
 }
 
@@ -79,11 +163,11 @@ function getTarget(
   item: CampaignItem
 ): number {
   const target =
-    Number(
+    getNumber(
       item.targetAmount ??
-        item.targetRaw ??
-        50000000
-    ) || 50000000;
+        item.targetRaw,
+      50000000
+    );
 
   return target > 0
     ? target
@@ -107,27 +191,31 @@ function getPercentage(
   }
 
   return Math.min(
+    100,
     Math.max(
+      0,
       Math.round(
-        (collected / target) *
+        (collected /
+          target) *
           100
-      ),
-      0
-    ),
-    100
+      )
+    )
   );
 }
 
 function getDonorsCount(
   item: CampaignItem
 ): number {
-  const explicit =
-    Number(
-      item.donorsCount ?? 0
-    ) || 0;
+  const explicitCount =
+    getNumber(
+      item.donorsCount,
+      0
+    );
 
-  if (explicit > 0) {
-    return explicit;
+  if (
+    explicitCount > 0
+  ) {
+    return explicitCount;
   }
 
   if (
@@ -139,14 +227,6 @@ function getDonorsCount(
   }
 
   return 0;
-}
-
-function formatRupiah(
-  value: number
-): string {
-  return Number(
-    value || 0
-  ).toLocaleString('id-ID');
 }
 
 function getImage(
@@ -163,47 +243,50 @@ function getImage(
   return '/images/banner.png';
 }
 
-function normalizeSectionType(
-  value: unknown
-): string {
-  if (
-    typeof value !==
-    'string'
-  ) {
-    return '';
-  }
-
-  return value
-    .trim()
-    .toLowerCase();
-}
-
 // ============================================================
-// NORMALIZE CAMPAIGN
+// NORMALIZER SINGLE CAMPAIGN
 // ============================================================
 
 function normalizeCampaign(
-  item: any
+  raw: unknown
 ): CampaignItem | null {
-  if (!item) {
+  if (
+    !isRecord(raw)
+  ) {
     return null;
   }
 
-  const id =
-    item.id ||
-    item._id;
+  const rawId =
+    raw.id ??
+    raw._id;
 
-  const slug =
-    typeof item.slug ===
+  const id =
+    rawId !== undefined &&
+    rawId !== null
+      ? String(rawId)
+      : '';
+
+  let slug = '';
+
+  if (
+    typeof raw.slug ===
+    'string'
+  ) {
+    slug =
+      raw.slug.trim();
+  } else if (
+    isRecord(raw.slug) &&
+    typeof raw.slug.current ===
       'string'
-      ? item.slug
-      : item.slug?.current;
+  ) {
+    slug =
+      raw.slug.current.trim();
+  }
 
   const title =
-    typeof item.title ===
-      'string'
-      ? item.title.trim()
-      : '';
+    getString(
+      raw.title
+    );
 
   if (
     !id ||
@@ -213,118 +296,169 @@ function normalizeCampaign(
     return null;
   }
 
-  const rawImage =
-    typeof item.image ===
-      'string'
-      ? item.image
-      : typeof item.imageUrl ===
-          'string'
-      ? item.imageUrl
-      : '';
+  let image = '';
 
-  const rawCategory =
-    typeof item.category ===
+  if (
+    typeof raw.image ===
+    'string'
+  ) {
+    image =
+      raw.image;
+  } else if (
+    typeof raw.imageUrl ===
+    'string'
+  ) {
+    image =
+      raw.imageUrl;
+  }
+
+  let category = '';
+
+  if (
+    typeof raw.category ===
+    'string'
+  ) {
+    category =
+      raw.category.trim();
+  } else if (
+    isRecord(
+      raw.category
+    ) &&
+    typeof raw.category.title ===
       'string'
-      ? item.category
-      : typeof item.category?.title ===
-          'string'
-      ? item.category.title
-      : '';
+  ) {
+    category =
+      raw.category.title.trim();
+  }
+
+  const donors =
+    Array.isArray(
+      raw.donors
+    )
+      ? raw.donors
+      : [];
+
+  const donorsCount =
+    raw.donorsCount !==
+      undefined &&
+    raw.donorsCount !==
+      null
+      ? getNumber(
+          raw.donorsCount,
+          0
+        )
+      : donors.length;
+
+  const daysLeft =
+    raw.daysLeft !==
+      undefined &&
+    raw.daysLeft !==
+      null
+      ? getNumber(
+          raw.daysLeft,
+          0
+        )
+      : undefined;
 
   return {
-    id:
-      String(id),
+    id,
 
     _id:
-      item._id
+      raw._id !==
+        undefined &&
+      raw._id !== null
         ? String(
-            item._id
+            raw._id
           )
         : undefined,
 
     title,
-
-    slug:
-      String(slug),
+    slug,
 
     image:
       getImage(
-        rawImage
+        image
       ),
 
     category:
-      rawCategory ||
+      category ||
       undefined,
 
     // ========================================================
-    // PENTING:
-    // Tidak ada fallback "pilihan".
-    // Kalau kosong, tetap kosong.
+    // STRICT:
+    // Tidak otomatis masuk "pilihan".
+    // Jika Sanity kosong / salah, hasilnya ''
     // ========================================================
     sectionType:
       normalizeSectionType(
-        item.sectionType
+        raw.sectionType
       ),
 
     collectedAmount:
-      Number(
-        item.collectedAmount ??
-          item.collectedRaw ??
-          0
-      ) || 0,
+      getNumber(
+        raw.collectedAmount ??
+          raw.collectedRaw,
+        0
+      ),
 
     collectedRaw:
-      Number(
-        item.collectedRaw ??
-          item.collectedAmount ??
-          0
-      ) || 0,
+      getNumber(
+        raw.collectedRaw ??
+          raw.collectedAmount,
+        0
+      ),
 
     targetAmount:
-      Number(
-        item.targetAmount ??
-          item.targetRaw ??
-          50000000
-      ) || 50000000,
+      getNumber(
+        raw.targetAmount ??
+          raw.targetRaw,
+        50000000
+      ),
 
     targetRaw:
-      Number(
-        item.targetRaw ??
-          item.targetAmount ??
-          50000000
-      ) || 50000000,
+      getNumber(
+        raw.targetRaw ??
+          raw.targetAmount,
+        50000000
+      ),
 
-    daysLeft:
-      item.daysLeft !==
-        undefined &&
-      item.daysLeft !==
-        null
-        ? Number(
-            item.daysLeft
-          )
-        : undefined,
+    daysLeft,
 
-    donorsCount:
-      item.donorsCount !==
-        undefined &&
-      item.donorsCount !==
-        null
-        ? Number(
-            item.donorsCount
-          ) || 0
-        : Array.isArray(
-            item.donors
-          )
-        ? item.donors.length
-        : 0,
+    donorsCount,
 
-    donors:
-      Array.isArray(
-        item.donors
-      )
-        ? item.donors
-        : [],
+    donors,
   };
+}
+
+// ============================================================
+// NORMALIZE ARRAY
+//
+// Ini sekaligus menghilangkan error:
+// Parameter 'item' implicitly has an 'any' type.
+// ============================================================
+
+function normalizeCampaignList(
+  items: readonly unknown[]
+): CampaignItem[] {
+  const result: CampaignItem[] =
+    [];
+
+  for (
+    const rawItem of items
+  ) {
+    const normalized =
+      normalizeCampaign(
+        rawItem
+      );
+
+    if (normalized) {
+      result.push(
+        normalized
+      );
+    }
+  }
+
+  return result;
 }
 
 // ============================================================
@@ -391,7 +525,8 @@ function ProgressBar({
       <div
         className="h-full bg-[#d9232e] transition-all duration-500"
         style={{
-          width: `${percentage}%`,
+          width:
+            `${percentage}%`,
         }}
       />
 
@@ -401,6 +536,7 @@ function ProgressBar({
 
 // ============================================================
 // FEATURED CARD
+// Untuk Mendesak & Unggulan
 // ============================================================
 
 function FeaturedCampaignCard({
@@ -432,16 +568,20 @@ function FeaturedCampaignCard({
       <div className="relative aspect-[16/10] overflow-hidden bg-[#dddddd]">
 
         <img
-          src={getImage(
-            item.image
-          )}
-          alt={item.title}
+          src={
+            getImage(
+              item.image
+            )
+          }
+          alt={
+            item.title
+          }
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           onError={(
-            e
+            event
           ) => {
-            e.currentTarget.src =
+            event.currentTarget.src =
               '/images/banner.png';
           }}
         />
@@ -462,7 +602,7 @@ function FeaturedCampaignCard({
 
       </div>
 
-      {/* CONTENT */}
+      {/* TITLE */}
       <div className="mt-3">
 
         {item.category && (
@@ -477,7 +617,7 @@ function FeaturedCampaignCard({
 
       </div>
 
-      {/* AMOUNT */}
+      {/* SUMMARY */}
       <div className="mt-3">
 
         <div className="mb-2 flex items-end justify-between gap-2">
@@ -544,6 +684,7 @@ function FeaturedCampaignCard({
 
 // ============================================================
 // COMPACT CARD
+// Untuk Program Pilihan
 // ============================================================
 
 function CompactCampaignCard({
@@ -570,16 +711,20 @@ function CompactCampaignCard({
       <div className="aspect-[16/10] w-28 shrink-0 overflow-hidden bg-[#dedede] sm:w-32">
 
         <img
-          src={getImage(
-            item.image
-          )}
-          alt={item.title}
+          src={
+            getImage(
+              item.image
+            )
+          }
+          alt={
+            item.title
+          }
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           onError={(
-            e
+            event
           ) => {
-            e.currentTarget.src =
+            event.currentTarget.src =
               '/images/banner.png';
           }}
         />
@@ -673,84 +818,58 @@ export default function Campaign({
   const normalizedInitial =
     useMemo(
       () =>
-        initialData
-          .map(
-            normalizeCampaign
-          )
-          .filter(
-            (
-              item
-            ): item is CampaignItem =>
-              item !== null
-          ),
+        normalizeCampaignList(
+          initialData
+        ),
       [initialData]
     );
 
   const normalizedMendesak =
     useMemo(
       () =>
-        mendesak
-          .map(
-            normalizeCampaign
-          )
-          .filter(
-            (
-              item
-            ): item is CampaignItem =>
-              item !== null
-          ),
+        normalizeCampaignList(
+          mendesak
+        ),
       [mendesak]
     );
 
   const normalizedUnggulan =
     useMemo(
       () =>
-        unggulan
-          .map(
-            normalizeCampaign
-          )
-          .filter(
-            (
-              item
-            ): item is CampaignItem =>
-              item !== null
-          ),
+        normalizeCampaignList(
+          unggulan
+        ),
       [unggulan]
     );
 
   const normalizedPilihan =
     useMemo(
       () =>
-        pilihan
-          .map(
-            normalizeCampaign
-          )
-          .filter(
-            (
-              item
-            ): item is CampaignItem =>
-              item !== null
-          ),
+        normalizeCampaignList(
+          pilihan
+        ),
       [pilihan]
     );
 
   // ==========================================================
-  // APAKAH SUDAH ADA DATA DARI SERVER?
+  // APAKAH HOMEPAGE SUDAH MENDAPAT DATA SERVER?
   // ==========================================================
 
-  const hasServerData =
+  const hasSectionData =
     normalizedMendesak.length >
       0 ||
     normalizedUnggulan.length >
       0 ||
     normalizedPilihan.length >
-      0 ||
+      0;
+
+  const hasAnyServerData =
+    hasSectionData ||
     normalizedInitial.length >
       0;
 
   // ==========================================================
-  // FALLBACK FETCH API
-  // Hanya jika semua props kosong
+  // FETCH /api/programs
   // ==========================================================
 
   const fetchPrograms =
@@ -766,6 +885,8 @@ export default function Campaign({
           await fetch(
             `/api/programs?v=${Date.now()}`,
             {
+              method: 'GET',
+
               cache:
                 'no-store',
 
@@ -782,92 +903,133 @@ export default function Campaign({
             }
           );
 
-        const json =
+        const rawJson:
+          unknown =
           await response.json();
 
-        console.log(
-          '📦 RESPONSE /api/programs:',
-          json
-        );
+        let json:
+          ApiResponse = {};
+
+        if (
+          isRecord(
+            rawJson
+          )
+        ) {
+          json = {
+            success:
+              typeof rawJson.success ===
+              'boolean'
+                ? rawJson.success
+                : undefined,
+
+            data:
+              Array.isArray(
+                rawJson.data
+              )
+                ? rawJson.data
+                : undefined,
+
+            error:
+              typeof rawJson.error ===
+              'string'
+                ? rawJson.error
+                : undefined,
+          };
+        }
 
         if (
           !response.ok
         ) {
           throw new Error(
-            json?.error ||
-              'Gagal mengambil program.'
+            json.error ||
+              'Gagal mengambil data program.'
           );
         }
 
-        const rawData =
+        const rawData:
+          unknown[] =
           Array.isArray(
-            json?.data
+            json.data
           )
             ? json.data
             : Array.isArray(
-                json
+                rawJson
               )
-            ? json
+            ? rawJson
             : [];
 
-        const normalized =
-          rawData
-            .map(
-              normalizeCampaign
-            )
-            .filter(
-              (
-                item
-              ): item is CampaignItem =>
-                item !== null
-            );
+        // ====================================================
+        // Tidak pakai .filter((item) => ...)
+        // sehingga error implicit any hilang total.
+        // ====================================================
+
+        const normalized:
+          CampaignItem[] =
+          normalizeCampaignList(
+            rawData
+          );
 
         console.log(
-          '✅ TOTAL PROGRAM TERBACA:',
+          '===================================='
+        );
+
+        console.log(
+          '📦 BMA PROGRAM API'
+        );
+
+        console.log(
+          'Total:',
           normalized.length
         );
 
         console.log(
-          '🔥 MENDESAK:',
+          'Mendesak:',
           normalized.filter(
-            (item) =>
-              normalizeSectionType(
-                item.sectionType
-              ) ===
+            (
+              item:
+                CampaignItem
+            ) =>
+              item.sectionType ===
               'mendesak'
           ).length
         );
 
         console.log(
-          '⭐ UNGGULAN:',
+          'Unggulan:',
           normalized.filter(
-            (item) =>
-              normalizeSectionType(
-                item.sectionType
-              ) ===
+            (
+              item:
+                CampaignItem
+            ) =>
+              item.sectionType ===
               'unggulan'
           ).length
         );
 
         console.log(
-          '❤️ PILIHAN:',
+          'Pilihan:',
           normalized.filter(
-            (item) =>
-              normalizeSectionType(
-                item.sectionType
-              ) ===
+            (
+              item:
+                CampaignItem
+            ) =>
+              item.sectionType ===
               'pilihan'
           ).length
+        );
+
+        console.log(
+          '===================================='
         );
 
         setApiPrograms(
           normalized
         );
       } catch (
-        error: any
+        error: unknown
       ) {
         console.error(
-          '🔥 Campaign fetch error:',
+          '🔥 Campaign API error:',
           error
         );
 
@@ -876,8 +1038,10 @@ export default function Campaign({
         );
 
         setApiError(
-          error?.message ||
-            'Gagal memuat program.'
+          error instanceof
+          Error
+            ? error.message
+            : 'Gagal memuat program.'
         );
       } finally {
         setLoadingApi(
@@ -886,35 +1050,33 @@ export default function Campaign({
       }
     };
 
+  // ==========================================================
+  // FETCH HANYA JIKA SERVER TIDAK MEMBERI DATA
+  // ==========================================================
+
   useEffect(() => {
     if (
-      !hasServerData
+      !hasAnyServerData
     ) {
-      fetchPrograms();
+      void fetchPrograms();
     }
   }, [
-    hasServerData,
+    hasAnyServerData,
   ]);
 
   // ==========================================================
-  // STRICT FILTER DARI API
-  //
-  // HANYA sectionType:
-  // - mendesak
-  // - unggulan
-  // - pilihan
-  //
-  // Yang kosong / lainnya TIDAK ditampilkan.
+  // STRICT SECTION FILTER
   // ==========================================================
 
   const apiMendesak =
     useMemo(
       () =>
         apiPrograms.filter(
-          (item) =>
-            normalizeSectionType(
-              item.sectionType
-            ) ===
+          (
+            item:
+              CampaignItem
+          ) =>
+            item.sectionType ===
             'mendesak'
         ),
       [apiPrograms]
@@ -924,10 +1086,11 @@ export default function Campaign({
     useMemo(
       () =>
         apiPrograms.filter(
-          (item) =>
-            normalizeSectionType(
-              item.sectionType
-            ) ===
+          (
+            item:
+              CampaignItem
+          ) =>
+            item.sectionType ===
             'unggulan'
         ),
       [apiPrograms]
@@ -937,10 +1100,11 @@ export default function Campaign({
     useMemo(
       () =>
         apiPrograms.filter(
-          (item) =>
-            normalizeSectionType(
-              item.sectionType
-            ) ===
+          (
+            item:
+              CampaignItem
+          ) =>
+            item.sectionType ===
             'pilihan'
         ),
       [apiPrograms]
@@ -970,20 +1134,13 @@ export default function Campaign({
 
   // ==========================================================
   // INITIAL DATA MODE
-  //
-  // Hanya untuk halaman yang memang mengirim initialData.
-  // Homepage tidak menggunakan mode ini bila 3 section tersedia.
+  // Untuk halaman yang memang hanya memberikan initialData
   // ==========================================================
 
   if (
     normalizedInitial.length >
       0 &&
-    finalMendesak.length ===
-      0 &&
-    finalUnggulan.length ===
-      0 &&
-    finalPilihan.length ===
-      0
+    !hasSectionData
   ) {
     return (
       <section className="w-full space-y-4 text-left">
@@ -1017,7 +1174,10 @@ export default function Campaign({
         <div className="space-y-3">
 
           {normalizedInitial.map(
-            (item) => (
+            (
+              item:
+                CampaignItem
+            ) => (
               <CompactCampaignCard
                 key={
                   item.id
@@ -1040,7 +1200,7 @@ export default function Campaign({
   // ==========================================================
 
   if (
-    !hasServerData &&
+    !hasAnyServerData &&
     loadingApi
   ) {
     return (
@@ -1061,7 +1221,7 @@ export default function Campaign({
   // ==========================================================
 
   if (
-    !hasServerData &&
+    !hasAnyServerData &&
     apiError &&
     apiPrograms.length ===
       0
@@ -1081,9 +1241,9 @@ export default function Campaign({
 
         <button
           type="button"
-          onClick={
-            fetchPrograms
-          }
+          onClick={() => {
+            void fetchPrograms();
+          }}
           className="mt-4 inline-flex items-center gap-2 border border-[#c5c5c5] bg-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#555555]"
         >
 
@@ -1119,7 +1279,7 @@ export default function Campaign({
         </p>
 
         <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
-          Pastikan field sectionType di Sanity diisi dengan mendesak, unggulan, atau pilihan.
+          Pastikan setiap program di Sanity memiliki sectionType: mendesak, unggulan, atau pilihan.
         </p>
 
       </section>
@@ -1127,7 +1287,7 @@ export default function Campaign({
   }
 
   // ==========================================================
-  // RENDER
+  // RENDER HOMEPAGE
   // ==========================================================
 
   return (
@@ -1150,7 +1310,10 @@ export default function Campaign({
           <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
 
             {finalMendesak.map(
-              (item) => (
+              (
+                item:
+                  CampaignItem
+              ) => (
                 <FeaturedCampaignCard
                   key={
                     item.id
@@ -1185,7 +1348,10 @@ export default function Campaign({
           <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
 
             {finalUnggulan.map(
-              (item) => (
+              (
+                item:
+                  CampaignItem
+              ) => (
                 <FeaturedCampaignCard
                   key={
                     item.id
@@ -1213,13 +1379,16 @@ export default function Campaign({
           <SectionHeader
             eyebrow="Pilihan Kebaikan"
             title="Program Pilihan"
-            description="Program pilihan yang telah ditentukan melalui pengaturan sectionType di Sanity."
+            description="Program pilihan yang telah ditetapkan melalui pengaturan Sanity BMA."
           />
 
           <div className="space-y-3.5 pt-1">
 
             {finalPilihan.map(
-              (item) => (
+              (
+                item:
+                  CampaignItem
+              ) => (
                 <CompactCampaignCard
                   key={
                     item.id
