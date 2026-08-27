@@ -19,12 +19,13 @@ export default function LoginPage() {
   
   const router = useRouter();
 
+  // 🚀 Cek apakah user sudah login, jika ya, langsung lempar ke beranda atau halaman akun
   useEffect(() => {
     async function checkUserSession() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          router.replace('/akun');
+          router.replace('/akun'); // Diarahkan ke halaman akun jika sudah login
         }
       } catch (err) {
         console.error('Error checking session:', err);
@@ -44,7 +45,7 @@ export default function LoginPage() {
         email, 
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/akun`
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
       
@@ -52,10 +53,10 @@ export default function LoginPage() {
         alert(error.message);
       } else {
         if (data.session) {
-          router.replace('/akun');
+          router.push('/');
           router.refresh();
         } else {
-          alert('Pendaftaran berhasil! Silakan periksa email atau langsung masuk.');
+          alert('Pendaftaran berhasil! Silakan periksa email Anda untuk verifikasi atau langsung masuk.');
           setMode('login');
         }
       }
@@ -68,7 +69,7 @@ export default function LoginPage() {
       if (error) {
         alert(error.message);
       } else {
-        router.replace('/akun');
+        router.push('/');
         router.refresh();
       }
     }
@@ -80,7 +81,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
-        redirectTo: `${window.location.origin}/auth/callback?next=/akun` 
+        redirectTo: `${window.location.origin}/auth/callback` 
       }
     });
 
@@ -89,6 +90,7 @@ export default function LoginPage() {
     }
   };
 
+  // Tampilkan loading sebentar saat memeriksa status login agar tidak berkedip
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -101,6 +103,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-sm bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-left">
         
+        {/* Header Tab Mode */}
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-extrabold text-slate-900">
             {mode === 'login' ? 'Masuk' : 'Daftar Akun'}
@@ -142,9 +145,9 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#ffd600] hover:bg-[#e6c200] text-slate-900 font-extrabold py-3 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 text-sm cursor-pointer"
+            className="w-full bg-[#0d5c91] hover:bg-sky-800 text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 text-sm cursor-pointer"
           >
-            {loading ? 'Memproses...' : mode === 'login' ? 'Masuk ke Akun' : 'Daftar Akun'}
+            {loading ? 'Memproses...' : mode === 'login' ? 'Masuk' : 'Daftar dengan Email'}
           </button>
         </form>
 
@@ -163,7 +166,7 @@ export default function LoginPage() {
           className="w-full flex items-center justify-center gap-2.5 border border-slate-200 hover:bg-slate-50 py-3 rounded-xl font-semibold text-slate-700 transition text-sm shadow-2xs cursor-pointer"
         >
           <img src="/google-icon.svg" alt="Google" className="w-5 h-5" />
-          <span>Masuk dengan Google</span>
+          <span>Daftar / Masuk dengan Google</span>
         </button>
       </div>
     </div>

@@ -1,15 +1,14 @@
-// app/auth/callback/route.ts
-import { NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') ?? '/akun';
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
 
   if (code) {
-    const cookieStore = await cookies();
+    const cookieStore = await cookies(); // Pastikan await di sini
+    
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -18,21 +17,24 @@ export async function GET(request: Request) {
           get(name: string) {
             return cookieStore.get(name)?.value;
           },
-          set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options });
+          set(name: string, value: string, options: CookieOptions) {
+            // Menambahkan path: '/' agar cookie berlaku di semua halaman
+            cookieStore.set({ name, value, ...options, path: '/' });
           },
-          remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options });
+          remove(name: string, options: CookieOptions) {
+            cookieStore.delete({ name, ...options, path: '/' });
           },
         },
       }
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
+    
     if (!error) {
-      return NextResponse.redirect(`${requestUrl.origin}${next}`);
+      return NextResponse.redirect(`${origin}/`);
     }
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/login?error=auth_callback_failed`);
+  // Jika gagal, arahkan kembali ke login
+  return NextResponse.redirect(`${origin}/login`);
 }
