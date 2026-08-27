@@ -1,12 +1,20 @@
 // components/Campaign.tsx
 'use client';
 
-import React from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
 import Link from 'next/link';
+
 import {
   ArrowRight,
   Clock3,
   HeartHandshake,
+  Loader2,
+  RefreshCw,
   Users,
 } from 'lucide-react';
 
@@ -16,11 +24,19 @@ import {
 
 interface CampaignItem {
   id: string;
+  _id?: string;
+
   title: string;
   slug: string;
   image: string;
 
   category?: string;
+
+  sectionType?:
+    | 'mendesak'
+    | 'unggulan'
+    | 'pilihan'
+    | string;
 
   collectedAmount?: number;
   collectedRaw?: number;
@@ -84,8 +100,8 @@ function getPercentage(
     getTarget(item);
 
   if (
-    target <= 0 ||
-    collected <= 0
+    collected <= 0 ||
+    target <= 0
   ) {
     return 0;
   }
@@ -102,28 +118,16 @@ function getPercentage(
   );
 }
 
-// ============================================================
-// DONOR COUNT
-//
-// Tidak membuat estimasi palsu dari nominal dana.
-// Prioritas:
-// 1. donorsCount
-// 2. panjang array donors
-// 3. 0
-// ============================================================
-
 function getDonorsCount(
   item: CampaignItem
 ): number {
-  const explicitCount =
+  const explicit =
     Number(
       item.donorsCount ?? 0
     ) || 0;
 
-  if (
-    explicitCount > 0
-  ) {
-    return explicitCount;
+  if (explicit > 0) {
+    return explicit;
   }
 
   if (
@@ -140,9 +144,9 @@ function getDonorsCount(
 function formatRupiah(
   value: number
 ): string {
-  return value.toLocaleString(
-    'id-ID'
-  );
+  return Number(
+    value || 0
+  ).toLocaleString('id-ID');
 }
 
 function getImage(
@@ -153,10 +157,174 @@ function getImage(
       'string' &&
     image.trim()
   ) {
-    return image;
+    return image.trim();
   }
 
   return '/images/banner.png';
+}
+
+function normalizeSectionType(
+  value: unknown
+): string {
+  if (
+    typeof value !==
+    'string'
+  ) {
+    return '';
+  }
+
+  return value
+    .trim()
+    .toLowerCase();
+}
+
+// ============================================================
+// NORMALIZE CAMPAIGN
+// ============================================================
+
+function normalizeCampaign(
+  item: any
+): CampaignItem | null {
+  if (!item) {
+    return null;
+  }
+
+  const id =
+    item.id ||
+    item._id;
+
+  const slug =
+    typeof item.slug ===
+      'string'
+      ? item.slug
+      : item.slug?.current;
+
+  const title =
+    typeof item.title ===
+      'string'
+      ? item.title.trim()
+      : '';
+
+  if (
+    !id ||
+    !slug ||
+    !title
+  ) {
+    return null;
+  }
+
+  const rawImage =
+    typeof item.image ===
+      'string'
+      ? item.image
+      : typeof item.imageUrl ===
+          'string'
+      ? item.imageUrl
+      : '';
+
+  const rawCategory =
+    typeof item.category ===
+      'string'
+      ? item.category
+      : typeof item.category?.title ===
+          'string'
+      ? item.category.title
+      : '';
+
+  return {
+    id:
+      String(id),
+
+    _id:
+      item._id
+        ? String(
+            item._id
+          )
+        : undefined,
+
+    title,
+
+    slug:
+      String(slug),
+
+    image:
+      getImage(
+        rawImage
+      ),
+
+    category:
+      rawCategory ||
+      undefined,
+
+    // ========================================================
+    // PENTING:
+    // Tidak ada fallback "pilihan".
+    // Kalau kosong, tetap kosong.
+    // ========================================================
+    sectionType:
+      normalizeSectionType(
+        item.sectionType
+      ),
+
+    collectedAmount:
+      Number(
+        item.collectedAmount ??
+          item.collectedRaw ??
+          0
+      ) || 0,
+
+    collectedRaw:
+      Number(
+        item.collectedRaw ??
+          item.collectedAmount ??
+          0
+      ) || 0,
+
+    targetAmount:
+      Number(
+        item.targetAmount ??
+          item.targetRaw ??
+          50000000
+      ) || 50000000,
+
+    targetRaw:
+      Number(
+        item.targetRaw ??
+          item.targetAmount ??
+          50000000
+      ) || 50000000,
+
+    daysLeft:
+      item.daysLeft !==
+        undefined &&
+      item.daysLeft !==
+        null
+        ? Number(
+            item.daysLeft
+          )
+        : undefined,
+
+    donorsCount:
+      item.donorsCount !==
+        undefined &&
+      item.donorsCount !==
+        null
+        ? Number(
+            item.donorsCount
+          ) || 0
+        : Array.isArray(
+            item.donors
+          )
+        ? item.donors.length
+        : 0,
+
+    donors:
+      Array.isArray(
+        item.donors
+      )
+        ? item.donors
+        : [],
+  };
 }
 
 // ============================================================
@@ -167,12 +335,10 @@ function SectionHeader({
   eyebrow,
   title,
   description,
-  href,
 }: {
   eyebrow: string;
   title: string;
   description: string;
-  href: string;
 }) {
   return (
     <div className="space-y-2">
@@ -192,7 +358,7 @@ function SectionHeader({
         </div>
 
         <Link
-          href={href}
+          href="/program"
           className="flex shrink-0 items-center gap-1 text-[9px] font-bold text-[#777777] transition hover:text-[#3f3f3f]"
         >
           Lihat Semua
@@ -234,104 +400,7 @@ function ProgressBar({
 }
 
 // ============================================================
-// INITIAL / GENERAL CARD
-// ============================================================
-
-function GeneralCampaignCard({
-  item,
-}: {
-  item: CampaignItem;
-}) {
-  const collected =
-    getCollected(item);
-
-  const percentage =
-    getPercentage(item);
-
-  const donorCount =
-    getDonorsCount(item);
-
-  return (
-    <Link
-      href={`/campaign/${item.slug}`}
-      className="group flex items-center gap-3.5 border border-[#dddddd] bg-white p-3 shadow-[0_3px_10px_rgba(0,0,0,0.025)] transition hover:border-[#c8c8c8] hover:bg-[#fafafa]"
-    >
-
-      {/* IMAGE */}
-      <div className="aspect-[16/10] w-28 shrink-0 overflow-hidden bg-[#dedede] sm:w-32">
-
-        <img
-          src={getImage(
-            item.image
-          )}
-          alt={item.title}
-          loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-        />
-
-      </div>
-
-      {/* CONTENT */}
-      <div className="min-w-0 flex-1 space-y-2">
-
-        {item.category && (
-          <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-[#999999]">
-            {item.category}
-          </p>
-        )}
-
-        <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-[#505050] transition group-hover:text-[#303030] sm:text-sm">
-          {item.title}
-        </h3>
-
-        <div>
-
-          <div className="mb-1.5 flex items-end justify-between gap-2">
-
-            <div>
-
-              <span className="block text-[8px] text-[#999999]">
-                Terkumpul
-              </span>
-
-              <span className="text-[11px] font-bold text-[#555555]">
-                Rp {formatRupiah(
-                  collected
-                )}
-              </span>
-
-            </div>
-
-            <div className="text-right">
-
-              <span className="block text-[8px] text-[#999999]">
-                Donatur
-              </span>
-
-              <span className="text-[11px] font-bold text-[#555555]">
-                {donorCount}
-              </span>
-
-            </div>
-
-          </div>
-
-          <ProgressBar
-            percentage={
-              percentage
-            }
-          />
-
-        </div>
-
-      </div>
-
-    </Link>
-  );
-}
-
-// ============================================================
-// FEATURED GRID CARD
+// FEATURED CARD
 // ============================================================
 
 function FeaturedCampaignCard({
@@ -369,24 +438,31 @@ function FeaturedCampaignCard({
           alt={item.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          onError={(
+            e
+          ) => {
+            e.currentTarget.src =
+              '/images/banner.png';
+          }}
         />
 
         {urgent &&
           typeof item.daysLeft ===
             'number' &&
           item.daysLeft > 0 && (
-            <div className="absolute left-2 top-2 flex items-center gap-1 bg-[#505050] px-2 py-1 text-[8px] font-bold text-white">
+            <div className="absolute left-2 top-2 flex items-center gap-1 bg-[#555555] px-2 py-1 text-[8px] font-bold text-white">
 
               <Clock3 className="h-3 w-3" />
 
-              {item.daysLeft} hari lagi
+              {item.daysLeft}{' '}
+              hari lagi
 
             </div>
           )}
 
       </div>
 
-      {/* TITLE */}
+      {/* CONTENT */}
       <div className="mt-3">
 
         {item.category && (
@@ -413,7 +489,8 @@ function FeaturedCampaignCard({
             </span>
 
             <strong className="text-[11px] font-bold text-[#555555]">
-              Rp {formatRupiah(
+              Rp{' '}
+              {formatRupiah(
                 collected
               )}
             </strong>
@@ -444,13 +521,13 @@ function FeaturedCampaignCard({
           }
         />
 
-        <div className="mt-1.5 flex justify-between text-[8px] text-[#999999]">
+        <div className="mt-1.5 flex justify-between gap-2 text-[8px] text-[#999999]">
 
           <span>
             {percentage}%
           </span>
 
-          <span>
+          <span className="truncate">
             Target Rp{' '}
             {formatRupiah(
               target
@@ -466,7 +543,7 @@ function FeaturedCampaignCard({
 }
 
 // ============================================================
-// COMPACT CAMPAIGN CARD
+// COMPACT CARD
 // ============================================================
 
 function CompactCampaignCard({
@@ -477,13 +554,16 @@ function CompactCampaignCard({
   const collected =
     getCollected(item);
 
+  const percentage =
+    getPercentage(item);
+
   const donorCount =
     getDonorsCount(item);
 
   return (
     <Link
       href={`/campaign/${item.slug}`}
-      className="group flex items-center gap-3.5 border-b border-[#e1e1e1] pb-3.5 transition last:border-b-0 last:pb-0 hover:opacity-90"
+      className="group flex items-center gap-3.5 border-b border-[#e1e1e1] pb-3.5 transition last:border-b-0 last:pb-0"
     >
 
       {/* IMAGE */}
@@ -496,6 +576,12 @@ function CompactCampaignCard({
           alt={item.title}
           loading="lazy"
           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          onError={(
+            e
+          ) => {
+            e.currentTarget.src =
+              '/images/banner.png';
+          }}
         />
 
       </div>
@@ -513,39 +599,38 @@ function CompactCampaignCard({
           {item.title}
         </h3>
 
-        <div className="mt-3 flex items-end justify-between gap-3">
+        <div className="mt-2.5">
 
-          <div>
-
-            <span className="block text-[8px] text-[#999999]">
-              Terkumpul
-            </span>
+          <div className="mb-1.5 flex items-center justify-between gap-3">
 
             <strong className="text-[11px] font-bold text-[#555555]">
-              Rp {formatRupiah(
+              Rp{' '}
+              {formatRupiah(
                 collected
               )}
             </strong>
 
-          </div>
+            <span className="flex items-center gap-1 text-[9px] text-[#888888]">
 
-          <div className="text-right">
+              <Users className="h-3 w-3" />
 
-            <span className="block text-[8px] text-[#999999]">
-              Donatur
+              {donorCount}
+
             </span>
 
-            <strong className="text-[11px] font-bold text-[#555555]">
-              {donorCount}
-            </strong>
-
           </div>
+
+          <ProgressBar
+            percentage={
+              percentage
+            }
+          />
 
         </div>
 
       </div>
 
-      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#c0c0c0] transition group-hover:translate-x-0.5 group-hover:text-[#777777]" />
+      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#bbbbbb] transition group-hover:translate-x-0.5 group-hover:text-[#777777]" />
 
     </Link>
   );
@@ -561,21 +646,348 @@ export default function Campaign({
   unggulan = [],
   pilihan = [],
 }: CampaignProps) {
+  const [
+    apiPrograms,
+    setApiPrograms,
+  ] =
+    useState<
+      CampaignItem[]
+    >([]);
+
+  const [
+    loadingApi,
+    setLoadingApi,
+  ] =
+    useState(false);
+
+  const [
+    apiError,
+    setApiError,
+  ] =
+    useState('');
+
   // ==========================================================
-  // MODE GENERAL
-  // Digunakan ketika hanya initialData diberikan
+  // NORMALIZE PROPS
+  // ==========================================================
+
+  const normalizedInitial =
+    useMemo(
+      () =>
+        initialData
+          .map(
+            normalizeCampaign
+          )
+          .filter(
+            (
+              item
+            ): item is CampaignItem =>
+              item !== null
+          ),
+      [initialData]
+    );
+
+  const normalizedMendesak =
+    useMemo(
+      () =>
+        mendesak
+          .map(
+            normalizeCampaign
+          )
+          .filter(
+            (
+              item
+            ): item is CampaignItem =>
+              item !== null
+          ),
+      [mendesak]
+    );
+
+  const normalizedUnggulan =
+    useMemo(
+      () =>
+        unggulan
+          .map(
+            normalizeCampaign
+          )
+          .filter(
+            (
+              item
+            ): item is CampaignItem =>
+              item !== null
+          ),
+      [unggulan]
+    );
+
+  const normalizedPilihan =
+    useMemo(
+      () =>
+        pilihan
+          .map(
+            normalizeCampaign
+          )
+          .filter(
+            (
+              item
+            ): item is CampaignItem =>
+              item !== null
+          ),
+      [pilihan]
+    );
+
+  // ==========================================================
+  // APAKAH SUDAH ADA DATA DARI SERVER?
+  // ==========================================================
+
+  const hasServerData =
+    normalizedMendesak.length >
+      0 ||
+    normalizedUnggulan.length >
+      0 ||
+    normalizedPilihan.length >
+      0 ||
+    normalizedInitial.length >
+      0;
+
+  // ==========================================================
+  // FALLBACK FETCH API
+  // Hanya jika semua props kosong
+  // ==========================================================
+
+  const fetchPrograms =
+    async () => {
+      try {
+        setLoadingApi(
+          true
+        );
+
+        setApiError('');
+
+        const response =
+          await fetch(
+            `/api/programs?v=${Date.now()}`,
+            {
+              cache:
+                'no-store',
+
+              headers: {
+                Accept:
+                  'application/json',
+
+                'Cache-Control':
+                  'no-cache, no-store, must-revalidate',
+
+                Pragma:
+                  'no-cache',
+              },
+            }
+          );
+
+        const json =
+          await response.json();
+
+        console.log(
+          '📦 RESPONSE /api/programs:',
+          json
+        );
+
+        if (
+          !response.ok
+        ) {
+          throw new Error(
+            json?.error ||
+              'Gagal mengambil program.'
+          );
+        }
+
+        const rawData =
+          Array.isArray(
+            json?.data
+          )
+            ? json.data
+            : Array.isArray(
+                json
+              )
+            ? json
+            : [];
+
+        const normalized =
+          rawData
+            .map(
+              normalizeCampaign
+            )
+            .filter(
+              (
+                item
+              ): item is CampaignItem =>
+                item !== null
+            );
+
+        console.log(
+          '✅ TOTAL PROGRAM TERBACA:',
+          normalized.length
+        );
+
+        console.log(
+          '🔥 MENDESAK:',
+          normalized.filter(
+            (item) =>
+              normalizeSectionType(
+                item.sectionType
+              ) ===
+              'mendesak'
+          ).length
+        );
+
+        console.log(
+          '⭐ UNGGULAN:',
+          normalized.filter(
+            (item) =>
+              normalizeSectionType(
+                item.sectionType
+              ) ===
+              'unggulan'
+          ).length
+        );
+
+        console.log(
+          '❤️ PILIHAN:',
+          normalized.filter(
+            (item) =>
+              normalizeSectionType(
+                item.sectionType
+              ) ===
+              'pilihan'
+          ).length
+        );
+
+        setApiPrograms(
+          normalized
+        );
+      } catch (
+        error: any
+      ) {
+        console.error(
+          '🔥 Campaign fetch error:',
+          error
+        );
+
+        setApiPrograms(
+          []
+        );
+
+        setApiError(
+          error?.message ||
+            'Gagal memuat program.'
+        );
+      } finally {
+        setLoadingApi(
+          false
+        );
+      }
+    };
+
+  useEffect(() => {
+    if (
+      !hasServerData
+    ) {
+      fetchPrograms();
+    }
+  }, [
+    hasServerData,
+  ]);
+
+  // ==========================================================
+  // STRICT FILTER DARI API
+  //
+  // HANYA sectionType:
+  // - mendesak
+  // - unggulan
+  // - pilihan
+  //
+  // Yang kosong / lainnya TIDAK ditampilkan.
+  // ==========================================================
+
+  const apiMendesak =
+    useMemo(
+      () =>
+        apiPrograms.filter(
+          (item) =>
+            normalizeSectionType(
+              item.sectionType
+            ) ===
+            'mendesak'
+        ),
+      [apiPrograms]
+    );
+
+  const apiUnggulan =
+    useMemo(
+      () =>
+        apiPrograms.filter(
+          (item) =>
+            normalizeSectionType(
+              item.sectionType
+            ) ===
+            'unggulan'
+        ),
+      [apiPrograms]
+    );
+
+  const apiPilihan =
+    useMemo(
+      () =>
+        apiPrograms.filter(
+          (item) =>
+            normalizeSectionType(
+              item.sectionType
+            ) ===
+            'pilihan'
+        ),
+      [apiPrograms]
+    );
+
+  // ==========================================================
+  // FINAL DATA
+  // ==========================================================
+
+  const finalMendesak =
+    normalizedMendesak.length >
+    0
+      ? normalizedMendesak
+      : apiMendesak;
+
+  const finalUnggulan =
+    normalizedUnggulan.length >
+    0
+      ? normalizedUnggulan
+      : apiUnggulan;
+
+  const finalPilihan =
+    normalizedPilihan.length >
+    0
+      ? normalizedPilihan
+      : apiPilihan;
+
+  // ==========================================================
+  // INITIAL DATA MODE
+  //
+  // Hanya untuk halaman yang memang mengirim initialData.
+  // Homepage tidak menggunakan mode ini bila 3 section tersedia.
   // ==========================================================
 
   if (
-    initialData.length > 0 &&
-    mendesak.length === 0 &&
-    unggulan.length === 0 &&
-    pilihan.length === 0
+    normalizedInitial.length >
+      0 &&
+    finalMendesak.length ===
+      0 &&
+    finalUnggulan.length ===
+      0 &&
+    finalPilihan.length ===
+      0
   ) {
     return (
       <section className="w-full space-y-4 text-left">
 
-        {/* HEADER */}
         <div className="border-b border-[#d5d5d5] pb-3">
 
           <div className="flex items-center gap-2.5">
@@ -602,14 +1014,17 @@ export default function Campaign({
 
         </div>
 
-        {/* LIST */}
         <div className="space-y-3">
 
-          {initialData.map(
+          {normalizedInitial.map(
             (item) => (
-              <GeneralCampaignCard
-                key={item.id}
-                item={item}
+              <CompactCampaignCard
+                key={
+                  item.id
+                }
+                item={
+                  item
+                }
               />
             )
           )}
@@ -621,7 +1036,98 @@ export default function Campaign({
   }
 
   // ==========================================================
-  // MODE HOMEPAGE
+  // LOADING
+  // ==========================================================
+
+  if (
+    !hasServerData &&
+    loadingApi
+  ) {
+    return (
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#777777]" />
+
+        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.13em] text-[#666666]">
+          Memuat Program BMA
+        </p>
+
+      </section>
+    );
+  }
+
+  // ==========================================================
+  // ERROR
+  // ==========================================================
+
+  if (
+    !hasServerData &&
+    apiError &&
+    apiPrograms.length ===
+      0
+  ) {
+    return (
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+
+        <HeartHandshake className="mx-auto h-7 w-7 text-[#888888]" />
+
+        <p className="mt-3 text-[11px] font-bold text-[#555555]">
+          Program gagal dimuat
+        </p>
+
+        <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
+          {apiError}
+        </p>
+
+        <button
+          type="button"
+          onClick={
+            fetchPrograms
+          }
+          className="mt-4 inline-flex items-center gap-2 border border-[#c5c5c5] bg-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#555555]"
+        >
+
+          <RefreshCw className="h-3.5 w-3.5" />
+
+          Muat Ulang
+
+        </button>
+
+      </section>
+    );
+  }
+
+  // ==========================================================
+  // EMPTY
+  // ==========================================================
+
+  if (
+    finalMendesak.length ===
+      0 &&
+    finalUnggulan.length ===
+      0 &&
+    finalPilihan.length ===
+      0
+  ) {
+    return (
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+
+        <HeartHandshake className="mx-auto h-7 w-7 text-[#888888]" />
+
+        <p className="mt-3 text-[11px] font-bold text-[#555555]">
+          Belum Ada Program Homepage
+        </p>
+
+        <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
+          Pastikan field sectionType di Sanity diisi dengan mendesak, unggulan, atau pilihan.
+        </p>
+
+      </section>
+    );
+  }
+
+  // ==========================================================
+  // RENDER
   // ==========================================================
 
   return (
@@ -631,7 +1137,7 @@ export default function Campaign({
           MENDESAK
       ====================================================== */}
 
-      {mendesak.length >
+      {finalMendesak.length >
         0 && (
         <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
 
@@ -639,16 +1145,19 @@ export default function Campaign({
             eyebrow="Butuh Dukungan Segera"
             title="Penggalangan Dana Mendesak"
             description="Bantu program yang membutuhkan dukungan segera agar manfaat dapat tersalurkan lebih cepat."
-            href="/campaign/mendesak"
           />
 
           <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
 
-            {mendesak.map(
+            {finalMendesak.map(
               (item) => (
                 <FeaturedCampaignCard
-                  key={item.id}
-                  item={item}
+                  key={
+                    item.id
+                  }
+                  item={
+                    item
+                  }
                   urgent
                 />
               )
@@ -663,24 +1172,27 @@ export default function Campaign({
           UNGGULAN
       ====================================================== */}
 
-      {unggulan.length >
+      {finalUnggulan.length >
         0 && (
         <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
 
           <SectionHeader
             eyebrow="Rekomendasi Program"
             title="Program Unggulan"
-            description="Program pilihan yang dapat Anda dukung untuk menghadirkan manfaat yang lebih luas."
-            href="/campaign/unggulan"
+            description="Program unggulan Baitul Maal Al Muttaqin yang dapat Anda dukung."
           />
 
           <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
 
-            {unggulan.map(
+            {finalUnggulan.map(
               (item) => (
                 <FeaturedCampaignCard
-                  key={item.id}
-                  item={item}
+                  key={
+                    item.id
+                  }
+                  item={
+                    item
+                  }
                 />
               )
             )}
@@ -694,24 +1206,27 @@ export default function Campaign({
           PILIHAN
       ====================================================== */}
 
-      {pilihan.length >
+      {finalPilihan.length >
         0 && (
         <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
 
           <SectionHeader
             eyebrow="Pilihan Kebaikan"
             title="Program Pilihan"
-            description="Temukan program kebaikan lainnya yang dapat menjadi jalan untuk berbagi dan menghadirkan manfaat."
-            href="/campaign/pilihan"
+            description="Program pilihan yang telah ditentukan melalui pengaturan sectionType di Sanity."
           />
 
           <div className="space-y-3.5 pt-1">
 
-            {pilihan.map(
+            {finalPilihan.map(
               (item) => (
                 <CompactCampaignCard
-                  key={item.id}
-                  item={item}
+                  key={
+                    item.id
+                  }
+                  item={
+                    item
+                  }
                 />
               )
             )}
