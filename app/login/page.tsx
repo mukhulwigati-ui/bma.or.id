@@ -227,7 +227,8 @@ function LoginContent() {
 
   return (
     <div className="min-h-screen bg-[#f3f3f1] px-3 pb-28 pt-5">
-      <div className="mx-auto w-full max-w-sm border border-[#d7d7d2] bg-white shadow-sm">
+      {/* Lebar container diubah dari max-w-sm menjadi max-w-md agar sejajar dengan header dan navbar bawah */}
+      <div className="mx-auto w-full max-w-md border border-[#d7d7d2] bg-white shadow-sm">
         {/* HEADER */}
         <div className="border-b border-[#e1e1dd] px-6 py-5">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#a08200]">

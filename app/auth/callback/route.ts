@@ -7,7 +7,20 @@ export async function GET(request: Request) {
   const requestUrl = new URL(request.url);
 
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') || '/akun';
+  
+  // Ambil parameter next, lalu decode agar karakter seperti %2F kembali normal menjadi '/'
+  const rawNext = requestUrl.searchParams.get('next') || '/akun';
+  let next = '/akun';
+  try {
+    next = decodeURIComponent(rawNext);
+  } catch {
+    next = '/akun';
+  }
+
+  // Pastikan path tujuan selalu diawali dengan slash (/) demi keamanan navigasi
+  if (!next.startsWith('/')) {
+    next = `/${next}`;
+  }
 
   // Kalau Google/Supabase tidak mengirim code
   if (!code) {
@@ -18,7 +31,7 @@ export async function GET(request: Request) {
     );
   }
 
-  // Response redirect INI yang akan membawa cookie auth
+  // Response redirect INI yang akan membawa cookie auth ke tujuan yang benar
   const response = NextResponse.redirect(
     new URL(next, requestUrl.origin)
   );
