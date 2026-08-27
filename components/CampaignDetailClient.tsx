@@ -1038,12 +1038,12 @@ const DonationFormFields = ({
           (isLoggedIn &&
             !hasPhone)
         }
-        className="flex w-full items-center justify-center gap-2 bg-[#b83280] py-3.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#a0266d] active:scale-[0.995] disabled:cursor-not-allowed disabled:bg-slate-300 cursor-pointer shadow-md"
+        className="flex w-full items-center justify-center gap-2 bg-[#e91e63] py-4 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#d81b60] active:scale-[0.995] disabled:cursor-not-allowed disabled:bg-slate-300 cursor-pointer shadow-md"
       >
 
         {submitting
           ? 'Memproses Tagihan...'
-          : 'Lanjut Pembayaran'}
+          : 'DONASI SEKARANG'}
 
         {!submitting && (
           <ChevronRight className="h-4 w-4" />
@@ -1869,76 +1869,43 @@ export default function CampaignDetailClient({
           {/* INFORMATION */}
           <div className="space-y-4 p-4 sm:p-5">
 
-            {program.category && (
-              <span className="inline-flex items-center bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-[#98752d]">
-                {program.category}
-              </span>
-            )}
-
             <h1 className="text-[18px] font-bold leading-snug tracking-tight text-slate-800">
               {program.title}
             </h1>
 
-           {/* DONATION SUMMARY */}
-<div className="border border-[#073f2e]/20 bg-[#073f2e] p-4 shadow-sm text-white">
+           {/* DONATION SUMMARY (LAYOUT SEPERTI GAMBAR CONTOH) */}
+           <div className="space-y-2">
 
-  {/* LABEL */}
-  <p className="text-[8px] font-bold uppercase tracking-[0.18em] text-emerald-200/80">
-    Dana Terkumpul
-  </p>
+             {/* NOMINAL & LABEL */}
+             <div className="flex items-baseline justify-between">
+               <span className="text-[22px] font-extrabold tracking-tight text-[#073f2e]">
+                 Rp {formatRupiah(currentCollected)}
+               </span>
+             </div>
 
-  {/* NOMINAL */}
-  <p className="mt-1 text-[22px] font-extrabold tracking-tight text-white">
-    Rp {formatRupiah(currentCollected)}
-  </p>
+             {/* TERKUMPUL DARI TARGET */}
+             <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+               <span>
+                 Terkumpul dari <strong className="font-bold text-slate-700">Rp {formatRupiah(rawTarget)}</strong>
+               </span>
+               {typeof program.daysLeft === 'number' && program.daysLeft <= 7 ? (
+                 <span className="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 border border-amber-200">
+                   Mendesak
+                 </span>
+               ) : null}
+             </div>
 
-  {/* TARGET & SISA HARI */}
-  <div className="mt-3 flex items-center justify-between gap-3 text-[9px] text-emerald-100/80">
+             {/* PROGRESS BAR */}
+             <div className="h-2 w-full overflow-hidden bg-slate-100">
+               <div
+                 className="h-full bg-[#073f2e] transition-all duration-500"
+                 style={{
+                   width: `${percentage}%`,
+                 }}
+               />
+             </div>
 
-    <span>
-      Target{' '}
-      <strong className="font-bold text-white">
-        Rp {formatRupiah(rawTarget)}
-      </strong>
-    </span>
-
-    {typeof program.daysLeft === 'number' &&
-    program.daysLeft > 0 ? (
-      <span className="flex items-center gap-1 font-semibold text-emerald-100">
-        <Clock3 className="h-3.5 w-3.5 text-[#d7b66a]" />
-        {program.daysLeft} hari lagi
-      </span>
-    ) : null}
-
-  </div>
-
-  {/* PROGRESS BAR */}
-  <div className="mt-3 h-1.5 w-full overflow-hidden bg-white/15">
-
-    <div
-      className="h-full bg-gradient-to-r from-[#d7b66a] to-emerald-400 transition-all duration-500"
-      style={{
-        width: `${percentage}%`,
-      }}
-    />
-
-  </div>
-
-  {/* PROGRESS INFO */}
-  <div className="mt-2.5 flex items-center justify-between text-[9px]">
-
-    <span className="font-semibold text-emerald-100">
-      {percentage}% tercapai
-    </span>
-
-    <span className="flex items-center gap-1 font-semibold text-emerald-100">
-      <Users className="h-3.5 w-3.5 text-[#d7b66a]" />
-      {donors.length} Donatur
-    </span>
-
-  </div>
-
-            </div>
+           </div>
 
             {/* ==================================================
                 TABS
@@ -2036,7 +2003,7 @@ export default function CampaignDetailClient({
                 ) : (
                   <p className="py-6 text-center text-[9px] italic text-slate-400">
                     Belum ada cerita detail.
-                  </p>
+                  </P>
                 )}
 
               </div>
@@ -2203,7 +2170,7 @@ export default function CampaignDetailClient({
       </div>
 
       {/* ======================================================
-          FLOATING DONATION BAR
+          FLOATING DONATION BAR (DENGAN WARNA PINK TUA & FONT LEBIH BESAR)
       ====================================================== */}
 
       <div className="pointer-events-none fixed bottom-0 left-0 right-0 z-40 flex justify-center border-t border-slate-200 bg-white/95 px-3 py-3 backdrop-blur-sm">
@@ -2217,9 +2184,9 @@ export default function CampaignDetailClient({
                 true
               )
             }
-            className="w-full bg-[#b83280] py-3.5 text-[9px] font-bold uppercase tracking-[0.16em] text-white shadow-md transition hover:bg-[#a0266d] active:scale-[0.995] cursor-pointer"
+            className="w-full bg-[#e91e63] py-4 text-[12px] font-extrabold uppercase tracking-[0.15em] text-white shadow-lg transition hover:bg-[#d81b60] active:scale-[0.995] cursor-pointer"
           >
-            Donasi Sekarang
+            DONASI SEKARANG
           </button>
 
         </div>
