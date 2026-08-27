@@ -437,11 +437,12 @@ export default function LoginPage() {
         pt-5
       "
     >
+      {/* Diubah dari max-w-md menjadi max-w-sm agar lebih ramping/sama dengan header & navbar bawah */}
       <div
         className="
           mx-auto
           w-full
-          max-w-md
+          max-w-sm
           border
           border-[#d7d7d2]
           bg-white
