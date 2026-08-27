@@ -1,11 +1,10 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
+// middleware.ts
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   });
 
   const supabase = createServerClient(
@@ -13,32 +12,39 @@ export async function middleware(request: NextRequest) {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.delete({ name, ...options });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
+          });
         },
       },
     }
   );
 
-  // Memeriksa status user
+  // Memeriksa status user secara aman di serverless
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Proteksi: Jika user belum login dan mencoba mengakses rute 'akun' atau 'donasi-saya',
-  // arahkan mereka ke halaman login
-  if (!user && (request.nextUrl.pathname.startsWith('/akun') || request.nextUrl.pathname.startsWith('/donasi-saya'))) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  const pathname = request.nextUrl.pathname;
+
+  // Proteksi rute khusus member
+  if (!user && (pathname.startsWith('/akun') || pathname.startsWith('/donasi-saya'))) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
   }
 
-  return response;
+  return supabaseResponse;
 }
 
-// Menentukan rute mana saja yang akan diproses oleh middleware
 export const config = {
   matcher: [
     /*
@@ -48,7 +54,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - auth (callback)
      * - login (halaman login)
+     * - ekstensi file publik (svg, png, jpg, webp, dll)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth|login).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth|login|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
