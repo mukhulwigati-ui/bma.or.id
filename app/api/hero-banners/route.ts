@@ -3,97 +3,69 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
-// ============================================================
-// BMA SANITY — DIKUNCI KE PROJECT YANG BENAR
-// Jangan ambil NEXT_PUBLIC_SANITY_PROJECT_ID lama.
-// ============================================================
-
-const PROJECT_ID = 'im4qx3kd';
-const DATASET = 'production';
-
 const sanityClient = createClient({
-  projectId: PROJECT_ID,
-  dataset: DATASET,
+  projectId: 'im4qx3kd',
+  dataset: 'production',
   apiVersion: '2026-08-01',
   useCdn: false,
   perspective: 'published',
 
-  // Token digunakan jika tersedia.
-  // Aman karena route ini SERVER ONLY.
-  token: process.env.SANITY_API_TOKEN || undefined,
+  // PENTING:
+  // JANGAN pakai SANITY_API_TOKEN di sini
 });
-
-// ============================================================
-// GET HERO BANNER
-// ============================================================
 
 export async function GET() {
   try {
     const query = `
       *[
         _type in ["heroBanner", "banner"] &&
-        active != false &&
-        defined(image.asset)
+        active != false
       ]
       | order(order asc, _createdAt desc)
       [0...20] {
         "_id": _id,
-
-        "title": coalesce(
-          title,
-          name,
-          "Banner BMA"
+        "title": coalesce(title, name, "Banner BMA"),
+        "imageUrl": coalesce(
+          image.asset->url,
+          banner.asset->url
         ),
-
-        "imageUrl": image.asset->url,
-
         "linkUrl": coalesce(
           link,
           linkUrl,
           url
         ),
-
-        "active": coalesce(
-          active,
-          true
-        ),
-
-        "order": coalesce(
-          order,
-          999
-        )
+        "active": coalesce(active, true),
+        "order": coalesce(order, 999)
       }
     `;
 
-    const data = await sanityClient.fetch(query, {}, {
-      cache: 'no-store',
-    });
+    const data = await sanityClient.fetch(
+      query,
+      {},
+      {
+        cache: 'no-store',
+      }
+    );
 
     const banners = Array.isArray(data)
       ? data.filter(
           (item: any) =>
-            item &&
-            item._id &&
-            typeof item.imageUrl === 'string' &&
+            item?._id &&
+            typeof item?.imageUrl === 'string' &&
             item.imageUrl.trim() !== ''
         )
       : [];
 
-    console.log(
-      `✅ BMA Sanity Hero: ${banners.length} banner ditemukan`
-    );
-
     return NextResponse.json(
       {
         success: true,
-        projectId: PROJECT_ID,
-        dataset: DATASET,
+        projectId: 'im4qx3kd',
+        dataset: 'production',
         count: banners.length,
         data: banners,
       },
       {
         status: 200,
-
         headers: {
           'Cache-Control':
             'no-store, no-cache, must-revalidate',
@@ -102,15 +74,15 @@ export async function GET() {
     );
   } catch (error: any) {
     console.error(
-      '❌ Gagal mengambil Hero Banner BMA:',
+      'Gagal membaca banner Sanity BMA:',
       error
     );
 
     return NextResponse.json(
       {
         success: false,
-        projectId: PROJECT_ID,
-        dataset: DATASET,
+        projectId: 'im4qx3kd',
+        dataset: 'production',
         count: 0,
         data: [],
         error:
