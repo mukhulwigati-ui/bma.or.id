@@ -26,7 +26,7 @@ export default function BottomNav() {
   const navItems = [
     { label: 'Home', href: '/', icon: Home },
     { label: 'Donasi Saya', href: '/donasi-saya', icon: HeartHandshake },
-    { label: 'Berita', href: '/blog', icon: Newspaper, badge: '21.8k' },
+    { label: 'Berita', href: '/news', icon: Newspaper, badge: '21.8k' },
     { label: 'Akun', href: '/akun', icon: User },
   ];
 
