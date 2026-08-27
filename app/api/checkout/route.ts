@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'BMA';
     const generatedOrderId = `INV-BMA-${prefix}-${Date.now()}`;
 
-    // 🚀 KONFIGURASI KREDENSIAL PAKASIR (Disesuaikan dengan domain bma.or.id)
+    // 🚀 KONFIGURASI KREDENSIAL PAKASIR
     const projectSlug = process.env.PAKASIR_PROJECT_SLUG || 'bma';
     const apiKey = process.env.PAKASIR_API_KEY || '';
 
@@ -103,7 +103,7 @@ export async function POST(request: Request) {
     // 🚀 MEMBUAT URL PEMBAYARAN RESMI PAKASIR
     const pakasirPayUrl = `https://app.pakasir.com/pay/${projectSlug}/${cleanAmountNumber}?order_id=${generatedOrderId}&redirect=${encodeURIComponent(returnUrl)}`;
 
-    // 🚀 1. MENULIS DATA TRANSAKSI LENGKAP KE SANITY (Menggunakan URL Pembayaran Pakasir yang benar)
+    // 🚀 1. MENULIS DATA TRANSAKSI LENGKAP KE SANITY
     await client.create({
       _type: 'donationTransaction',
       orderId: String(generatedOrderId),
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       status: 'pending',
       slug: String(slug),
       paymentMethod: String(cleanMethod),  
-      paymentUrl: String(pakasirPayUrl), // 🚀 Diperbaiki: Mengarah ke URL Pembayaran Pakasir
+      paymentUrl: String(pakasirPayUrl),
       paymentNumber: String(paymentNumber), 
       fundraiserPhone: fundraiserPhone ? String(fundraiserPhone).trim() : '',
     });
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       console.warn('⚠️ GOOGLE_SHEET_WEBHOOK_URL belum dipasang di environment variables.');
     }
 
-    // Mengembalikan response sukses ke frontend
+    // Mengembalikan response sukses ke frontend tanpa pemeriksaan token ketat agar tidak gagal
     return NextResponse.json({
       success: true,
       orderId: generatedOrderId,
