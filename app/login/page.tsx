@@ -44,7 +44,7 @@ export default function LoginPage() {
         email, 
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/akun`
         }
       });
       
@@ -52,7 +52,7 @@ export default function LoginPage() {
         alert(error.message);
       } else {
         if (data.session) {
-          router.push('/akun');
+          router.replace('/akun');
           router.refresh();
         } else {
           alert('Pendaftaran berhasil! Silakan periksa email atau langsung masuk.');
@@ -68,7 +68,7 @@ export default function LoginPage() {
       if (error) {
         alert(error.message);
       } else {
-        router.push('/akun');
+        router.replace('/akun');
         router.refresh();
       }
     }
@@ -80,7 +80,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { 
-        redirectTo: `${window.location.origin}/auth/callback` 
+        redirectTo: `${window.location.origin}/auth/callback?next=/akun` 
       }
     });
 
