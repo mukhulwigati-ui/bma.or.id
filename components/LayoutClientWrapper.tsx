@@ -1,5 +1,3 @@
-// components/LayoutClientWrapper.tsx
-
 'use client';
 
 import React, {
@@ -8,15 +6,12 @@ import React, {
   useState,
 } from 'react';
 
-import {
-  usePathname,
-} from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 import Header from '@/components/Header';
 import BottomNav from '@/components/BottomNav';
 
 import {
-  CheckCircle2,
   Download,
   Share2,
   ShieldCheck,
@@ -24,99 +19,61 @@ import {
   X,
 } from 'lucide-react';
 
-// ============================================================
-// IDENTITAS BMA
-// ============================================================
-
-const SITE_NAME =
-  'Baitul Maal Al Muttaqin';
-
-const SITE_SHORT_NAME =
-  'BMA';
-
-const SITE_DOMAIN =
-  'bma.or.id';
-
-const SITE_LOCATION =
-  'Jepara';
-
-// ============================================================
-// TYPES
-// ============================================================
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_SHORT_NAME = 'BMA';
+const SITE_DOMAIN = 'bma.or.id';
+const SITE_LOCATION = 'Jepara';
 
 interface LayoutClientWrapperProps {
-  children:
-    React.ReactNode;
+  children: React.ReactNode;
 }
 
-interface BeforeInstallPromptEvent
-  extends Event {
-  prompt:
-    () => Promise<void>;
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
 
-  userChoice:
-    Promise<{
-      outcome:
-        | 'accepted'
-        | 'dismissed';
-
-      platform:
-        string;
-    }>;
+  userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
 }
-
-// ============================================================
-// COMPONENT
-// ============================================================
 
 export default function LayoutClientWrapper({
   children,
 }: LayoutClientWrapperProps) {
-  const pathname =
-    usePathname();
-
-  // ==========================================================
-  // PATH CHECK
-  // ==========================================================
+  const pathname = usePathname();
 
   const isStudioPage =
-    pathname?.startsWith(
-      '/studio'
-    );
+    pathname?.startsWith('/studio');
 
   const isHomePage =
     pathname === '/';
 
-  const isLoginPage =
-    pathname ===
-      '/login' ||
-    pathname?.startsWith(
-      '/login/'
-    );
-
   const isAuthPage =
-    pathname?.startsWith(
-      '/auth/'
-    );
+    pathname?.startsWith('/auth/');
 
-  // ==========================================================
-  // HALAMAN YANG TIDAK BOLEH MEMUNCULKAN BOTTOM NAV
-  //
-  // Ini penting supaya modal login dari BottomNav tidak
-  // muncul lagi di halaman login / OAuth callback.
-  // ==========================================================
-
-  const hideBottomNav =
-    isStudioPage ||
-    isLoginPage ||
-    isAuthPage;
+  // =========================================================
+  // HEADER
+  // =========================================================
 
   const hideHeader =
     isStudioPage;
 
-  // ==========================================================
+  // =========================================================
+  // BOTTOM NAV
+  //
+  // TETAP tampil di /login
+  // Hanya hilang di:
+  // - /studio
+  // - /auth/*
+  // =========================================================
+
+  const hideBottomNav =
+    isStudioPage ||
+    isAuthPage;
+
+  // =========================================================
   // PWA STATE
-  // ==========================================================
+  // =========================================================
 
   const [
     deferredPrompt,
@@ -151,132 +108,108 @@ export default function LayoutClientWrapper({
     useState(false);
 
   const timerRef =
-    useRef<ReturnType<
-      typeof setTimeout
-    > | null>(null);
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null
+    );
 
   const retryTimerRef =
-    useRef<ReturnType<
-      typeof setTimeout
-    > | null>(null);
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null
+    );
 
-  // ==========================================================
-  // CEK STANDALONE PWA
-  // ==========================================================
+  // =========================================================
+  // STANDALONE CHECK
+  // =========================================================
 
-  const isRunningStandalone =
-    () => {
-      if (
-        typeof window ===
-        'undefined'
-      ) {
-        return false;
-      }
+  const isRunningStandalone = () => {
+    if (
+      typeof window === 'undefined'
+    ) {
+      return false;
+    }
 
-      const standalone =
-        window.matchMedia(
-          '(display-mode: standalone)'
-        ).matches;
+    const standalone =
+      window.matchMedia(
+        '(display-mode: standalone)'
+      ).matches;
 
-      const iosStandalone =
-        Boolean(
-          (
-            window.navigator as Navigator & {
-              standalone?: boolean;
-            }
-          ).standalone
-        );
-
-      return (
-        standalone ||
-        iosStandalone
+    const iosStandalone =
+      Boolean(
+        (
+          window.navigator as Navigator & {
+            standalone?: boolean;
+          }
+        ).standalone
       );
-    };
 
-  // ==========================================================
-  // CLEAR TIMERS
-  // ==========================================================
+    return (
+      standalone ||
+      iosStandalone
+    );
+  };
 
-  const clearTimers =
-    () => {
-      if (
+  // =========================================================
+  // CLEAR TIMER
+  // =========================================================
+
+  const clearTimers = () => {
+    if (
+      timerRef.current
+    ) {
+      clearTimeout(
         timerRef.current
-      ) {
-        clearTimeout(
-          timerRef.current
-        );
+      );
 
-        timerRef.current =
-          null;
-      }
+      timerRef.current =
+        null;
+    }
 
-      if (
+    if (
+      retryTimerRef.current
+    ) {
+      clearTimeout(
         retryTimerRef.current
-      ) {
-        clearTimeout(
-          retryTimerRef.current
-        );
+      );
 
-        retryTimerRef.current =
-          null;
-      }
-    };
+      retryTimerRef.current =
+        null;
+    }
+  };
 
-  // ==========================================================
-  // PWA PROMPT
-  // ==========================================================
+  // =========================================================
+  // PWA EFFECT
+  // =========================================================
 
   useEffect(() => {
     if (
-      typeof window ===
-        'undefined' ||
-      typeof document ===
-        'undefined'
+      typeof window === 'undefined' ||
+      typeof document === 'undefined'
     ) {
       return;
     }
 
     clearTimers();
 
-    // ========================================================
-    // HANYA HOMEPAGE
-    // ========================================================
-
     if (
       !isHomePage ||
       isStudioPage ||
-      isLoginPage ||
       isAuthPage
     ) {
-      setShowPrompt(
-        false
-      );
+      setShowPrompt(false);
 
       return;
     }
-
-    // ========================================================
-    // JIKA SUDAH PWA
-    // ========================================================
 
     if (
       isRunningStandalone()
     ) {
-      setShowPrompt(
-        false
-      );
+      setShowPrompt(false);
 
       return;
     }
 
-    // ========================================================
-    // DEVICE DETECTION
-    // ========================================================
-
     const userAgent =
-      window.navigator
-        .userAgent
-        .toLowerCase();
+      window.navigator.userAgent.toLowerCase();
 
     const isMobileDevice =
       /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(
@@ -286,16 +219,10 @@ export default function LayoutClientWrapper({
     if (
       !isMobileDevice
     ) {
-      setShowPrompt(
-        false
-      );
+      setShowPrompt(false);
 
       return;
     }
-
-    // ========================================================
-    // SESSION CLOSE
-    // ========================================================
 
     const closedInSession =
       sessionStorage.getItem(
@@ -303,16 +230,10 @@ export default function LayoutClientWrapper({
       );
 
     if (
-      closedInSession ===
-      'true'
+      closedInSession === 'true'
     ) {
-      setHasClosedPrompt(
-        true
-      );
-
-      setShowPrompt(
-        false
-      );
+      setHasClosedPrompt(true);
+      setShowPrompt(false);
 
       return;
     }
@@ -322,60 +243,45 @@ export default function LayoutClientWrapper({
         userAgent
       );
 
-    setIsIOS(
-      isIOSDevice
-    );
+    setIsIOS(isIOSDevice);
 
-    // ========================================================
-    // SHOW
-    // ========================================================
+    const checkAndShow = () => {
+      if (
+        isRunningStandalone()
+      ) {
+        return;
+      }
 
-    const checkAndShow =
-      () => {
-        if (
-          isRunningStandalone()
-        ) {
-          return;
-        }
+      const closed =
+        sessionStorage.getItem(
+          'bma_pwa_prompt_closed'
+        );
 
-        const closed =
-          sessionStorage.getItem(
-            'bma_pwa_prompt_closed'
-          );
+      if (
+        closed === 'true'
+      ) {
+        return;
+      }
 
-        if (
-          closed ===
-          'true'
-        ) {
-          return;
-        }
+      const activeModals =
+        document.querySelectorAll(
+          '[data-app-modal="true"]'
+        );
 
-        const activeModals =
-          document.querySelectorAll(
-            '[data-app-modal="true"]'
-          );
+      if (
+        activeModals.length === 0
+      ) {
+        setShowPrompt(true);
 
-        if (
-          activeModals.length ===
-          0
-        ) {
-          setShowPrompt(
-            true
-          );
+        return;
+      }
 
-          return;
-        }
-
-        retryTimerRef.current =
-          setTimeout(
-            checkAndShow,
-            1500
-          );
-      };
-
-    // ========================================================
-    // IOS
-    // ========================================================
+      retryTimerRef.current =
+        setTimeout(
+          checkAndShow,
+          1500
+        );
+    };
 
     if (
       isIOSDevice
@@ -387,62 +293,40 @@ export default function LayoutClientWrapper({
         );
     }
 
-    // ========================================================
-    // ANDROID
-    // ========================================================
+    const handleBeforeInstallPrompt = (
+      event: Event
+    ) => {
+      event.preventDefault();
 
-    const handleBeforeInstallPrompt =
-      (
-        event:
-          Event
-      ) => {
-        event.preventDefault();
+      const installEvent =
+        event as BeforeInstallPromptEvent;
 
-        const installEvent =
-          event as BeforeInstallPromptEvent;
+      setDeferredPrompt(
+        installEvent
+      );
 
-        setDeferredPrompt(
-          installEvent
+      clearTimers();
+
+      timerRef.current =
+        setTimeout(
+          checkAndShow,
+          10000
         );
+    };
 
-        clearTimers();
+    const handleAppInstalled = () => {
+      setDeferredPrompt(null);
+      setShowPrompt(false);
+      setShowIOSGuide(false);
+      setHasClosedPrompt(true);
 
-        timerRef.current =
-          setTimeout(
-            checkAndShow,
-            10000
-          );
-      };
+      sessionStorage.setItem(
+        'bma_pwa_prompt_closed',
+        'true'
+      );
 
-    // ========================================================
-    // INSTALLED
-    // ========================================================
-
-    const handleAppInstalled =
-      () => {
-        setDeferredPrompt(
-          null
-        );
-
-        setShowPrompt(
-          false
-        );
-
-        setShowIOSGuide(
-          false
-        );
-
-        setHasClosedPrompt(
-          true
-        );
-
-        sessionStorage.setItem(
-          'bma_pwa_prompt_closed',
-          'true'
-        );
-
-        clearTimers();
-      };
+      clearTimers();
+    };
 
     window.addEventListener(
       'beforeinstallprompt',
@@ -470,22 +354,19 @@ export default function LayoutClientWrapper({
   }, [
     isHomePage,
     isStudioPage,
-    isLoginPage,
     isAuthPage,
   ]);
 
-  // ==========================================================
-  // INSTALL
-  // ==========================================================
+  // =========================================================
+  // INSTALL PWA
+  // =========================================================
 
   const handleInstallClick =
     async () => {
       if (
         isIOS
       ) {
-        setShowIOSGuide(
-          true
-        );
+        setShowIOSGuide(true);
 
         return;
       }
@@ -499,27 +380,16 @@ export default function LayoutClientWrapper({
       try {
         await deferredPrompt.prompt();
 
-        await deferredPrompt
-          .userChoice;
-      } catch (
-        error
-      ) {
+        await deferredPrompt.userChoice;
+      } catch (error) {
         console.error(
           'PWA install error:',
           error
         );
       } finally {
-        setDeferredPrompt(
-          null
-        );
-
-        setShowPrompt(
-          false
-        );
-
-        setHasClosedPrompt(
-          true
-        );
+        setDeferredPrompt(null);
+        setShowPrompt(false);
+        setHasClosedPrompt(true);
 
         sessionStorage.setItem(
           'bma_pwa_prompt_closed',
@@ -528,75 +398,51 @@ export default function LayoutClientWrapper({
       }
     };
 
-  // ==========================================================
+  // =========================================================
   // CLOSE PWA
-  // ==========================================================
+  // =========================================================
 
-  const handleClose =
-    () => {
-      clearTimers();
+  const handleClose = () => {
+    clearTimers();
 
-      setShowPrompt(
-        false
-      );
+    setShowPrompt(false);
+    setShowIOSGuide(false);
+    setHasClosedPrompt(true);
 
-      setShowIOSGuide(
-        false
-      );
-
-      setHasClosedPrompt(
-        true
-      );
-
-      sessionStorage.setItem(
-        'bma_pwa_prompt_closed',
-        'true'
-      );
-    };
-
-  // ==========================================================
-  // RENDER
-  // ==========================================================
+    sessionStorage.setItem(
+      'bma_pwa_prompt_closed',
+      'true'
+    );
+  };
 
   return (
     <>
 
-      {/* ======================================================
-          HEADER
-      ====================================================== */}
-
+      {/* HEADER */}
       {!hideHeader && (
         <Header />
       )}
 
-      {/* ======================================================
-          CONTENT
-      ====================================================== */}
-
+      {/* CONTENT */}
       <main className="flex-grow">
         {children}
       </main>
 
-      {/* ======================================================
+      {/* =====================================================
           BOTTOM NAV
-
-          TIDAK ADA DI:
-          /login
-          /auth/*
-          /studio/*
+          SEKARANG TETAP MUNCUL DI /login
       ====================================================== */}
 
       {!hideBottomNav && (
         <BottomNav />
       )}
 
-      {/* ======================================================
+      {/* =====================================================
           PWA MODAL
       ====================================================== */}
 
       {isHomePage &&
         !isStudioPage &&
-        !isLoginPage &&
         !isAuthPage &&
         showPrompt &&
         !hasClosedPrompt && (
@@ -622,7 +468,7 @@ export default function LayoutClientWrapper({
               onClick={
                 handleClose
               }
-              className="absolute inset-0 cursor-default"
+              className="absolute inset-0"
               aria-label="Tutup modal instalasi"
             />
 
@@ -641,7 +487,6 @@ export default function LayoutClientWrapper({
             >
 
               {/* HEADER */}
-
               <div
                 className="
                   relative
@@ -715,7 +560,6 @@ export default function LayoutClientWrapper({
               </div>
 
               {/* CONTENT */}
-
               <div className="space-y-5 p-5">
 
                 {showIOSGuide ? (
