@@ -23,11 +23,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 
-// ============================================================
-// WAJIB:
-// Memaksa halaman ini bersifat dinamis agar Next.js tidak
-// melakukan static pre-rendering saat build.
-// ============================================================
 export const dynamic = 'force-dynamic';
 
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
@@ -170,25 +165,25 @@ function FundraiserStatsContent() {
     );
 
   return (
-    <div className="w-full max-w-md space-y-4">
+    <div className="w-full max-w-[420px] space-y-3">
 
       {/* ========================================================
           HERO HEADER
       ======================================================== */}
-      <section className="relative overflow-hidden rounded-[30px] bg-[#102a43] shadow-[0_20px_55px_rgba(16,42,67,0.18)]">
+      <section className="relative overflow-hidden bg-[#073f2e] shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
 
         <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
 
         <div className="absolute right-4 bottom-[-80px] w-44 h-44 rounded-full border border-[#d7b66a]/15" />
 
-        <div className="relative z-10 p-5 sm:p-6">
+        <div className="relative z-10 p-4">
 
           <div className="flex items-center justify-between gap-3">
 
             <div className="flex items-center gap-3">
 
-              <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/10 flex items-center justify-center shadow-lg">
-                <TrendingUp className="w-5 h-5 text-[#d7b66a]" />
+              <div className="w-10 h-10 bg-white/10 border border-white/15 flex items-center justify-center shadow-sm">
+                <TrendingUp className="w-4 h-4 text-[#d7b66a]" />
               </div>
 
               <div>
@@ -196,14 +191,14 @@ function FundraiserStatsContent() {
                   {SITE_SHORT_NAME} Fundraiser Center
                 </p>
 
-                <h1 className="mt-1 text-[17px] font-bold text-white">
+                <h1 className="mt-0.5 text-[15px] font-bold text-white">
                   Performa Fundraiser
                 </h1>
               </div>
 
             </div>
 
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/8 px-2.5 py-1.5">
+            <div className="inline-flex items-center gap-1.5 border border-white/15 bg-white/8 px-2.5 py-1">
               <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
 
               <span className="text-[7px] font-bold uppercase tracking-wider text-[#e6d19d]">
@@ -213,32 +208,32 @@ function FundraiserStatsContent() {
 
           </div>
 
-          <p className="mt-4 text-[10px] leading-relaxed text-slate-300">
+          <p className="mt-3 text-[10px] leading-relaxed text-slate-200">
             Pantau perolehan donasi dari tautan referral
             Anda di {SITE_DOMAIN}, lihat ujrah yang
             tersedia, dan kelola tautan program dengan
             lebih mudah.
           </p>
 
-          <div className="mt-4 flex items-center gap-1.5 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#d7b66a]">
+          <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-1.5 text-[8px] font-semibold uppercase tracking-[0.15em] text-[#d7b66a]">
             <ShieldCheck className="w-3 h-3" />
             {SITE_NAME} • {SITE_LOCATION}
           </div>
 
         </div>
 
-        <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
+        <div className="h-[3px] bg-gradient-to-r from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
 
       </section>
 
       {/* ========================================================
           FORM PENGECEKAN
       ======================================================== */}
-      <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+      <section className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
-        <div className="flex items-center gap-3 mb-5">
+        <div className="flex items-center gap-3 mb-3.5">
 
-          <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+          <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
             <Smartphone className="w-4 h-4 text-[#a37c32]" />
           </div>
 
@@ -247,7 +242,7 @@ function FundraiserStatsContent() {
               Akses Statistik
             </p>
 
-            <h2 className="mt-0.5 text-[13px] font-bold text-[#102a43]">
+            <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
               Masukkan Nomor WhatsApp
             </h2>
           </div>
@@ -259,7 +254,7 @@ function FundraiserStatsContent() {
           className="space-y-3"
         >
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
 
             <label className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400 block">
               Nomor WhatsApp Terdaftar
@@ -267,7 +262,7 @@ function FundraiserStatsContent() {
 
             <div className="relative">
 
-              <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-400">
+              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
                 <Smartphone className="w-4 h-4" />
               </span>
 
@@ -281,7 +276,7 @@ function FundraiserStatsContent() {
                     e.target.value
                   )
                 }
-                className="w-full h-12 pl-11 pr-4 bg-[#f8f8f6] border border-slate-200 rounded-2xl text-[11px] font-semibold focus:outline-none focus:border-[#a37c32] focus:bg-white focus:ring-4 focus:ring-[#a37c32]/8 text-slate-800 transition"
+                className="w-full h-11 pl-10 pr-4 bg-[#f8f8f6] border border-slate-200 text-[11px] font-semibold focus:outline-none focus:border-[#073f2e] focus:bg-white text-slate-800 transition"
               />
 
             </div>
@@ -291,7 +286,7 @@ function FundraiserStatsContent() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full h-12 rounded-2xl bg-[#102a43] hover:bg-[#173d5d] disabled:bg-slate-300 text-white font-bold text-[9px] uppercase tracking-[0.16em] transition shadow-lg shadow-[#102a43]/10 flex items-center justify-center gap-2"
+            className="w-full h-11 bg-[#073f2e] hover:bg-[#052e21] disabled:bg-slate-300 text-white font-bold text-[9px] uppercase tracking-[0.16em] transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>
@@ -314,7 +309,7 @@ function FundraiserStatsContent() {
           ERROR
       ======================================================== */}
       {error && (
-        <div className="flex items-start gap-3 p-4 text-[10px] font-semibold leading-relaxed text-rose-600 bg-rose-50 rounded-2xl border border-rose-100 shadow-sm">
+        <div className="flex items-start gap-3 p-3.5 text-[10px] font-semibold leading-relaxed text-rose-600 bg-rose-50 border border-rose-100 shadow-sm">
 
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
 
@@ -327,18 +322,18 @@ function FundraiserStatsContent() {
           HASIL STATISTIK
       ======================================================== */}
       {stats && stats.profile && (
-        <div className="space-y-4 animate-in fade-in duration-300">
+        <div className="space-y-3 animate-in fade-in duration-300">
 
           {/* =====================================================
               PROFILE CARD
-          ====================================================== */}
-          <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          ===================================================== */}
+          <section className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
             <div className="flex items-center justify-between gap-3">
 
               <div className="flex items-center gap-3 min-w-0">
 
-                <div className="w-11 h-11 shrink-0 rounded-2xl bg-[#102a43] flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 shrink-0 bg-[#073f2e] flex items-center justify-center text-white font-bold text-sm">
                   {(stats.profile.name || 'R')
                     .charAt(0)
                     .toUpperCase()}
@@ -350,7 +345,7 @@ function FundraiserStatsContent() {
                     Fundraiser BMA
                   </p>
 
-                  <h2 className="mt-1 text-[13px] font-bold text-[#102a43] truncate">
+                  <h2 className="mt-0.5 text-[13px] font-bold text-slate-800 truncate">
                     {stats.profile.name}
                   </h2>
 
@@ -362,7 +357,7 @@ function FundraiserStatsContent() {
 
               </div>
 
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
+              <span className="inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-100 px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
 
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
 
@@ -376,21 +371,21 @@ function FundraiserStatsContent() {
 
           {/* =====================================================
               TOTAL DANA
-          ====================================================== */}
-          <section className="relative overflow-hidden rounded-[28px] bg-[#102a43] shadow-[0_18px_45px_rgba(16,42,67,0.15)]">
+          ===================================================== */}
+          <section className="relative overflow-hidden bg-[#073f2e] shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
 
             <div className="absolute -right-10 -top-12 w-36 h-36 rounded-full border border-white/8" />
 
-            <div className="relative z-10 p-5">
+            <div className="relative z-10 p-4">
 
               <div className="flex items-start justify-between">
 
                 <div>
-                  <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
+                  <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-300">
                     Total Dana Dihimpun
                   </p>
 
-                  <p className="mt-2 text-[27px] leading-none font-bold tracking-tight text-white">
+                  <p className="mt-1.5 text-[24px] leading-none font-bold tracking-tight text-white">
                     Rp{' '}
                     {totalEarnings.toLocaleString(
                       'id-ID'
@@ -398,31 +393,31 @@ function FundraiserStatsContent() {
                   </p>
                 </div>
 
-                <div className="w-10 h-10 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center">
+                <div className="w-9 h-9 bg-white/8 border border-white/15 flex items-center justify-center">
                   <CircleDollarSign className="w-4 h-4 text-[#d7b66a]" />
                 </div>
 
               </div>
 
-              <div className="mt-5 grid grid-cols-2 border-t border-white/10 pt-4">
+              <div className="mt-4 grid grid-cols-2 border-t border-white/10 pt-3">
 
                 <div>
-                  <p className="text-[7px] uppercase tracking-wider text-slate-400">
+                  <p className="text-[7px] uppercase tracking-wider text-slate-300">
                     Donatur
                   </p>
 
-                  <p className="mt-1 flex items-center gap-1.5 text-[14px] font-bold text-white">
+                  <p className="mt-1 flex items-center gap-1.5 text-[13px] font-bold text-white">
                     <Users className="w-3.5 h-3.5 text-[#d7b66a]" />
                     {stats.donationCount}
                   </p>
                 </div>
 
-                <div className="border-l border-white/10 pl-5">
-                  <p className="text-[7px] uppercase tracking-wider text-slate-400">
+                <div className="border-l border-white/10 pl-4">
+                  <p className="text-[7px] uppercase tracking-wider text-slate-300">
                     Transaksi
                   </p>
 
-                  <p className="mt-1 text-[14px] font-bold text-white">
+                  <p className="mt-1 text-[13px] font-bold text-white">
                     {stats.donationCount}x
                   </p>
                 </div>
@@ -431,20 +426,20 @@ function FundraiserStatsContent() {
 
             </div>
 
-            <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
+            <div className="h-[3px] bg-gradient-to-r from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
 
           </section>
 
           {/* =====================================================
               UJRAH
-          ====================================================== */}
-          <section className="rounded-[26px] bg-white border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          ===================================================== */}
+          <section className="bg-white border-y border-slate-200/70 overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
-            <div className="p-5">
+            <div className="p-4">
 
               <div className="flex items-center gap-3">
 
-                <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+                <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
                   <Wallet className="w-4 h-4 text-[#a37c32]" />
                 </div>
 
@@ -453,16 +448,16 @@ function FundraiserStatsContent() {
                     Ujrah Fundraiser
                   </p>
 
-                  <h2 className="mt-0.5 text-[13px] font-bold text-[#102a43]">
+                  <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
                     Ringkasan Fee
                   </h2>
                 </div>
 
               </div>
 
-              <div className="mt-5 divide-y divide-slate-100">
+              <div className="mt-4 divide-y divide-slate-100">
 
-                <div className="flex items-center justify-between gap-4 py-3">
+                <div className="flex items-center justify-between gap-4 py-2.5">
 
                   <div>
                     <p className="text-[9px] font-semibold text-slate-500">
@@ -474,7 +469,7 @@ function FundraiserStatsContent() {
                     </p>
                   </div>
 
-                  <span className="text-[12px] font-bold text-slate-700">
+                  <span className="text-[11px] font-bold text-slate-700">
                     Rp{' '}
                     {totalUjrah.toLocaleString(
                       'id-ID'
@@ -483,13 +478,13 @@ function FundraiserStatsContent() {
 
                 </div>
 
-                <div className="flex items-center justify-between gap-4 py-3">
+                <div className="flex items-center justify-between gap-4 py-2.5">
 
                   <span className="text-[9px] font-semibold text-slate-500">
                     Sudah Dibayarkan BMA
                   </span>
 
-                  <span className="text-[12px] font-bold text-amber-600">
+                  <span className="text-[11px] font-bold text-amber-600">
                     -Rp{' '}
                     {feePaid.toLocaleString(
                       'id-ID'
@@ -500,13 +495,13 @@ function FundraiserStatsContent() {
 
               </div>
 
-              <div className="mt-3 rounded-2xl bg-[#f7f2e7] border border-[#eadfca] p-4">
+              <div className="mt-3 bg-[#f7f2e7] border border-[#eadfca] p-3.5">
 
                 <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#98752d]">
                   Saldo Ujrah Tersedia
                 </p>
 
-                <p className="mt-1.5 text-[20px] font-bold tracking-tight text-[#102a43]">
+                <p className="mt-1 text-[18px] font-bold tracking-tight text-[#073f2e]">
                   Rp{' '}
                   {availableFee.toLocaleString(
                     'id-ID'
@@ -521,12 +516,12 @@ function FundraiserStatsContent() {
 
           {/* =====================================================
               LINK REFERRAL
-          ====================================================== */}
-          <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          ===================================================== */}
+          <section className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
             <div className="flex items-center gap-3">
 
-              <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+              <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
                 <Link2 className="w-4 h-4 text-[#a37c32]" />
               </div>
 
@@ -535,21 +530,21 @@ function FundraiserStatsContent() {
                   Referral Program
                 </p>
 
-                <h2 className="mt-0.5 text-[13px] font-bold text-[#102a43]">
+                <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
                   Tautan Fundraiser Anda
                 </h2>
               </div>
 
             </div>
 
-            <p className="mt-3 text-[9px] leading-relaxed text-slate-500">
+            <p className="mt-2.5 text-[9px] leading-relaxed text-slate-500">
               Pilih program Baitul Maal Al Muttaqin,
               lalu salin tautan unik Anda untuk dibagikan.
             </p>
 
             {stats.programs &&
             stats.programs.length > 0 ? (
-              <div className="mt-4 space-y-3">
+              <div className="mt-3.5 space-y-3">
 
                 <select
                   value={selectedSlug}
@@ -560,7 +555,7 @@ function FundraiserStatsContent() {
 
                     setCopied(false);
                   }}
-                  className="w-full h-12 px-4 bg-[#f8f8f6] border border-slate-200 rounded-2xl text-[10px] font-semibold focus:outline-none focus:border-[#a37c32] focus:bg-white text-slate-700"
+                  className="w-full h-11 px-3.5 bg-[#f8f8f6] border border-slate-200 text-[10px] font-semibold focus:outline-none focus:border-[#073f2e] focus:bg-white text-slate-700"
                 >
 
                   <option value="">
@@ -604,7 +599,7 @@ function FundraiserStatsContent() {
                       `${baseUrl}/campaign/${selectedSlug}?ref=${cleanPhone}`;
 
                     return (
-                      <div className="rounded-2xl border border-[#eadfca] bg-[#f7f2e7]/60 p-3.5 space-y-3">
+                      <div className="border border-[#eadfca] bg-[#f7f2e7]/60 p-3 space-y-2.5">
 
                         <div className="flex items-center justify-between gap-3">
 
@@ -619,10 +614,10 @@ function FundraiserStatsContent() {
                                 affiliateUrl
                               )
                             }
-                            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-[8px] font-bold uppercase tracking-wider text-white transition ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider text-white transition cursor-pointer ${
                               copied
                                 ? 'bg-emerald-600'
-                                : 'bg-[#102a43] hover:bg-[#173d5d]'
+                                : 'bg-[#073f2e] hover:bg-[#052e21]'
                             }`}
                           >
                             {copied ? (
@@ -640,7 +635,7 @@ function FundraiserStatsContent() {
 
                         </div>
 
-                        <div className="bg-white border border-slate-200 px-3 py-2.5 text-[9px] font-mono text-slate-500 rounded-xl truncate select-all">
+                        <div className="bg-white border border-slate-200 px-3 py-2 text-[9px] font-mono text-slate-500 truncate select-all">
                           {affiliateUrl}
                         </div>
 
@@ -650,7 +645,7 @@ function FundraiserStatsContent() {
 
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-center">
+              <div className="mt-3.5 bg-slate-50 border border-slate-200 p-4 text-center">
 
                 <Link2 className="w-5 h-5 text-slate-300 mx-auto" />
 
@@ -665,8 +660,8 @@ function FundraiserStatsContent() {
 
           {/* =====================================================
               RIWAYAT TRANSAKSI
-          ====================================================== */}
-          <section className="rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          ===================================================== */}
+          <section className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
             <div className="flex items-center justify-between gap-3">
 
@@ -675,7 +670,7 @@ function FundraiserStatsContent() {
                   Aktivitas
                 </p>
 
-                <h2 className="mt-1 text-[13px] font-bold text-[#102a43]">
+                <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
                   Riwayat Dukungan
                 </h2>
               </div>
@@ -684,7 +679,7 @@ function FundraiserStatsContent() {
 
             </div>
 
-            <div className="mt-4 max-h-60 overflow-y-auto pr-1">
+            <div className="mt-3 max-h-60 overflow-y-auto pr-1">
 
               {stats.history &&
               stats.history.length > 0 ? (
@@ -698,7 +693,7 @@ function FundraiserStatsContent() {
                     ) => (
                       <div
                         key={idx}
-                        className="py-3 flex items-center justify-between gap-3"
+                        className="py-2.5 flex items-center justify-between gap-3"
                       >
 
                         <div className="min-w-0 flex-1">
@@ -707,7 +702,7 @@ function FundraiserStatsContent() {
                             {item.donorName}
                           </p>
 
-                          <p className="mt-1 text-[8px] font-medium text-slate-400 truncate">
+                          <p className="mt-0.5 text-[8px] font-medium text-slate-400 truncate">
                             {item.programTitle ||
                               'Sedekah Umum'}
                           </p>
@@ -729,11 +724,11 @@ function FundraiserStatsContent() {
 
                 </div>
               ) : (
-                <div className="py-8 text-center">
+                <div className="py-6 text-center">
 
-                  <Users className="w-7 h-7 text-slate-200 mx-auto" />
+                  <Users className="w-6 h-6 text-slate-200 mx-auto" />
 
-                  <p className="mt-3 text-[9px] text-slate-400">
+                  <p className="mt-2.5 text-[9px] text-slate-400">
                     Belum ada donasi masuk dari
                     tautan fundraiser Anda.
                   </p>
@@ -747,14 +742,14 @@ function FundraiserStatsContent() {
 
           {/* =====================================================
               BRAND FOOTER
-          ====================================================== */}
-          <div className="pt-1 pb-3 text-center">
+          ===================================================== */}
+          <div className="pt-1 pb-2 text-center">
 
-            <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+            <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
               {SITE_NAME}
             </p>
 
-            <p className="mt-1 text-[7px] text-slate-300">
+            <p className="mt-0.5 text-[7px] text-slate-400">
               {SITE_DOMAIN} • {SITE_LOCATION}
             </p>
 
@@ -769,17 +764,17 @@ function FundraiserStatsContent() {
 
 export default function FundraiserStatsPage() {
   return (
-    <div className="min-h-screen bg-[#f8f8f6] py-5 px-4 sm:py-10 flex flex-col items-center justify-start">
+    <main className="min-h-screen bg-[#f8f8f6] py-4 px-0 flex flex-col items-center justify-start">
 
       <Suspense
         fallback={
-          <div className="w-full max-w-md flex flex-col items-center justify-center py-16">
+          <div className="w-full max-w-[420px] flex flex-col items-center justify-center py-16">
 
-            <div className="w-12 h-12 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+            <div className="w-11 h-11 bg-[#073f2e] flex items-center justify-center shadow-lg">
               <Loader2 className="w-5 h-5 animate-spin text-white" />
             </div>
 
-            <span className="mt-4 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
+            <span className="mt-3 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">
               Memuat statistik {SITE_SHORT_NAME}
             </span>
 
@@ -791,6 +786,6 @@ export default function FundraiserStatsPage() {
 
       </Suspense>
 
-    </div>
+    </main>
   );
 }

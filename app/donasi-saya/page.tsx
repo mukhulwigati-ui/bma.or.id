@@ -217,7 +217,7 @@ export default function DonasiSayaPage() {
     return (
       <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+          <div className="w-11 h-11 bg-[#073f2e] flex items-center justify-center shadow-lg">
             <RefreshCw className="w-4 h-4 text-white animate-spin" />
           </div>
 
@@ -239,19 +239,19 @@ export default function DonasiSayaPage() {
     : '2026';
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
+      <div className="w-full max-w-[420px] space-y-3 px-0">
 
         {/* =====================================================
             PREMIUM HEADER
-        ====================================================== */}
-        <section className="relative overflow-hidden rounded-[30px] bg-[#102a43] shadow-[0_18px_50px_rgba(16,42,67,0.16)]">
+        ===================================================== */}
+        <section className="relative overflow-hidden bg-[#073f2e] shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
 
           <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
 
           <div className="absolute right-5 bottom-[-70px] w-40 h-40 rounded-full border border-[#d8b76c]/10" />
 
-          <div className="relative z-10 p-5">
+          <div className="relative z-10 p-4">
 
             <div className="flex items-start justify-between gap-3">
 
@@ -261,10 +261,10 @@ export default function DonasiSayaPage() {
                   <img
                     src={profile.avatar}
                     alt={profile.name || 'Foto profil donatur'}
-                    className="w-[58px] h-[58px] rounded-[20px] object-cover border border-[#d7b66a]/50 shadow-xl"
+                    className="w-[58px] h-[58px] object-cover border border-[#d7b66a]/50 shadow-xl"
                   />
                 ) : (
-                  <div className="w-[58px] h-[58px] shrink-0 rounded-[20px] bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
+                  <div className="w-[58px] h-[58px] shrink-0 bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
                     {(profile?.name || 'D')
                       .charAt(0)
                       .toUpperCase()}
@@ -282,7 +282,7 @@ export default function DonasiSayaPage() {
                       'Dermawan BMA'}
                   </h1>
 
-                  <p className="mt-1 text-[9px] text-slate-300">
+                  <p className="mt-0.5 text-[9px] text-slate-200">
                     Member sejak {memberSince}
                   </p>
 
@@ -299,7 +299,7 @@ export default function DonasiSayaPage() {
 
               <div className="shrink-0 text-right">
 
-                <div className="inline-flex items-center gap-1.5 rounded-full bg-white/8 border border-white/10 px-2.5 py-1.5">
+                <div className="inline-flex items-center gap-1.5 bg-white/8 border border-white/15 px-2.5 py-1.5">
 
                   <span className="text-[#d7b66a] text-[10px]">
                     {donorBadge.icon}
@@ -311,7 +311,7 @@ export default function DonasiSayaPage() {
 
                 </div>
 
-                <p className="mt-1.5 text-[8px] text-slate-300">
+                <p className="mt-1 text-[8px] text-slate-200">
                   {donorBadge.title}
                 </p>
 
@@ -319,15 +319,15 @@ export default function DonasiSayaPage() {
             </div>
 
             {/* TOTAL DONASI */}
-            <div className="mt-6">
+            <div className="mt-4 pt-4 border-t border-white/10">
 
-              <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
+              <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-300">
                 Total Donasi Berhasil
               </p>
 
-              <div className="mt-2 flex items-end justify-between gap-3">
+              <div className="mt-1.5 flex items-end justify-between gap-3">
 
-                <p className="text-[26px] leading-none font-bold tracking-tight text-white">
+                <p className="text-[24px] leading-none font-bold tracking-tight text-white">
                   Rp{' '}
                   {totalAmount.toLocaleString(
                     'id-ID'
@@ -344,37 +344,37 @@ export default function DonasiSayaPage() {
             </div>
 
             {/* STATISTICS */}
-            <div className="mt-5 grid grid-cols-3 border-t border-white/10 pt-4">
+            <div className="mt-4 grid grid-cols-3 border-t border-white/10 pt-3">
 
               <div>
-                <p className="text-[8px] uppercase tracking-wider text-slate-400">
+                <p className="text-[8px] uppercase tracking-wider text-slate-300">
                   Berhasil
                 </p>
 
-                <p className="mt-1 text-[15px] font-bold text-white">
+                <p className="mt-1 text-[14px] font-bold text-white">
                   {successfulDonationsCount}x
                 </p>
               </div>
 
-              <div className="border-x border-white/10 px-4">
+              <div className="border-x border-white/10 px-3">
 
-                <p className="text-[8px] uppercase tracking-wider text-slate-400">
+                <p className="text-[8px] uppercase tracking-wider text-slate-300">
                   Program
                 </p>
 
-                <p className="mt-1 text-[15px] font-bold text-white">
+                <p className="mt-1 text-[14px] font-bold text-white">
                   {uniqueProgramsCount}
                 </p>
 
               </div>
 
-              <div className="pl-4">
+              <div className="pl-3">
 
-                <p className="text-[8px] uppercase tracking-wider text-slate-400">
+                <p className="text-[8px] uppercase tracking-wider text-slate-300">
                   Transaksi
                 </p>
 
-                <p className="mt-1 text-[15px] font-bold text-white">
+                <p className="mt-1 text-[14px] font-bold text-white">
                   {donations.length}
                 </p>
 
@@ -383,14 +383,14 @@ export default function DonasiSayaPage() {
             </div>
           </div>
 
-          <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
+          <div className="h-[3px] bg-gradient-to-r from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
 
         </section>
 
         {/* =====================================================
             IMPACT CARD
-        ====================================================== */}
-        <section className="relative overflow-hidden rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        ===================================================== */}
+        <section className="relative overflow-hidden bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
           <div className="absolute right-0 top-0 w-24 h-24 rounded-full bg-[#f7f2e7] -translate-y-1/2 translate-x-1/2" />
 
@@ -398,7 +398,7 @@ export default function DonasiSayaPage() {
 
             <div className="flex items-center gap-3">
 
-              <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
+              <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
                 <Sparkles className="w-4 h-4 text-[#a37c32]" />
               </div>
 
@@ -408,7 +408,7 @@ export default function DonasiSayaPage() {
                   Dampak Kebaikan
                 </p>
 
-                <h2 className="mt-0.5 text-[12px] font-bold text-[#102a43]">
+                <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
                   Kebaikan yang Anda Titipkan
                 </h2>
 
@@ -416,7 +416,7 @@ export default function DonasiSayaPage() {
 
             </div>
 
-            <p className="mt-4 text-[10px] leading-relaxed text-slate-500">
+            <p className="mt-3 text-[10px] leading-relaxed text-slate-500">
               Alhamdulillah, setiap donasi yang Anda titipkan melalui
               {' '}
               {SITE_NAME}
@@ -425,7 +425,7 @@ export default function DonasiSayaPage() {
               masyarakat yang membutuhkan.
             </p>
 
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 space-y-2">
 
               {[
                 'Program sosial untuk yatim, dhuafa, dan masyarakat membutuhkan',
@@ -434,9 +434,9 @@ export default function DonasiSayaPage() {
               ].map((item) => (
                 <div
                   key={item}
-                  className="flex items-center gap-2.5"
+                  className="flex items-center gap-2"
                 >
-                  <div className="w-5 h-5 rounded-full bg-[#f5f8f6] flex items-center justify-center shrink-0">
+                  <div className="w-4 h-4 bg-[#f5f8f6] border border-emerald-100 flex items-center justify-center shrink-0">
                     <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                   </div>
 
@@ -448,7 +448,7 @@ export default function DonasiSayaPage() {
 
             </div>
 
-            <div className="mt-4 border-t border-slate-100 pt-3">
+            <div className="mt-3.5 border-t border-slate-100 pt-2.5">
               <p className="text-[8px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                 {SITE_DOMAIN} • {SITE_LOCATION}
               </p>
@@ -459,17 +459,17 @@ export default function DonasiSayaPage() {
 
         {/* =====================================================
             SEARCH & FILTER
-        ====================================================== */}
-        <section className="space-y-3">
+        ===================================================== */}
+        <section className="space-y-3 px-0">
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-1">
 
             <div>
               <p className="text-[8px] uppercase tracking-[0.2em] font-bold text-slate-400">
                 Aktivitas Donasi
               </p>
 
-              <h2 className="mt-1 text-[14px] font-bold text-[#102a43]">
+              <h2 className="mt-0.5 text-[13px] font-bold text-slate-800">
                 Riwayat Donasi
               </h2>
             </div>
@@ -483,7 +483,7 @@ export default function DonasiSayaPage() {
           {/* SEARCH */}
           <div className="relative">
 
-            <Search className="w-4 h-4 text-slate-400 absolute left-4 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
 
             <input
               type="text"
@@ -492,20 +492,20 @@ export default function DonasiSayaPage() {
               onChange={(e) =>
                 setSearchQuery(e.target.value)
               }
-              className="w-full h-12 rounded-2xl bg-white border border-slate-200/80 pl-11 pr-4 text-[10px] font-medium text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#b18a3c] focus:ring-4 focus:ring-[#b18a3c]/8"
+              className="w-full h-11 bg-white border border-slate-200/80 pl-10 pr-4 text-[10px] font-medium text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#073f2e]"
             />
 
           </div>
 
           {/* STATUS TABS */}
-          <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-100">
+          <div className="grid grid-cols-3 gap-1 p-1 bg-slate-200/70">
 
             <button
               onClick={() => setActiveTab('semua')}
-              className={`rounded-xl py-2.5 text-[9px] font-bold transition ${
+              className={`py-2 text-[9px] font-bold transition ${
                 activeTab === 'semua'
-                  ? 'bg-white text-[#102a43] shadow-sm'
-                  : 'text-slate-400'
+                  ? 'bg-white text-[#073f2e] shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Semua
@@ -518,10 +518,10 @@ export default function DonasiSayaPage() {
               onClick={() =>
                 setActiveTab('pending')
               }
-              className={`rounded-xl py-2.5 text-[9px] font-bold transition ${
+              className={`py-2 text-[9px] font-bold transition ${
                 activeTab === 'pending'
                   ? 'bg-white text-[#a37c32] shadow-sm'
-                  : 'text-slate-400'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Pending
@@ -531,10 +531,10 @@ export default function DonasiSayaPage() {
               onClick={() =>
                 setActiveTab('sukses')
               }
-              className={`rounded-xl py-2.5 text-[9px] font-bold transition ${
+              className={`py-2 text-[9px] font-bold transition ${
                 activeTab === 'sukses'
                   ? 'bg-white text-emerald-600 shadow-sm'
-                  : 'text-slate-400'
+                  : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               Berhasil
@@ -554,7 +554,7 @@ export default function DonasiSayaPage() {
                     e.target.value
                   )
                 }
-                className="appearance-none w-full h-10 rounded-xl bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#b18a3c]"
+                className="appearance-none w-full h-10 bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#073f2e]"
               >
                 <option value="Semua">
                   Semua Kategori
@@ -598,7 +598,7 @@ export default function DonasiSayaPage() {
                       | 'terkecil'
                   )
                 }
-                className="appearance-none w-full h-10 rounded-xl bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#b18a3c]"
+                className="appearance-none w-full h-10 bg-white border border-slate-200 px-3 pr-8 text-[9px] font-semibold text-slate-600 outline-none focus:border-[#073f2e]"
               >
                 <option value="terbaru">
                   Terbaru
@@ -609,11 +609,11 @@ export default function DonasiSayaPage() {
                 </option>
 
                 <option value="terbesar">
-                  Nominal Terbesar
+                  Nomor Terbesar
                 </option>
 
                 <option value="terkecil">
-                  Nominal Terkecil
+                  Nomor Terkecil
                 </option>
               </select>
 
@@ -626,26 +626,26 @@ export default function DonasiSayaPage() {
 
         {/* =====================================================
             TRANSACTION LIST
-        ====================================================== */}
+        ===================================================== */}
         {filteredDonations.length === 0 ? (
-          <section className="rounded-[28px] bg-white border border-slate-200/70 p-8 text-center shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+          <section className="bg-white border-y border-slate-200/70 p-8 text-center shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
-            <div className="w-14 h-14 rounded-2xl bg-[#f7f2e7] flex items-center justify-center mx-auto">
-              <AlertCircle className="w-6 h-6 text-[#a37c32]" />
+            <div className="w-12 h-12 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center mx-auto">
+              <AlertCircle className="w-5 h-5 text-[#a37c32]" />
             </div>
 
-            <h3 className="mt-5 text-[13px] font-bold text-[#102a43]">
+            <h3 className="mt-4 text-[13px] font-bold text-slate-800">
               Belum ada riwayat ditemukan
             </h3>
 
-            <p className="mt-2 text-[9px] leading-relaxed text-slate-400">
+            <p className="mt-1.5 text-[9px] leading-relaxed text-slate-400">
               Coba ubah filter pencarian atau mulailah menebar
               kebaikan bersama {SITE_NAME}.
             </p>
 
             <Link
               href="/"
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#102a43] px-5 py-3 text-[9px] font-bold uppercase tracking-wider text-white shadow-lg shadow-[#102a43]/10 hover:bg-[#173d5d] transition"
+              className="mt-4 inline-flex items-center gap-2 bg-[#073f2e] px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white shadow-md hover:bg-[#052e21] transition"
             >
               Mulai Berdonasi
               <ArrowRight className="w-3.5 h-3.5" />
@@ -653,7 +653,7 @@ export default function DonasiSayaPage() {
 
           </section>
         ) : (
-          <section className="space-y-3">
+          <section className="space-y-2.5">
 
             {filteredDonations.map((d: any) => {
               const status = (
@@ -672,7 +672,7 @@ export default function DonasiSayaPage() {
               return (
                 <article
                   key={d.id}
-                  className="group rounded-[24px] bg-white border border-slate-200/70 p-4 shadow-[0_7px_25px_rgba(15,23,42,0.035)] hover:border-[#d7b66a]/60 hover:shadow-[0_12px_35px_rgba(15,23,42,0.06)] transition-all"
+                  className="group bg-white border-y border-slate-200/70 p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:border-[#073f2e]/40 transition-all"
                 >
 
                   {/* TOP */}
@@ -680,12 +680,12 @@ export default function DonasiSayaPage() {
 
                     <div className="min-w-0">
 
-                      <span className="inline-flex items-center rounded-full bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-1 text-[7px] font-bold uppercase tracking-wider text-[#98752d]">
+                      <span className="inline-flex items-center bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-[#98752d]">
                         {d.category ||
                           'Kemanusiaan'}
                       </span>
 
-                      <h3 className="mt-2 text-[12px] sm:text-[13px] font-bold leading-snug text-[#102a43]">
+                      <h3 className="mt-1.5 text-[12px] font-bold leading-snug text-slate-800">
                         {d.program_name ||
                           d.programTitle ||
                           'Sedekah Umum BMA'}
@@ -694,17 +694,17 @@ export default function DonasiSayaPage() {
                     </div>
 
                     {isPending ? (
-                      <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[#fff8e9] border border-[#f0dfb7] px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-[#a37c32]">
+                      <span className="shrink-0 inline-flex items-center gap-1 bg-[#fff8e9] border border-[#f0dfb7] px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-[#a37c32]">
                         <Clock className="w-3 h-3" />
                         Pending
                       </span>
                     ) : isSuccessful ? (
-                      <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[#f0f8f4] border border-[#d6ebe0] px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
+                      <span className="shrink-0 inline-flex items-center gap-1 bg-[#f0f8f4] border border-[#d6ebe0] px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-emerald-600">
                         <CheckCircle2 className="w-3 h-3" />
                         Berhasil
                       </span>
                     ) : (
-                      <span className="shrink-0 inline-flex rounded-full bg-slate-50 border border-slate-200 px-2.5 py-1.5 text-[7px] font-bold uppercase tracking-wider text-slate-500">
+                      <span className="shrink-0 inline-flex bg-slate-50 border border-slate-200 px-2 py-1 text-[7px] font-bold uppercase tracking-wider text-slate-500">
                         {d.status ||
                           'Diproses'}
                       </span>
@@ -713,14 +713,14 @@ export default function DonasiSayaPage() {
                   </div>
 
                   {/* AMOUNT */}
-                  <div className="mt-4 flex items-end justify-between border-t border-slate-100 pt-3">
+                  <div className="mt-3 flex items-end justify-between border-t border-slate-100 pt-2.5">
 
                     <div>
                       <p className="text-[7px] uppercase tracking-[0.18em] font-bold text-slate-400">
                         Nominal Donasi
                       </p>
 
-                      <p className="mt-1 text-[16px] font-bold tracking-tight text-[#102a43]">
+                      <p className="mt-0.5 text-[15px] font-bold tracking-tight text-[#073f2e]">
                         Rp{' '}
                         {Number(
                           d.amount || 0
@@ -736,7 +736,7 @@ export default function DonasiSayaPage() {
                         Tanggal
                       </p>
 
-                      <p className="mt-1 text-[9px] font-semibold text-slate-500">
+                      <p className="mt-0.5 text-[9px] font-semibold text-slate-500">
                         {new Date(
                           d.created_at
                         ).toLocaleDateString(
@@ -754,13 +754,13 @@ export default function DonasiSayaPage() {
                   </div>
 
                   {/* ACTIONS */}
-                  <div className="mt-3 flex items-center justify-between gap-2">
+                  <div className="mt-3 flex items-center justify-between gap-2 pt-1">
 
                     <button
                       onClick={() =>
                         setSelectedDonation(d)
                       }
-                      className="text-[8px] font-bold uppercase tracking-wider text-slate-400 hover:text-[#a37c32] transition"
+                      className="text-[8px] font-bold uppercase tracking-wider text-slate-400 hover:text-[#073f2e] transition cursor-pointer"
                     >
                       Lihat Detail
                     </button>
@@ -773,7 +773,7 @@ export default function DonasiSayaPage() {
                             href={
                               d.payment_url
                             }
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-[#102a43] hover:bg-[#173d5d] text-white px-3 py-2 text-[8px] font-bold uppercase tracking-wider transition shadow-sm"
+                            className="inline-flex items-center gap-1 bg-[#073f2e] hover:bg-[#052e21] text-white px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider transition shadow-sm"
                           >
                             Bayar
                             <ArrowRight className="w-3 h-3" />
@@ -785,7 +785,7 @@ export default function DonasiSayaPage() {
                           href={`/campaign/${
                             d.slug || ''
                           }`}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 hover:bg-[#f7f2e7] text-slate-600 hover:text-[#98752d] px-3 py-2 text-[8px] font-bold uppercase tracking-wider transition"
+                          className="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 text-[8px] font-bold uppercase tracking-wider transition"
                         >
                           Donasi Lagi
                         </Link>
@@ -804,13 +804,13 @@ export default function DonasiSayaPage() {
 
         {/* =====================================================
             BRAND FOOTER
-        ====================================================== */}
-        <div className="pt-2 text-center">
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+        ===================================================== */}
+        <div className="pt-2 text-center pb-2">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
             {SITE_NAME}
           </p>
 
-          <p className="mt-1 text-[7px] text-slate-300">
+          <p className="mt-0.5 text-[7px] text-slate-400">
             {SITE_DOMAIN} • {SITE_LOCATION}
           </p>
         </div>
@@ -819,15 +819,15 @@ export default function DonasiSayaPage() {
 
       {/* =====================================================
           DETAIL MODAL
-      ====================================================== */}
+      ===================================================== */}
       {selectedDonation && (
         <div className="fixed inset-0 bg-[#071521]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 
-          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[30px] bg-white shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
+          <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto bg-white border border-slate-200 shadow-[0_30px_80px_rgba(0,0,0,0.25)]">
 
             <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
 
-            <div className="p-5">
+            <div className="p-4">
 
               {/* MODAL HEADER */}
               <div className="flex items-start justify-between gap-3">
@@ -838,7 +838,7 @@ export default function DonasiSayaPage() {
                     Rincian Donasi {SITE_SHORT_NAME}
                   </p>
 
-                  <h3 className="mt-1 text-[15px] font-bold text-[#102a43]">
+                  <h3 className="mt-0.5 text-[14px] font-bold text-slate-800">
                     Rincian Transaksi
                   </h3>
 
@@ -849,7 +849,7 @@ export default function DonasiSayaPage() {
                     setSelectedDonation(null)
                   }
                   aria-label="Tutup rincian transaksi"
-                  className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                  className="w-8 h-8 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -857,25 +857,25 @@ export default function DonasiSayaPage() {
               </div>
 
               {/* PROGRAM HERO */}
-              <div className="mt-5 rounded-2xl bg-[#102a43] p-4">
+              <div className="mt-4 bg-[#073f2e] p-4 text-white">
 
                 <p className="text-[7px] uppercase tracking-[0.18em] font-bold text-[#d7b66a]">
                   Program {SITE_NAME}
                 </p>
 
-                <p className="mt-1.5 text-[12px] leading-relaxed font-bold text-white">
+                <p className="mt-1 text-[12px] leading-relaxed font-bold text-white">
                   {selectedDonation.program_name ||
                     selectedDonation.programTitle ||
                     'Sedekah Umum BMA'}
                 </p>
 
-                <div className="mt-4">
+                <div className="mt-3.5">
 
-                  <p className="text-[7px] uppercase tracking-wider text-slate-400">
+                  <p className="text-[7px] uppercase tracking-wider text-slate-300">
                     Nominal
                   </p>
 
-                  <p className="mt-1 text-[20px] font-bold text-white">
+                  <p className="mt-0.5 text-[18px] font-bold text-white">
                     Rp{' '}
                     {Number(
                       selectedDonation.amount || 0
@@ -886,7 +886,7 @@ export default function DonasiSayaPage() {
 
                 </div>
 
-                <div className="mt-4 border-t border-white/10 pt-3">
+                <div className="mt-3 border-t border-white/10 pt-2.5">
                   <p className="text-[7px] uppercase tracking-[0.15em] font-semibold text-[#d7b66a]">
                     {SITE_DOMAIN} • {SITE_LOCATION}
                   </p>
@@ -895,17 +895,17 @@ export default function DonasiSayaPage() {
               </div>
 
               {/* DETAILS */}
-              <div className="mt-4 rounded-2xl border border-slate-100 overflow-hidden">
+              <div className="mt-3.5 border border-slate-200/80 bg-white overflow-hidden">
 
                 <div className="divide-y divide-slate-100">
 
-                  <div className="flex justify-between gap-4 px-4 py-3">
+                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
 
                     <span className="text-[9px] text-slate-400">
                       Status
                     </span>
 
-                    <span className="inline-flex items-center gap-1.5 text-[9px] font-bold text-emerald-600">
+                    <span className="inline-flex items-center gap-1 text-[9px] font-bold text-emerald-600">
                       <CheckCircle2 className="w-3 h-3" />
                       {selectedDonation.status ||
                         'Berhasil'}
@@ -913,7 +913,7 @@ export default function DonasiSayaPage() {
 
                   </div>
 
-                  <div className="flex justify-between gap-4 px-4 py-3">
+                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
 
                     <span className="text-[9px] text-slate-400">
                       Metode Pembayaran
@@ -926,7 +926,7 @@ export default function DonasiSayaPage() {
 
                   </div>
 
-                  <div className="flex justify-between gap-4 px-4 py-3">
+                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
 
                     <span className="text-[9px] text-slate-400">
                       Waktu Transaksi
@@ -942,7 +942,7 @@ export default function DonasiSayaPage() {
 
                   </div>
 
-                  <div className="flex justify-between gap-4 px-4 py-3">
+                  <div className="flex justify-between gap-4 px-3.5 py-2.5">
 
                     <span className="text-[9px] text-slate-400">
                       Invoice ID
@@ -960,7 +960,7 @@ export default function DonasiSayaPage() {
               </div>
 
               {/* BUTTONS */}
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-3.5 grid grid-cols-2 gap-2">
 
                 <button
                   onClick={() =>
@@ -968,7 +968,7 @@ export default function DonasiSayaPage() {
                       'Fitur unduh kuitansi PDF BMA segera hadir.'
                     )
                   }
-                  className="rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Kuitansi
@@ -984,7 +984,7 @@ export default function DonasiSayaPage() {
                       `Tautan ${SITE_DOMAIN} berhasil disalin untuk dibagikan!`
                     );
                   }}
-                  className="rounded-xl bg-[#102a43] hover:bg-[#173d5d] text-white font-bold py-3 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5"
+                  className="bg-[#073f2e] hover:bg-[#052e21] text-white font-bold py-2.5 text-[8px] uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Heart className="w-3.5 h-3.5" />
                   Bagikan
@@ -996,6 +996,6 @@ export default function DonasiSayaPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

@@ -175,7 +175,7 @@ export default function PengaturanPage() {
     return (
       <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+          <div className="w-11 h-11 bg-[#073f2e] flex items-center justify-center shadow-lg">
             <Loader2 className="w-5 h-5 text-white animate-spin" />
           </div>
 
@@ -188,26 +188,26 @@ export default function PengaturanPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] pb-28 pt-5 px-4">
-      <div className="max-w-md mx-auto space-y-4">
+    <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
+      <div className="w-full max-w-[420px] space-y-3 px-0">
 
         {/* =====================================================
             PREMIUM HEADER
-        ====================================================== */}
-        <section className="relative overflow-hidden rounded-[30px] bg-[#102a43] shadow-[0_20px_55px_rgba(16,42,67,0.18)]">
+        ===================================================== */}
+        <section className="relative overflow-hidden bg-[#073f2e] shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
 
           <div className="absolute -right-16 -top-16 w-48 h-48 rounded-full border border-white/8" />
 
           <div className="absolute right-4 bottom-[-80px] w-44 h-44 rounded-full border border-[#d7b66a]/15" />
 
-          <div className="relative z-10 p-5">
+          <div className="relative z-10 p-4">
 
             <div className="flex items-center gap-3">
 
               <Link
                 href="/akun"
                 aria-label="Kembali ke akun"
-                className="w-10 h-10 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center hover:bg-white/15 transition"
+                className="w-9 h-9 shrink-0 bg-white/8 border border-white/15 flex items-center justify-center hover:bg-white/20 transition"
               >
                 <ArrowLeft className="w-4 h-4 text-white" />
               </Link>
@@ -218,28 +218,28 @@ export default function PengaturanPage() {
                   {SITE_SHORT_NAME} Account Settings
                 </p>
 
-                <h1 className="mt-1 text-[17px] font-bold text-white">
+                <h1 className="mt-0.5 text-[15px] font-bold text-white">
                   Pengaturan Akun
                 </h1>
 
               </div>
 
-              <div className="w-10 h-10 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center">
+              <div className="w-9 h-9 shrink-0 bg-white/8 border border-white/15 flex items-center justify-center">
                 <ShieldCheck className="w-4 h-4 text-[#d7b66a]" />
               </div>
 
             </div>
 
-            <p className="mt-4 text-[10px] leading-relaxed text-slate-300">
+            <p className="mt-3 text-[10px] leading-relaxed text-slate-200">
               Kelola informasi profil yang digunakan
               pada layanan digital {SITE_NAME}.
             </p>
 
-            <div className="mt-4 flex items-center gap-1.5">
+            <div className="mt-3 pt-3 border-t border-white/10 flex items-center gap-1.5">
 
               <ShieldCheck className="w-3 h-3 text-[#d7b66a]" />
 
-              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e7d5a4]">
+              <span className="text-[8px] font-semibold uppercase tracking-[0.15em] text-[#e6d19d]">
                 {SITE_DOMAIN} • {SITE_LOCATION}
               </span>
 
@@ -247,21 +247,21 @@ export default function PengaturanPage() {
 
           </div>
 
-          <div className="h-[3px] bg-gradient-to-r from-[#a37c32] via-[#e0c37e] to-[#a37c32]" />
+          <div className="h-[3px] bg-gradient-to-r from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
 
         </section>
 
         {/* =====================================================
             PROFILE INTRO
-        ====================================================== */}
-        <section className="relative overflow-hidden rounded-[26px] bg-white border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        ===================================================== */}
+        <section className="relative overflow-hidden bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
           <div className="absolute -right-10 -top-10 w-28 h-28 rounded-full bg-[#f7f2e7]" />
 
           <div className="relative z-10 flex items-center gap-3">
 
-            <div className="w-11 h-11 rounded-2xl bg-[#f7f2e7] flex items-center justify-center">
-              <UserRound className="w-5 h-5 text-[#a37c32]" />
+            <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
+              <UserRound className="w-4 h-4 text-[#a37c32]" />
             </div>
 
             <div>
@@ -270,7 +270,7 @@ export default function PengaturanPage() {
                 Profil Member
               </p>
 
-              <h2 className="mt-0.5 text-[13px] font-bold text-[#102a43]">
+              <h2 className="mt-0.5 text-[12px] font-bold text-slate-800">
                 Informasi Akun Anda
               </h2>
 
@@ -278,7 +278,7 @@ export default function PengaturanPage() {
 
           </div>
 
-          <p className="relative z-10 mt-4 text-[9px] leading-relaxed text-slate-500">
+          <p className="relative z-10 mt-2.5 text-[9px] leading-relaxed text-slate-500">
             Pastikan nama dan nomor WhatsApp Anda
             selalu benar agar pencatatan transaksi,
             referral, dan komunikasi akun berjalan
@@ -289,10 +289,10 @@ export default function PengaturanPage() {
 
         {/* =====================================================
             FORM PENGATURAN
-        ====================================================== */}
+        ===================================================== */}
         <form
           onSubmit={handleSave}
-          className="rounded-[28px] bg-white border border-slate-200/70 p-5 shadow-[0_10px_35px_rgba(15,23,42,0.05)] space-y-5"
+          className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)] space-y-4"
         >
 
           {/* NAME */}
@@ -302,9 +302,9 @@ export default function PengaturanPage() {
               Nama Lengkap
             </label>
 
-            <div className="relative mt-2">
+            <div className="relative mt-1.5">
 
-              <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <UserRound className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
 
               <input
                 type="text"
@@ -313,7 +313,7 @@ export default function PengaturanPage() {
                   setName(e.target.value)
                 }
                 placeholder="Nama lengkap"
-                className="w-full h-12 pl-11 pr-4 bg-[#f8f8f6] border border-slate-200 rounded-2xl text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:bg-white focus:border-[#a37c32] focus:ring-4 focus:ring-[#a37c32]/8"
+                className="w-full h-11 pl-10 pr-4 bg-[#f8f8f6] border border-slate-200 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:bg-white focus:border-[#073f2e]"
               />
 
             </div>
@@ -327,9 +327,9 @@ export default function PengaturanPage() {
               Email Terdaftar
             </label>
 
-            <div className="relative mt-2">
+            <div className="relative mt-1.5">
 
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
 
               <input
                 type="email"
@@ -337,12 +337,12 @@ export default function PengaturanPage() {
                 value={
                   profile?.email || ''
                 }
-                className="w-full h-12 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-semibold text-slate-400 cursor-not-allowed"
+                className="w-full h-11 pl-10 pr-4 bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-400 cursor-not-allowed"
               />
 
             </div>
 
-            <div className="mt-2 flex items-start gap-2">
+            <div className="mt-2 flex items-start gap-1.5">
 
               <ShieldCheck className="w-3 h-3 shrink-0 mt-0.5 text-[#a37c32]" />
 
@@ -363,9 +363,9 @@ export default function PengaturanPage() {
               Nomor WhatsApp
             </label>
 
-            <div className="relative mt-2">
+            <div className="relative mt-1.5">
 
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
 
               <input
                 type="tel"
@@ -374,12 +374,12 @@ export default function PengaturanPage() {
                   setPhone(e.target.value)
                 }
                 placeholder="Contoh: 081234567890"
-                className="w-full h-12 pl-11 pr-4 bg-[#f8f8f6] border border-slate-200 rounded-2xl text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:bg-white focus:border-[#a37c32] focus:ring-4 focus:ring-[#a37c32]/8"
+                className="w-full h-11 pl-10 pr-4 bg-[#f8f8f6] border border-slate-200 text-[11px] font-semibold text-slate-800 placeholder:text-slate-400 outline-none transition focus:bg-white focus:border-[#073f2e]"
               />
 
             </div>
 
-            <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
+            <p className="mt-1.5 text-[8px] leading-relaxed text-slate-400">
               Nomor WhatsApp dapat digunakan untuk
               komunikasi layanan dan identitas referral.
             </p>
@@ -388,7 +388,7 @@ export default function PengaturanPage() {
 
           {/* SUCCESS MESSAGE */}
           {message && (
-            <div className="flex items-start gap-3 rounded-2xl bg-emerald-50 border border-emerald-100 p-3.5">
+            <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-100 p-3">
 
               <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
 
@@ -403,7 +403,7 @@ export default function PengaturanPage() {
           <button
             type="submit"
             disabled={saving}
-            className="w-full h-12 rounded-2xl bg-[#102a43] hover:bg-[#173d5d] disabled:bg-slate-300 text-white font-bold text-[9px] uppercase tracking-[0.16em] transition shadow-lg shadow-[#102a43]/10 active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer"
+            className="w-full h-11 bg-[#073f2e] hover:bg-[#052e21] disabled:bg-slate-300 text-white font-bold text-[9px] uppercase tracking-[0.16em] transition shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             {saving ? (
               <>
@@ -422,8 +422,8 @@ export default function PengaturanPage() {
 
         {/* =====================================================
             SECURITY CARD
-        ====================================================== */}
-        <section className="rounded-[22px] border border-[#eadfca] bg-[#f7f2e7]/60 p-4">
+        ===================================================== */}
+        <section className="border border-[#eadfca] bg-[#f7f2e7]/60 p-3.5">
 
           <div className="flex items-start gap-3">
 
@@ -431,11 +431,11 @@ export default function PengaturanPage() {
 
             <div>
 
-              <p className="text-[9px] font-bold text-[#102a43]">
+              <p className="text-[9px] font-bold text-slate-800">
                 Informasi Profil
               </p>
 
-              <p className="mt-1 text-[8px] leading-relaxed text-slate-500">
+              <p className="mt-0.5 text-[8px] leading-relaxed text-slate-500">
                 Perubahan data profil akan tersimpan
                 pada akun Anda dan digunakan pada
                 layanan terkait di {SITE_DOMAIN}.
@@ -449,20 +449,20 @@ export default function PengaturanPage() {
 
         {/* =====================================================
             BRAND FOOTER
-        ====================================================== */}
-        <div className="pt-2 pb-3 text-center">
+        ===================================================== */}
+        <div className="pt-1 pb-2 text-center">
 
-          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-300">
+          <p className="text-[8px] font-semibold uppercase tracking-[0.16em] text-slate-400">
             {SITE_NAME}
           </p>
 
-          <p className="mt-1 text-[7px] text-slate-300">
+          <p className="mt-0.5 text-[7px] text-slate-400">
             {SITE_DOMAIN} • {SITE_LOCATION}
           </p>
 
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }

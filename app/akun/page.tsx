@@ -239,7 +239,7 @@ export default function AkunPage() {
     return (
       <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-11 h-11 rounded-2xl bg-[#102a43] flex items-center justify-center shadow-lg">
+          <div className="w-11 h-11 bg-[#102a43] flex items-center justify-center shadow-lg">
             <Loader2 className="w-5 h-5 text-white animate-spin" />
           </div>
 
@@ -252,13 +252,13 @@ export default function AkunPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-5 px-0 sm:px-4 flex justify-center">
-      <div className="w-full max-w-[480px] space-y-4">
+    <main className="min-h-screen bg-[#f8f8f6] text-slate-900 pb-28 pt-2 flex justify-center">
+      <div className="w-full max-w-[420px] space-y-3 px-0">
 
         {/* =========================================================
             HEADER PROFILE
         ========================================================= */}
-        <section className="relative overflow-hidden sm:rounded-[28px] bg-[#102a43] p-5 shadow-[0_18px_45px_rgba(16,42,67,0.16)]">
+        <section className="relative overflow-hidden bg-[#073f2e] p-5 shadow-[0_4px_20px_rgba(7,63,46,0.12)] border-y border-[#073f2e]/20">
 
           <div className="absolute -right-14 -top-16 w-44 h-44 rounded-full border border-white/8" />
 
@@ -270,10 +270,10 @@ export default function AkunPage() {
               <img
                 src={profile.avatar}
                 alt={profile.name || 'Foto profil'}
-                className="w-[62px] h-[62px] rounded-[22px] object-cover border border-[#d7b66a]/50 shadow-xl"
+                className="w-[62px] h-[62px] object-cover border border-[#d7b66a]/50 shadow-xl"
               />
             ) : (
-              <div className="w-[62px] h-[62px] rounded-[22px] bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-[62px] h-[62px] bg-white/10 border border-[#d7b66a]/40 flex items-center justify-center text-white font-bold text-xl">
                 {(profile?.name || 'D')
                   .charAt(0)
                   .toUpperCase()}
@@ -289,7 +289,7 @@ export default function AkunPage() {
                 {profile?.name || 'Dermawan BMA'}
               </h1>
 
-              <p className="mt-0.5 text-[10px] text-slate-300 truncate">
+              <p className="mt-0.5 text-[10px] text-slate-200 truncate">
                 {profile?.email}
               </p>
 
@@ -305,9 +305,9 @@ export default function AkunPage() {
             <Link
               href="/pengaturan"
               aria-label="Pengaturan akun"
-              className="w-9 h-9 shrink-0 rounded-xl bg-white/8 border border-white/10 flex items-center justify-center hover:bg-white/15 transition"
+              className="w-9 h-9 shrink-0 bg-white/8 border border-white/15 flex items-center justify-center hover:bg-white/20 transition"
             >
-              <Settings className="w-4 h-4 text-slate-300" />
+              <Settings className="w-4 h-4 text-slate-200" />
             </Link>
           </div>
         </section>
@@ -315,9 +315,9 @@ export default function AkunPage() {
         {/* =========================================================
             DONATION SUMMARY
         ========================================================= */}
-        <section className="sm:rounded-[28px] bg-white border-y sm:border border-slate-200/70 shadow-[0_8px_30px_rgba(15,23,42,0.04)] overflow-hidden">
+        <section className="bg-white border-y border-slate-200/70 shadow-[0_2px_12px_rgba(0,0,0,0.03)] overflow-hidden">
 
-          <div className="p-5">
+          <div className="p-4">
 
             <div className="flex items-center justify-between">
 
@@ -326,33 +326,33 @@ export default function AkunPage() {
                   Total Donasi
                 </p>
 
-                <p className="mt-2 text-[25px] leading-none font-bold tracking-tight text-[#102a43]">
+                <p className="mt-1.5 text-[24px] leading-none font-bold tracking-tight text-[#073f2e]">
                   Rp {totalAmount.toLocaleString('id-ID')}
                 </p>
               </div>
 
               <div className="text-right">
-                <span className="inline-flex items-center rounded-full bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-1">
+                <span className="inline-flex items-center bg-[#f7f2e7] border border-[#eadfca] px-2.5 py-1">
                   <span className="text-[8px] font-bold uppercase tracking-wider text-[#98752d]">
                     {levelInfo.level}
                   </span>
                 </span>
 
-                <p className="mt-2 text-[11px] font-bold text-[#102a43]">
+                <p className="mt-1.5 text-[11px] font-bold text-slate-800">
                   {levelInfo.name}
                 </p>
               </div>
 
             </div>
 
-            <div className="mt-5 grid grid-cols-3 border-t border-slate-100 pt-4">
+            <div className="mt-4 grid grid-cols-3 border-t border-slate-100 pt-3.5">
 
               <div className="text-center">
                 <p className="text-[8px] font-bold uppercase tracking-wider text-slate-400">
                   Program
                 </p>
 
-                <p className="mt-1.5 text-[15px] font-bold text-[#102a43]">
+                <p className="mt-1 text-[14px] font-bold text-slate-800">
                   {uniqueProgramsCount}
                 </p>
               </div>
@@ -362,7 +362,7 @@ export default function AkunPage() {
                   Berhasil
                 </p>
 
-                <p className="mt-1.5 text-[15px] font-bold text-[#102a43]">
+                <p className="mt-1 text-[14px] font-bold text-slate-800">
                   {successfulDonations.length}x
                 </p>
               </div>
@@ -372,7 +372,7 @@ export default function AkunPage() {
                   Referral
                 </p>
 
-                <p className="mt-1.5 flex items-center justify-center gap-1 text-[15px] font-bold text-[#102a43]">
+                <p className="mt-1 flex items-center justify-center gap-1 text-[14px] font-bold text-slate-800">
                   <Eye className="w-3 h-3 text-[#b18a3c]" />
                   {referralClicks}
                 </p>
@@ -389,14 +389,14 @@ export default function AkunPage() {
         {/* =========================================================
             TARGET SEDEKAH
         ========================================================= */}
-        <section className="sm:rounded-[26px] bg-white border-y sm:border border-slate-200/70 p-5 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="bg-white border-y border-slate-200/70 p-4 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
           <div className="flex items-center justify-between">
 
             <div className="flex items-center gap-3">
 
-              <div className="w-10 h-10 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
-                <Target className="w-[17px] h-[17px] text-[#a37c32]" />
+              <div className="w-9 h-9 bg-[#f7f2e7] border border-[#eadfca] flex items-center justify-center">
+                <Target className="w-4 h-4 text-[#a37c32]" />
               </div>
 
               <div>
@@ -404,7 +404,7 @@ export default function AkunPage() {
                   Personal Goal
                 </p>
 
-                <h3 className="mt-0.5 text-[12px] font-bold text-[#102a43]">
+                <h3 className="mt-0.5 text-[12px] font-bold text-slate-800">
                   Target Sedekah Bulanan
                 </h3>
               </div>
@@ -417,9 +417,9 @@ export default function AkunPage() {
 
           </div>
 
-          <div className="mt-5">
+          <div className="mt-4">
 
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1.5">
               <span className="text-[9px] text-slate-400">
                 Rp {totalAmount.toLocaleString('id-ID')}
               </span>
@@ -429,10 +429,10 @@ export default function AkunPage() {
               </span>
             </div>
 
-            <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+            <div className="h-1.5 bg-slate-100 overflow-hidden">
 
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#a37c32] to-[#d6b96f] transition-all duration-700"
+                className="h-full bg-gradient-to-r from-[#a37c32] to-[#d6b96f] transition-all duration-700"
                 style={{
                   width: `${progressPercent}%`,
                 }}
@@ -447,13 +447,13 @@ export default function AkunPage() {
         {/* =========================================================
             WHATSAPP
         ========================================================= */}
-        <section className="sm:rounded-[24px] bg-white border-y sm:border border-slate-200/70 p-4 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="bg-white border-y border-slate-200/70 p-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
           <div className="flex items-center justify-between">
 
             <div className="flex items-center gap-3">
 
-              <div className="w-10 h-10 rounded-xl bg-[#f3f7f5] flex items-center justify-center">
+              <div className="w-9 h-9 bg-[#f3f7f5] border border-emerald-100 flex items-center justify-center">
                 <Phone className="w-4 h-4 text-emerald-600" />
               </div>
 
@@ -462,7 +462,7 @@ export default function AkunPage() {
                   Kontak Referral
                 </p>
 
-                <p className="mt-1 text-[11px] font-bold text-[#102a43]">
+                <p className="mt-0.5 text-[11px] font-bold text-slate-800">
                   {profile?.phone || 'Belum diatur'}
                 </p>
               </div>
@@ -471,7 +471,7 @@ export default function AkunPage() {
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="rounded-xl border border-slate-200 px-3.5 py-2 text-[9px] font-bold uppercase tracking-wider text-[#102a43] hover:bg-slate-50 transition cursor-pointer"
+              className="border border-slate-200 bg-slate-50 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition cursor-pointer"
             >
               Ubah
             </button>
@@ -483,28 +483,28 @@ export default function AkunPage() {
         {/* =========================================================
             MENU
         ========================================================= */}
-        <section className="sm:rounded-[26px] bg-white border-y sm:border border-slate-200/70 overflow-hidden shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+        <section className="bg-white border-y border-slate-200/70 overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
 
-          <div className="px-5 pt-5 pb-3">
+          <div className="px-4 pt-4 pb-2">
             <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-400">
               {SITE_SHORT_NAME} Account Center
             </p>
 
-            <h3 className="mt-1 text-[13px] font-bold text-[#102a43]">
+            <h3 className="mt-0.5 text-[12px] font-bold text-slate-800">
               Menu Akun
             </h3>
           </div>
 
-          <div className="px-3 pb-3 space-y-1">
+          <div className="px-2 pb-2 space-y-0.5">
 
             <Link
               href="/donasi-saya"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
-                  <History className="w-4 h-4 text-[#102a43]" />
+                <div className="w-8 h-8 bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <History className="w-3.5 h-3.5 text-slate-700" />
                 </div>
 
                 <span className="text-[11px] font-semibold text-slate-700">
@@ -513,17 +513,17 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
             <Link
               href="/kuitansi"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
-                  <FileText className="w-4 h-4 text-[#102a43]" />
+                <div className="w-8 h-8 bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <FileText className="w-3.5 h-3.5 text-slate-700" />
                 </div>
 
                 <span className="text-[11px] font-semibold text-slate-700">
@@ -532,17 +532,17 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
             <Link
               href="/favorit"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
-                  <Bookmark className="w-4 h-4 text-[#102a43]" />
+                <div className="w-8 h-8 bg-[#f5f6f7] flex items-center justify-center group-hover:bg-[#f7f2e7] transition">
+                  <Bookmark className="w-3.5 h-3.5 text-slate-700" />
                 </div>
 
                 <span className="text-[11px] font-semibold text-slate-700">
@@ -551,17 +551,17 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
             <Link
               href="/referral"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f7f2e7] flex items-center justify-center">
-                  <Sparkles className="w-4 h-4 text-[#a37c32]" />
+                <div className="w-8 h-8 bg-[#f7f2e7] flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-[#a37c32]" />
                 </div>
 
                 <div>
@@ -576,17 +576,17 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
             <Link
               href="/pengaturan"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center">
-                  <Settings className="w-4 h-4 text-[#102a43]" />
+                <div className="w-8 h-8 bg-[#f5f6f7] flex items-center justify-center">
+                  <Settings className="w-3.5 h-3.5 text-slate-700" />
                 </div>
 
                 <span className="text-[11px] font-semibold text-slate-700">
@@ -595,17 +595,17 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
             <Link
               href="/bantuan"
-              className="group flex items-center justify-between rounded-2xl px-3 py-3.5 hover:bg-[#f8f8f6] transition"
+              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
             >
               <div className="flex items-center gap-3">
 
-                <div className="w-9 h-9 rounded-xl bg-[#f5f6f7] flex items-center justify-center">
-                  <HelpCircle className="w-4 h-4 text-[#102a43]" />
+                <div className="w-8 h-8 bg-[#f5f6f7] flex items-center justify-center">
+                  <HelpCircle className="w-3.5 h-3.5 text-slate-700" />
                 </div>
 
                 <span className="text-[11px] font-semibold text-slate-700">
@@ -614,7 +614,7 @@ export default function AkunPage() {
 
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#a37c32] transition" />
+              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
             </Link>
 
           </div>
@@ -625,7 +625,7 @@ export default function AkunPage() {
         ========================================================= */}
         <button
           onClick={handleLogout}
-          className="w-full py-4 rounded-2xl text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-3.5 bg-white border-y border-slate-200/70 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-500 hover:text-rose-600 hover:bg-rose-50/50 transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_2px_12px_rgba(0,0,0,0.03)]"
         >
           <LogOut className="w-3.5 h-3.5" />
           Keluar dari Akun
@@ -641,7 +641,7 @@ export default function AkunPage() {
             {SITE_NAME}.
           </p>
 
-          <p className="mt-1.5 text-[7px] font-semibold uppercase tracking-[0.15em] text-slate-300">
+          <p className="mt-1 text-[7px] font-semibold uppercase tracking-[0.15em] text-slate-300">
             {SITE_DOMAIN} • {SITE_LOCATION}
           </p>
         </div>
@@ -654,7 +654,7 @@ export default function AkunPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-[#071521]/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
 
-          <div className="relative w-full max-w-sm overflow-hidden rounded-[28px] bg-white shadow-[0_25px_70px_rgba(0,0,0,0.25)]">
+          <div className="relative w-full max-w-sm overflow-hidden bg-white border border-slate-200 shadow-[0_25px_70px_rgba(0,0,0,0.25)]">
 
             <div className="h-1 bg-gradient-to-r from-[#a37c32] via-[#dfc27e] to-[#a37c32]" />
 
@@ -667,7 +667,7 @@ export default function AkunPage() {
                     {SITE_SHORT_NAME} Account Settings
                   </p>
 
-                  <h3 className="mt-1 text-[14px] font-bold text-[#102a43]">
+                  <h3 className="mt-1 text-[14px] font-bold text-slate-800">
                     Nomor WhatsApp
                   </h3>
                 </div>
@@ -675,7 +675,7 @@ export default function AkunPage() {
                 <button
                   onClick={() => setIsModalOpen(false)}
                   aria-label="Tutup"
-                  className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                  className="w-9 h-9 bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 transition cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -699,7 +699,7 @@ export default function AkunPage() {
                     onChange={(e) =>
                       setNewPhone(e.target.value)
                     }
-                    className="mt-2 w-full rounded-2xl border border-slate-200 bg-[#f8f8f6] px-4 py-3.5 text-[12px] font-semibold text-slate-800 outline-none transition focus:border-[#a37c32] focus:bg-white"
+                    className="mt-2 w-full border border-slate-200 bg-[#f8f8f6] px-4 py-3 text-[12px] font-semibold text-slate-800 outline-none transition focus:border-[#073f2e] focus:bg-white"
                   />
 
                   <p className="mt-2 text-[8px] leading-relaxed text-slate-400">
@@ -711,7 +711,7 @@ export default function AkunPage() {
                 <button
                   type="submit"
                   disabled={savingPhone}
-                  className="w-full rounded-2xl bg-[#102a43] hover:bg-[#173d5d] text-white font-bold py-3.5 text-[9px] uppercase tracking-[0.16em] transition disabled:bg-slate-300 shadow-lg shadow-[#102a43]/10 cursor-pointer"
+                  className="w-full bg-[#073f2e] hover:bg-[#052e21] text-white font-bold py-3 text-[9px] uppercase tracking-[0.16em] transition disabled:bg-slate-300 shadow-md cursor-pointer"
                 >
                   {savingPhone
                     ? 'Menyimpan...'
@@ -724,6 +724,6 @@ export default function AkunPage() {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 }

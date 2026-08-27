@@ -1,5 +1,4 @@
 // app/page.tsx
-
 import React from 'react';
 import type { Metadata } from 'next';
 import { createClient } from '@sanity/client';
@@ -855,17 +854,18 @@ export default async function HomePage() {
         overflow-x-hidden
         bg-[#f3f3f3]
         pb-24
+        flex
+        justify-center
       "
     >
 
       <div
         className="
-          mx-auto
           w-full
-          max-w-md
-          space-y-5
-          px-3.5
-          pt-4
+          max-w-[420px]
+          space-y-4
+          px-0
+          pt-2
         "
       >
 
@@ -887,12 +887,12 @@ export default async function HomePage() {
           className="
             relative
             overflow-hidden
-            border
-            border-[#cfcfcf]
-            bg-[#dedede]
-            px-5
-            py-5
-            shadow-[0_5px_18px_rgba(0,0,0,0.06)]
+            border-y
+            border-[#073f2e]/20
+            bg-[#073f2e]
+            px-4
+            py-4
+            shadow-[0_2px_10px_rgba(7,63,46,0.1)]
           "
         >
 
@@ -907,7 +907,7 @@ export default async function HomePage() {
               w-32
               rounded-full
               border
-              border-black/[0.05]
+              border-white/10
             "
           />
 
@@ -921,7 +921,7 @@ export default async function HomePage() {
               w-32
               rounded-full
               border
-              border-black/[0.045]
+              border-white/10
             "
           />
 
@@ -931,7 +931,7 @@ export default async function HomePage() {
               z-10
               flex
               items-center
-              gap-4
+              gap-3.5
             "
           >
 
@@ -939,23 +939,23 @@ export default async function HomePage() {
             <div
               className="
                 flex
-                h-12
-                w-12
+                h-11
+                w-11
                 shrink-0
                 items-center
                 justify-center
                 border
-                border-[#c3c3c3]
-                bg-[#f7f7f7]
+                border-white/20
+                bg-white/10
                 shadow-sm
               "
             >
 
               <Landmark
                 className="
-                  h-5
-                  w-5
-                  text-[#4b4b4b]
+                  h-4.5
+                  w-4.5
+                  text-white
                 "
                 strokeWidth={
                   1.8
@@ -974,7 +974,7 @@ export default async function HomePage() {
 
               <div
                 className="
-                  mb-1.5
+                  mb-1
                   flex
                   items-center
                   gap-1.5
@@ -983,9 +983,9 @@ export default async function HomePage() {
 
                 <MapPin
                   className="
-                    h-3.5
-                    w-3.5
-                    text-[#666666]
+                    h-3
+                    w-3
+                    text-[#d7b66a]
                   "
                   strokeWidth={
                     2.2
@@ -994,11 +994,11 @@ export default async function HomePage() {
 
                 <p
                   className="
-                    text-[11px]
+                    text-[10px]
                     font-bold
                     uppercase
                     tracking-[0.14em]
-                    text-[#666666]
+                    text-[#d7b66a]
                   "
                 >
                   {SITE_SHORT_NAME}
@@ -1010,11 +1010,11 @@ export default async function HomePage() {
 
               <h1
                 className="
-                  text-[18px]
+                  text-[16px]
                   font-bold
                   leading-tight
                   tracking-tight
-                  text-[#383838]
+                  text-white
                 "
               >
                 {SITE_NAME}
@@ -1022,11 +1022,11 @@ export default async function HomePage() {
 
               <p
                 className="
-                  mt-1.5
-                  text-[12px]
+                  mt-1
+                  text-[11px]
                   font-medium
                   leading-relaxed
-                  text-[#666666]
+                  text-slate-200
                 "
               >
                 Menghubungkan amanah,
@@ -1051,12 +1051,12 @@ export default async function HomePage() {
 
         <section
           className="
-            border
+            border-y
             border-[#d4d4d4]
             bg-[#eeeeee]
             px-4
-            py-4
-            shadow-[0_4px_14px_rgba(0,0,0,0.035)]
+            py-3.5
+            shadow-[0_2px_10px_rgba(0,0,0,0.03)]
           "
         >
 
@@ -1064,15 +1064,15 @@ export default async function HomePage() {
             className="
               flex
               items-start
-              gap-3.5
+              gap-3
             "
           >
 
             <div
               className="
                 flex
-                h-10
-                w-10
+                h-9
+                w-9
                 shrink-0
                 items-center
                 justify-center
@@ -1084,8 +1084,8 @@ export default async function HomePage() {
 
               <ShieldCheck
                 className="
-                  h-5
-                  w-5
+                  h-4.5
+                  w-4.5
                   text-[#555555]
                 "
                 strokeWidth={
@@ -1104,7 +1104,7 @@ export default async function HomePage() {
 
               <p
                 className="
-                  text-[14px]
+                  text-[13px]
                   font-bold
                   text-[#414141]
                 "
@@ -1114,9 +1114,9 @@ export default async function HomePage() {
 
               <p
                 className="
-                  mt-1.5
-                  text-[12px]
-                  leading-[1.65]
+                  mt-1
+                  text-[11px]
+                  leading-[1.6]
                   text-[#666666]
                 "
               >
@@ -1169,49 +1169,6 @@ export default async function HomePage() {
         ===================================================== */}
 
         <Footer />
-
-        {/* ====================================================
-            BRAND SIGNATURE
-        ===================================================== */}
-
-        <div
-          className="
-            border-t
-            border-[#d8d8d8]
-            pb-3
-            pt-5
-            text-center
-          "
-        >
-
-          <p
-            className="
-              text-[12px]
-              font-bold
-              uppercase
-              tracking-[0.14em]
-              text-[#555555]
-            "
-          >
-            {SITE_NAME}
-          </p>
-
-          <p
-            className="
-              mt-1.5
-              text-[11px]
-              font-medium
-              text-[#777777]
-            "
-          >
-            {SITE_DOMAIN}
-            {' • '}
-            {SITE_LOCATION}
-            {', '}
-            {SITE_REGION}
-          </p>
-
-        </div>
 
       </div>
 
