@@ -54,8 +54,10 @@ export const config = {
      * - favicon.ico (favicon file)
      * - auth (callback)
      * - login (halaman login)
+     * - api (semua route API backend seperti /api/checkout, /api/programs, dll)
+     * - campaign (halaman detail donasi publik)
      * - ekstensi file publik (svg, png, jpg, webp, dll)
      */
-    '/((?!_next/static|_next/image|favicon.ico|auth|login|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|auth|login|api|campaign|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };
