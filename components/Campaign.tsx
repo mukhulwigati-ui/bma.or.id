@@ -37,7 +37,6 @@ interface CampaignItem {
   image: string;
 
   category?: string;
-
   sectionType?: SectionType;
 
   collectedAmount?: number;
@@ -67,7 +66,7 @@ interface ApiResponse {
 }
 
 // ============================================================
-// BASIC HELPERS
+// HELPERS
 // ============================================================
 
 function isRecord(
@@ -79,23 +78,15 @@ function isRecord(
   );
 }
 
-function getString(
-  value: unknown
-): string {
-  return typeof value === 'string'
-    ? value.trim()
-    : '';
-}
-
 function getNumber(
   value: unknown,
   fallback = 0
 ): number {
-  const number =
+  const result =
     Number(value);
 
-  return Number.isFinite(number)
-    ? number
+  return Number.isFinite(result)
+    ? result
     : fallback;
 }
 
@@ -116,35 +107,31 @@ function normalizeSectionType(
     return '';
   }
 
-  const normalized =
+  const section =
     value
       .trim()
       .toLowerCase();
 
   if (
-    normalized === 'mendesak'
+    section === 'mendesak'
   ) {
     return 'mendesak';
   }
 
   if (
-    normalized === 'unggulan'
+    section === 'unggulan'
   ) {
     return 'unggulan';
   }
 
   if (
-    normalized === 'pilihan'
+    section === 'pilihan'
   ) {
     return 'pilihan';
   }
 
   return '';
 }
-
-// ============================================================
-// CAMPAIGN HELPERS
-// ============================================================
 
 function getCollected(
   item: CampaignItem
@@ -206,16 +193,14 @@ function getPercentage(
 function getDonorsCount(
   item: CampaignItem
 ): number {
-  const explicitCount =
+  const explicit =
     getNumber(
       item.donorsCount,
       0
     );
 
-  if (
-    explicitCount > 0
-  ) {
-    return explicitCount;
+  if (explicit > 0) {
+    return explicit;
   }
 
   if (
@@ -233,8 +218,7 @@ function getImage(
   image?: string
 ): string {
   if (
-    typeof image ===
-      'string' &&
+    typeof image === 'string' &&
     image.trim()
   ) {
     return image.trim();
@@ -244,7 +228,7 @@ function getImage(
 }
 
 // ============================================================
-// NORMALIZER SINGLE CAMPAIGN
+// NORMALIZER
 // ============================================================
 
 function normalizeCampaign(
@@ -284,9 +268,10 @@ function normalizeCampaign(
   }
 
   const title =
-    getString(
-      raw.title
-    );
+    typeof raw.title ===
+      'string'
+      ? raw.title.trim()
+      : '';
 
   if (
     !id ||
@@ -338,57 +323,25 @@ function normalizeCampaign(
       ? raw.donors
       : [];
 
-  const donorsCount =
-    raw.donorsCount !==
-      undefined &&
-    raw.donorsCount !==
-      null
-      ? getNumber(
-          raw.donorsCount,
-          0
-        )
-      : donors.length;
-
-  const daysLeft =
-    raw.daysLeft !==
-      undefined &&
-    raw.daysLeft !==
-      null
-      ? getNumber(
-          raw.daysLeft,
-          0
-        )
-      : undefined;
-
   return {
     id,
 
     _id:
-      raw._id !==
-        undefined &&
+      raw._id !== undefined &&
       raw._id !== null
-        ? String(
-            raw._id
-          )
+        ? String(raw._id)
         : undefined,
 
     title,
     slug,
 
     image:
-      getImage(
-        image
-      ),
+      getImage(image),
 
     category:
       category ||
       undefined,
 
-    // ========================================================
-    // STRICT:
-    // Tidak otomatis masuk "pilihan".
-    // Jika Sanity kosong / salah, hasilnya ''
-    // ========================================================
     sectionType:
       normalizeSectionType(
         raw.sectionType
@@ -422,26 +375,35 @@ function normalizeCampaign(
         50000000
       ),
 
-    daysLeft,
+    daysLeft:
+      raw.daysLeft !==
+        undefined &&
+      raw.daysLeft !== null
+        ? getNumber(
+            raw.daysLeft,
+            0
+          )
+        : undefined,
 
-    donorsCount,
+    donorsCount:
+      raw.donorsCount !==
+        undefined &&
+      raw.donorsCount !== null
+        ? getNumber(
+            raw.donorsCount,
+            0
+          )
+        : donors.length,
 
     donors,
   };
 }
 
-// ============================================================
-// NORMALIZE ARRAY
-//
-// Ini sekaligus menghilangkan error:
-// Parameter 'item' implicitly has an 'any' type.
-// ============================================================
-
 function normalizeCampaignList(
   items: readonly unknown[]
 ): CampaignItem[] {
-  const result: CampaignItem[] =
-    [];
+  const result:
+    CampaignItem[] = [];
 
   for (
     const rawItem of items
@@ -475,17 +437,17 @@ function SectionHeader({
   description: string;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
 
       <div className="flex items-end justify-between gap-3">
 
         <div className="min-w-0">
 
-          <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#8b8b8b]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#777777]">
             {eyebrow}
           </p>
 
-          <h2 className="mt-0.5 text-[17px] font-bold tracking-tight text-[#414141] sm:text-lg">
+          <h2 className="mt-1 text-[21px] font-bold leading-tight tracking-tight text-[#414141]">
             {title}
           </h2>
 
@@ -493,16 +455,16 @@ function SectionHeader({
 
         <Link
           href="/program"
-          className="flex shrink-0 items-center gap-1 text-[9px] font-bold text-[#777777] transition hover:text-[#3f3f3f]"
+          className="flex shrink-0 items-center gap-1.5 text-[12px] font-semibold text-[#666666] transition hover:text-[#333333]"
         >
           Lihat Semua
 
-          <ArrowRight className="h-3.5 w-3.5" />
+          <ArrowRight className="h-4 w-4" />
         </Link>
 
       </div>
 
-      <p className="text-[10px] leading-relaxed text-[#888888] sm:text-xs">
+      <p className="max-w-[92%] text-[13px] leading-[1.65] text-[#737373]">
         {description}
       </p>
 
@@ -520,7 +482,7 @@ function ProgressBar({
   percentage: number;
 }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden bg-[#dddddd]">
+    <div className="h-2 w-full overflow-hidden bg-[#dddddd]">
 
       <div
         className="h-full bg-[#d9232e] transition-all duration-500"
@@ -536,7 +498,6 @@ function ProgressBar({
 
 // ============================================================
 // FEATURED CARD
-// Untuk Mendesak & Unggulan
 // ============================================================
 
 function FeaturedCampaignCard({
@@ -561,7 +522,7 @@ function FeaturedCampaignCard({
   return (
     <Link
       href={`/campaign/${item.slug}`}
-      className="group block border border-[#dddddd] bg-[#f7f7f7] p-3 transition hover:border-[#c5c5c5] hover:bg-white"
+      className="group block border border-[#d3d3d3] bg-[#fafafa] p-3.5 transition hover:border-[#bdbdbd] hover:bg-white"
     >
 
       {/* IMAGE */}
@@ -573,11 +534,9 @@ function FeaturedCampaignCard({
               item.image
             )
           }
-          alt={
-            item.title
-          }
+          alt={item.title}
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
           onError={(
             event
           ) => {
@@ -590,9 +549,9 @@ function FeaturedCampaignCard({
           typeof item.daysLeft ===
             'number' &&
           item.daysLeft > 0 && (
-            <div className="absolute left-2 top-2 flex items-center gap-1 bg-[#555555] px-2 py-1 text-[8px] font-bold text-white">
+            <div className="absolute left-2.5 top-2.5 flex items-center gap-1.5 bg-[#555555] px-2.5 py-1.5 text-[11px] font-bold text-white">
 
-              <Clock3 className="h-3 w-3" />
+              <Clock3 className="h-3.5 w-3.5" />
 
               {item.daysLeft}{' '}
               hari lagi
@@ -602,33 +561,33 @@ function FeaturedCampaignCard({
 
       </div>
 
-      {/* TITLE */}
-      <div className="mt-3">
+      {/* CATEGORY + TITLE */}
+      <div className="mt-3.5">
 
         {item.category && (
-          <p className="mb-1 text-[8px] font-bold uppercase tracking-[0.12em] text-[#999999]">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.11em] text-[#888888]">
             {item.category}
           </p>
         )}
 
-        <h3 className="line-clamp-2 min-h-[34px] text-xs font-semibold leading-snug text-[#4c4c4c] transition group-hover:text-[#2f2f2f] sm:text-sm">
+        <h3 className="line-clamp-2 min-h-[44px] text-[16px] font-bold leading-[1.4] text-[#494949] transition group-hover:text-[#292929]">
           {item.title}
         </h3>
 
       </div>
 
       {/* SUMMARY */}
-      <div className="mt-3">
+      <div className="mt-4">
 
-        <div className="mb-2 flex items-end justify-between gap-2">
+        <div className="mb-2.5 flex items-end justify-between gap-2">
 
           <div>
 
-            <span className="block text-[8px] font-medium text-[#999999]">
+            <span className="block text-[11px] font-medium text-[#888888]">
               Terkumpul
             </span>
 
-            <strong className="text-[11px] font-bold text-[#555555]">
+            <strong className="mt-0.5 block text-[14px] font-bold text-[#4b4b4b]">
               Rp{' '}
               {formatRupiah(
                 collected
@@ -639,13 +598,13 @@ function FeaturedCampaignCard({
 
           <div className="text-right">
 
-            <span className="block text-[8px] text-[#999999]">
+            <span className="block text-[11px] font-medium text-[#888888]">
               Donatur
             </span>
 
-            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#555555]">
+            <span className="mt-0.5 inline-flex items-center gap-1.5 text-[13px] font-bold text-[#555555]">
 
-              <Users className="h-3 w-3" />
+              <Users className="h-4 w-4" />
 
               {donorCount}
 
@@ -661,10 +620,10 @@ function FeaturedCampaignCard({
           }
         />
 
-        <div className="mt-1.5 flex justify-between gap-2 text-[8px] text-[#999999]">
+        <div className="mt-2 flex justify-between gap-2 text-[11px] text-[#888888]">
 
-          <span>
-            {percentage}%
+          <span className="font-medium">
+            {percentage}% tercapai
           </span>
 
           <span className="truncate">
@@ -684,7 +643,6 @@ function FeaturedCampaignCard({
 
 // ============================================================
 // COMPACT CARD
-// Untuk Program Pilihan
 // ============================================================
 
 function CompactCampaignCard({
@@ -704,11 +662,11 @@ function CompactCampaignCard({
   return (
     <Link
       href={`/campaign/${item.slug}`}
-      className="group flex items-center gap-3.5 border-b border-[#e1e1e1] pb-3.5 transition last:border-b-0 last:pb-0"
+      className="group flex items-center gap-4 border-b border-[#dddddd] pb-4 transition last:border-b-0 last:pb-0"
     >
 
       {/* IMAGE */}
-      <div className="aspect-[16/10] w-28 shrink-0 overflow-hidden bg-[#dedede] sm:w-32">
+      <div className="aspect-[16/10] w-[125px] shrink-0 overflow-hidden bg-[#dedede] sm:w-[145px]">
 
         <img
           src={
@@ -720,7 +678,7 @@ function CompactCampaignCard({
             item.title
           }
           loading="lazy"
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.025]"
           onError={(
             event
           ) => {
@@ -735,29 +693,29 @@ function CompactCampaignCard({
       <div className="min-w-0 flex-1">
 
         {item.category && (
-          <p className="mb-1 text-[8px] font-bold uppercase tracking-[0.12em] text-[#999999]">
+          <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.1em] text-[#888888]">
             {item.category}
           </p>
         )}
 
-        <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-[#505050] transition group-hover:text-[#303030] sm:text-sm">
+        <h3 className="line-clamp-2 text-[15px] font-bold leading-[1.4] text-[#4b4b4b] transition group-hover:text-[#292929]">
           {item.title}
         </h3>
 
-        <div className="mt-2.5">
+        <div className="mt-3">
 
-          <div className="mb-1.5 flex items-center justify-between gap-3">
+          <div className="mb-2 flex items-center justify-between gap-3">
 
-            <strong className="text-[11px] font-bold text-[#555555]">
+            <strong className="text-[13px] font-bold text-[#4d4d4d]">
               Rp{' '}
               {formatRupiah(
                 collected
               )}
             </strong>
 
-            <span className="flex items-center gap-1 text-[9px] text-[#888888]">
+            <span className="flex items-center gap-1.5 text-[12px] font-medium text-[#777777]">
 
-              <Users className="h-3 w-3" />
+              <Users className="h-4 w-4" />
 
               {donorCount}
 
@@ -771,18 +729,22 @@ function CompactCampaignCard({
             }
           />
 
+          <p className="mt-1.5 text-[11px] text-[#888888]">
+            {percentage}% tercapai
+          </p>
+
         </div>
 
       </div>
 
-      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#bbbbbb] transition group-hover:translate-x-0.5 group-hover:text-[#777777]" />
+      <ArrowRight className="h-4 w-4 shrink-0 text-[#aaaaaa] transition group-hover:translate-x-0.5 group-hover:text-[#666666]" />
 
     </Link>
   );
 }
 
 // ============================================================
-// MAIN COMPONENT
+// MAIN
 // ============================================================
 
 export default function Campaign({
@@ -810,10 +772,6 @@ export default function Campaign({
     setApiError,
   ] =
     useState('');
-
-  // ==========================================================
-  // NORMALIZE PROPS
-  // ==========================================================
 
   const normalizedInitial =
     useMemo(
@@ -851,10 +809,6 @@ export default function Campaign({
       [pilihan]
     );
 
-  // ==========================================================
-  // APAKAH HOMEPAGE SUDAH MENDAPAT DATA SERVER?
-  // ==========================================================
-
   const hasSectionData =
     normalizedMendesak.length >
       0 ||
@@ -869,24 +823,19 @@ export default function Campaign({
       0;
 
   // ==========================================================
-  // FETCH /api/programs
+  // FALLBACK API
   // ==========================================================
 
   const fetchPrograms =
     async () => {
       try {
-        setLoadingApi(
-          true
-        );
-
+        setLoadingApi(true);
         setApiError('');
 
         const response =
           await fetch(
             `/api/programs?v=${Date.now()}`,
             {
-              method: 'GET',
-
               cache:
                 'no-store',
 
@@ -942,7 +891,7 @@ export default function Campaign({
         ) {
           throw new Error(
             json.error ||
-              'Gagal mengambil data program.'
+              'Gagal mengambil program.'
           );
         }
 
@@ -958,101 +907,31 @@ export default function Campaign({
             ? rawJson
             : [];
 
-        // ====================================================
-        // Tidak pakai .filter((item) => ...)
-        // sehingga error implicit any hilang total.
-        // ====================================================
-
-        const normalized:
-          CampaignItem[] =
+        setApiPrograms(
           normalizeCampaignList(
             rawData
-          );
-
-        console.log(
-          '===================================='
+          )
         );
 
-        console.log(
-          '📦 BMA PROGRAM API'
-        );
-
-        console.log(
-          'Total:',
-          normalized.length
-        );
-
-        console.log(
-          'Mendesak:',
-          normalized.filter(
-            (
-              item:
-                CampaignItem
-            ) =>
-              item.sectionType ===
-              'mendesak'
-          ).length
-        );
-
-        console.log(
-          'Unggulan:',
-          normalized.filter(
-            (
-              item:
-                CampaignItem
-            ) =>
-              item.sectionType ===
-              'unggulan'
-          ).length
-        );
-
-        console.log(
-          'Pilihan:',
-          normalized.filter(
-            (
-              item:
-                CampaignItem
-            ) =>
-              item.sectionType ===
-              'pilihan'
-          ).length
-        );
-
-        console.log(
-          '===================================='
-        );
-
-        setApiPrograms(
-          normalized
-        );
       } catch (
         error: unknown
       ) {
         console.error(
-          '🔥 Campaign API error:',
+          'Campaign API error:',
           error
         );
 
-        setApiPrograms(
-          []
-        );
+        setApiPrograms([]);
 
         setApiError(
-          error instanceof
-          Error
+          error instanceof Error
             ? error.message
             : 'Gagal memuat program.'
         );
       } finally {
-        setLoadingApi(
-          false
-        );
+        setLoadingApi(false);
       }
     };
-
-  // ==========================================================
-  // FETCH HANYA JIKA SERVER TIDAK MEMBERI DATA
-  // ==========================================================
 
   useEffect(() => {
     if (
@@ -1065,7 +944,7 @@ export default function Campaign({
   ]);
 
   // ==========================================================
-  // STRICT SECTION FILTER
+  // STRICT SECTION TYPE
   // ==========================================================
 
   const apiMendesak =
@@ -1110,10 +989,6 @@ export default function Campaign({
       [apiPrograms]
     );
 
-  // ==========================================================
-  // FINAL DATA
-  // ==========================================================
-
   const finalMendesak =
     normalizedMendesak.length >
     0
@@ -1133,8 +1008,7 @@ export default function Campaign({
       : apiPilihan;
 
   // ==========================================================
-  // INITIAL DATA MODE
-  // Untuk halaman yang memang hanya memberikan initialData
+  // INITIAL DATA
   // ==========================================================
 
   if (
@@ -1143,25 +1017,25 @@ export default function Campaign({
     !hasSectionData
   ) {
     return (
-      <section className="w-full space-y-4 text-left">
+      <section className="w-full space-y-5 text-left">
 
-        <div className="border-b border-[#d5d5d5] pb-3">
+        <div className="border-b border-[#d5d5d5] pb-4">
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
 
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#d0d0d0] bg-[#e5e5e5]">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center border border-[#d0d0d0] bg-[#e5e5e5]">
 
-              <HeartHandshake className="h-4 w-4 text-[#666666]" />
+              <HeartHandshake className="h-5 w-5 text-[#666666]" />
 
             </div>
 
             <div>
 
-              <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-[#888888]">
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#777777]">
                 Program Kebaikan
               </p>
 
-              <h2 className="mt-0.5 text-[18px] font-bold tracking-tight text-[#414141]">
+              <h2 className="mt-1 text-[21px] font-bold tracking-tight text-[#414141]">
                 Daftar Program
               </h2>
 
@@ -1171,7 +1045,7 @@ export default function Campaign({
 
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
 
           {normalizedInitial.map(
             (
@@ -1204,12 +1078,12 @@ export default function Campaign({
     loadingApi
   ) {
     return (
-      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-10 text-center">
 
-        <Loader2 className="mx-auto h-6 w-6 animate-spin text-[#777777]" />
+        <Loader2 className="mx-auto h-7 w-7 animate-spin text-[#777777]" />
 
-        <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.13em] text-[#666666]">
-          Memuat Program BMA
+        <p className="mt-3 text-[13px] font-bold text-[#555555]">
+          Memuat Program BMA...
         </p>
 
       </section>
@@ -1227,15 +1101,15 @@ export default function Campaign({
       0
   ) {
     return (
-      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-10 text-center">
 
-        <HeartHandshake className="mx-auto h-7 w-7 text-[#888888]" />
+        <HeartHandshake className="mx-auto h-8 w-8 text-[#888888]" />
 
-        <p className="mt-3 text-[11px] font-bold text-[#555555]">
+        <p className="mt-3 text-[15px] font-bold text-[#555555]">
           Program gagal dimuat
         </p>
 
-        <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
+        <p className="mt-2 text-[12px] leading-relaxed text-[#777777]">
           {apiError}
         </p>
 
@@ -1244,13 +1118,11 @@ export default function Campaign({
           onClick={() => {
             void fetchPrograms();
           }}
-          className="mt-4 inline-flex items-center gap-2 border border-[#c5c5c5] bg-white px-4 py-2.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#555555]"
+          className="mt-5 inline-flex items-center gap-2 border border-[#c5c5c5] bg-white px-5 py-3 text-[12px] font-bold text-[#555555]"
         >
-
-          <RefreshCw className="h-3.5 w-3.5" />
+          <RefreshCw className="h-4 w-4" />
 
           Muat Ulang
-
         </button>
 
       </section>
@@ -1270,16 +1142,16 @@ export default function Campaign({
       0
   ) {
     return (
-      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-8 text-center">
+      <section className="w-full border border-[#d5d5d5] bg-[#e7e7e7] px-5 py-10 text-center">
 
-        <HeartHandshake className="mx-auto h-7 w-7 text-[#888888]" />
+        <HeartHandshake className="mx-auto h-8 w-8 text-[#888888]" />
 
-        <p className="mt-3 text-[11px] font-bold text-[#555555]">
-          Belum Ada Program Homepage
+        <p className="mt-3 text-[15px] font-bold text-[#555555]">
+          Belum Ada Program
         </p>
 
-        <p className="mt-1 text-[9px] leading-relaxed text-[#777777]">
-          Pastikan setiap program di Sanity memiliki sectionType: mendesak, unggulan, atau pilihan.
+        <p className="mt-2 text-[12px] leading-relaxed text-[#777777]">
+          Pastikan program di Sanity memiliki kategori mendesak, unggulan, atau pilihan.
         </p>
 
       </section>
@@ -1287,19 +1159,16 @@ export default function Campaign({
   }
 
   // ==========================================================
-  // RENDER HOMEPAGE
+  // RENDER
   // ==========================================================
 
   return (
-    <div className="w-full space-y-6 text-left">
+    <div className="w-full space-y-7 text-left">
 
-      {/* ======================================================
-          MENDESAK
-      ====================================================== */}
-
+      {/* MENDESAK */}
       {finalMendesak.length >
         0 && (
-        <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
+        <section className="space-y-5 border border-[#d8d8d8] bg-white p-5 shadow-[0_3px_12px_rgba(0,0,0,0.025)]">
 
           <SectionHeader
             eyebrow="Butuh Dukungan Segera"
@@ -1307,7 +1176,7 @@ export default function Campaign({
             description="Bantu program yang membutuhkan dukungan segera agar manfaat dapat tersalurkan lebih cepat."
           />
 
-          <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             {finalMendesak.map(
               (
@@ -1331,13 +1200,10 @@ export default function Campaign({
         </section>
       )}
 
-      {/* ======================================================
-          UNGGULAN
-      ====================================================== */}
-
+      {/* UNGGULAN */}
       {finalUnggulan.length >
         0 && (
-        <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
+        <section className="space-y-5 border border-[#d8d8d8] bg-white p-5 shadow-[0_3px_12px_rgba(0,0,0,0.025)]">
 
           <SectionHeader
             eyebrow="Rekomendasi Program"
@@ -1345,7 +1211,7 @@ export default function Campaign({
             description="Program unggulan Baitul Maal Al Muttaqin yang dapat Anda dukung."
           />
 
-          <div className="grid grid-cols-1 gap-3.5 pt-1 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             {finalUnggulan.map(
               (
@@ -1368,21 +1234,18 @@ export default function Campaign({
         </section>
       )}
 
-      {/* ======================================================
-          PILIHAN
-      ====================================================== */}
-
+      {/* PILIHAN */}
       {finalPilihan.length >
         0 && (
-        <section className="space-y-4 border border-[#d8d8d8] bg-white p-4 shadow-[0_3px_12px_rgba(0,0,0,0.025)] sm:p-5">
+        <section className="space-y-5 border border-[#d8d8d8] bg-white p-5 shadow-[0_3px_12px_rgba(0,0,0,0.025)]">
 
           <SectionHeader
             eyebrow="Pilihan Kebaikan"
             title="Program Pilihan"
-            description="Program pilihan yang telah ditetapkan melalui pengaturan Sanity BMA."
+            description="Program pilihan untuk menemani langkah kebaikan Anda bersama Baitul Maal Al Muttaqin."
           />
 
-          <div className="space-y-3.5 pt-1">
+          <div className="space-y-4">
 
             {finalPilihan.map(
               (

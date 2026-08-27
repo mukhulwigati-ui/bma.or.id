@@ -3,6 +3,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { createClient } from '@sanity/client';
+
 import {
   ShieldCheck,
   Landmark,
@@ -19,18 +20,42 @@ import News from '@/components/News';
 import Footer from '@/components/Footer';
 
 // ============================================================
-// IDENTITAS WEBSITE
+// IDENTITAS WEBSITE BMA
 // ============================================================
 
-const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_SHORT_NAME = 'BMA';
-const SITE_DOMAIN = 'bma.or.id';
-const SITE_URL = 'https://bma.or.id';
-const SITE_LOCATION = 'Jepara';
-const SITE_REGION = 'Jawa Tengah';
+const SITE_NAME =
+  'Baitul Maal Al Muttaqin';
+
+const SITE_SHORT_NAME =
+  'BMA';
+
+const SITE_DOMAIN =
+  'bma.or.id';
+
+const SITE_URL =
+  'https://bma.or.id';
+
+const SITE_LOCATION =
+  'Jepara';
+
+const SITE_REGION =
+  'Jawa Tengah';
 
 // ============================================================
-// MASTER SEO HOMEPAGE
+// SANITY BMA
+//
+// DIKUNCI LANGSUNG.
+// TIDAK membaca project dari env agar tidak tertukar BDB.
+// ============================================================
+
+const SANITY_PROJECT_ID =
+  'im4qx3kd';
+
+const SANITY_DATASET =
+  'production';
+
+// ============================================================
+// SEO HOMEPAGE
 // ============================================================
 
 export const metadata: Metadata = {
@@ -59,7 +84,8 @@ export const metadata: Metadata = {
   ],
 
   alternates: {
-    canonical: SITE_URL,
+    canonical:
+      SITE_URL,
   },
 
   openGraph: {
@@ -69,24 +95,41 @@ export const metadata: Metadata = {
     description:
       'Temukan dan dukung program zakat, infak, sedekah, wakaf, pendidikan, dakwah, sosial, dan kemanusiaan bersama Baitul Maal Al Muttaqin.',
 
-    url: SITE_URL,
-    siteName: SITE_NAME,
-    locale: 'id_ID',
-    type: 'website',
+    url:
+      SITE_URL,
+
+    siteName:
+      SITE_NAME,
+
+    locale:
+      'id_ID',
+
+    type:
+      'website',
 
     images: [
       {
-        url: `${SITE_URL}/images/banner.png`,
-        width: 1200,
-        height: 630,
-        type: 'image/png',
-        alt: `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
+        url:
+          `${SITE_URL}/images/banner.png`,
+
+        width:
+          1200,
+
+        height:
+          630,
+
+        type:
+          'image/png',
+
+        alt:
+          `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
       },
     ],
   },
 
   twitter: {
-    card: 'summary_large_image',
+    card:
+      'summary_large_image',
 
     title:
       'bma.or.id | Baitul Maal Al Muttaqin',
@@ -100,56 +143,65 @@ export const metadata: Metadata = {
   },
 
   robots: {
-    index: true,
-    follow: true,
+    index:
+      true,
+
+    follow:
+      true,
 
     googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+      index:
+        true,
+
+      follow:
+        true,
+
+      'max-video-preview':
+        -1,
+
+      'max-image-preview':
+        'large',
+
+      'max-snippet':
+        -1,
     },
   },
 };
 
 // ============================================================
-// SANITY CONFIG
+// SANITY CLIENT BMA
+//
+// Tidak pakai SANITY_API_TOKEN.
+// Data published cukup dibaca secara public.
 // ============================================================
 
-const projectId =
-  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
-  'im4qx3kd';
+const serverClient =
+  createClient({
+    projectId:
+      SANITY_PROJECT_ID,
 
-const dataset =
-  process.env.NEXT_PUBLIC_SANITY_DATASET ||
-  'production';
+    dataset:
+      SANITY_DATASET,
 
-if (!projectId) {
-  throw new Error(
-    'NEXT_PUBLIC_SANITY_PROJECT_ID belum disetel.'
-  );
-}
+    apiVersion:
+      '2026-08-01',
 
-const serverClient = createClient({
-  projectId,
-  dataset,
-  useCdn: false,
-  apiVersion: '2026-08-01',
+    useCdn:
+      false,
 
-  token:
-    process.env.SANITY_API_TOKEN ||
-    undefined,
-
-  perspective: 'published',
-});
+    perspective:
+      'published',
+  });
 
 // ============================================================
 // HOMEPAGE DINAMIS
 // ============================================================
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const dynamic =
+  'force-dynamic';
+
+export const revalidate =
+  0;
 
 // ============================================================
 // TYPES
@@ -157,30 +209,55 @@ export const revalidate = 0;
 
 interface ProgramItem {
   id: string;
+
   title: string;
+
   slug: string;
+
   image: string;
 
+  category?: string;
+
+  sectionType:
+    | 'mendesak'
+    | 'unggulan'
+    | 'pilihan';
+
   collectedAmount: number;
+
   collectedRaw: number;
+
   targetAmount: number;
 
   daysLeft?: number;
-  donors?: any[];
+
+  donors?: unknown[];
+
   donorsCount?: number;
 }
 
-interface HomeSanityData {
-  heroBanners?: Array<{
-    id: string;
-    title?: string;
-    imageUrl?: string;
-    linkUrl?: string;
-  }>;
+interface SanityHeroItem {
+  id: string;
 
-  mendesak?: ProgramItem[];
-  unggulan?: ProgramItem[];
-  pilihan?: ProgramItem[];
+  title?: string;
+
+  imageUrl?: string;
+
+  linkUrl?: string;
+}
+
+interface HomeSanityData {
+  heroBanners?:
+    SanityHeroItem[];
+
+  mendesak?:
+    ProgramItem[];
+
+  unggulan?:
+    ProgramItem[];
+
+  pilihan?:
+    ProgramItem[];
 }
 
 // ============================================================
@@ -188,71 +265,137 @@ interface HomeSanityData {
 // ============================================================
 
 function normalizePrograms(
-  items: any[] | undefined
+  items:
+    | ProgramItem[]
+    | undefined
 ): ProgramItem[] {
-
-  if (!Array.isArray(items)) {
+  if (
+    !Array.isArray(
+      items
+    )
+  ) {
     return [];
   }
 
-  return items
-    .filter(
-      (item) =>
-        item &&
-        item.id &&
-        item.title &&
-        item.slug
-    )
-    .map((item) => ({
-      id: String(item.id),
+  const result:
+    ProgramItem[] = [];
 
-      title: String(item.title),
+  for (
+    const item of items
+  ) {
+    if (
+      !item ||
+      !item.id ||
+      !item.title ||
+      !item.slug
+    ) {
+      continue;
+    }
 
-      slug: String(item.slug),
+    const sectionType =
+      item.sectionType;
+
+    // ========================================================
+    // STRICT:
+    // hanya 3 section ini yang diterima.
+    // ========================================================
+
+    if (
+      sectionType !==
+        'mendesak' &&
+      sectionType !==
+        'unggulan' &&
+      sectionType !==
+        'pilihan'
+    ) {
+      continue;
+    }
+
+    result.push({
+      id:
+        String(
+          item.id
+        ),
+
+      title:
+        String(
+          item.title
+        ),
+
+      slug:
+        String(
+          item.slug
+        ),
 
       image:
-        typeof item.image === 'string' &&
+        typeof item.image ===
+          'string' &&
         item.image.trim()
           ? item.image
           : '/images/banner.png',
 
+      category:
+        typeof item.category ===
+          'string'
+          ? item.category
+          : undefined,
+
+      sectionType,
+
       collectedAmount:
         Number(
-          item.collectedAmount ?? 0
+          item.collectedAmount ??
+            0
         ) || 0,
 
       collectedRaw:
         Number(
           item.collectedRaw ??
-          item.collectedAmount ??
-          0
+            item.collectedAmount ??
+            0
         ) || 0,
 
       targetAmount:
         Number(
           item.targetAmount ??
-          50000000
-        ) || 50000000,
+            50000000
+        ) ||
+        50000000,
 
       daysLeft:
-        item.daysLeft !== undefined &&
-        item.daysLeft !== null
-          ? Number(item.daysLeft)
+        item.daysLeft !==
+          undefined &&
+        item.daysLeft !==
+          null
+          ? Number(
+              item.daysLeft
+            )
           : undefined,
 
       donors:
-        Array.isArray(item.donors)
+        Array.isArray(
+          item.donors
+        )
           ? item.donors
           : [],
 
       donorsCount:
-        item.donorsCount !== undefined &&
-        item.donorsCount !== null
-          ? Number(item.donorsCount)
-          : Array.isArray(item.donors)
+        item.donorsCount !==
+          undefined &&
+        item.donorsCount !==
+          null
+          ? Number(
+              item.donorsCount
+            ) || 0
+          : Array.isArray(
+              item.donors
+            )
           ? item.donors.length
           : 0,
-    }));
+    });
+  }
+
+  return result;
 }
 
 // ============================================================
@@ -260,233 +403,402 @@ function normalizePrograms(
 // ============================================================
 
 export default async function HomePage() {
-  let heroBanners: HeroBanner[] = [];
+  let heroBanners:
+    HeroBanner[] = [];
 
-  let mendesakPrograms: ProgramItem[] = [];
-  let unggulanPrograms: ProgramItem[] = [];
-  let pilihanPrograms: ProgramItem[] = [];
+  let mendesakPrograms:
+    ProgramItem[] = [];
+
+  let unggulanPrograms:
+    ProgramItem[] = [];
+
+  let pilihanPrograms:
+    ProgramItem[] = [];
 
   try {
-    const query = `{
-      "heroBanners":
-        *[
-          _type in ["heroBanner", "banner"] &&
-          active != false
-        ]
-        | order(order asc, _createdAt desc)
-        [0...10] {
+    // ========================================================
+    // QUERY SANITY BMA
+    //
+    // STRICT:
+    // mendesak = hanya mendesak
+    // unggulan = hanya unggulan
+    // pilihan  = hanya pilihan
+    //
+    // Tidak ada !defined(sectionType)
+    // ========================================================
 
-          "id": _id,
+    const query = `
+      {
+        "heroBanners":
+          *[
+            _type in [
+              "heroBanner",
+              "banner"
+            ] &&
+            active != false
+          ]
+          | order(
+              order asc,
+              _createdAt desc
+            )
+          [0...10]
+          {
+            "id":
+              _id,
 
-          "title":
-            coalesce(
-              title,
-              name
-            ),
+            "title":
+              coalesce(
+                title,
+                name,
+                "Banner BMA"
+              ),
 
-          "imageUrl":
-            coalesce(
-              image.asset->url,
-              banner.asset->url
-            ),
+            "imageUrl":
+              coalesce(
+                image.asset->url,
+                banner.asset->url
+              ),
 
-          "linkUrl":
-            link
-        },
-
-
-      "mendesak":
-        *[
-          _type == "program" &&
-          sectionType == "mendesak" &&
-          defined(slug.current)
-        ]
-        | order(_createdAt desc)
-        [0...5] {
-
-          "id": _id,
-
-          title,
-
-          "slug":
-            slug.current,
-
-          "image":
-            coalesce(
-              image.asset->url,
-              "/images/banner.png"
-            ),
-
-          "collectedAmount":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
-
-          "collectedRaw":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
-
-          "targetAmount":
-            coalesce(
-              targetAmount,
-              50000000
-            ),
-
-          daysLeft,
-
-          donors,
-
-          "donorsCount":
-            count(donors)
-        },
+            "linkUrl":
+              coalesce(
+                link,
+                linkUrl,
+                url
+              )
+          },
 
 
-      "unggulan":
-        *[
-          _type == "program" &&
-          sectionType == "unggulan" &&
-          defined(slug.current)
-        ]
-        | order(_createdAt desc)
-        [0...5] {
+        "mendesak":
+          *[
+            _type == "program" &&
+            sectionType == "mendesak" &&
+            defined(slug.current)
+          ]
+          | order(
+              _createdAt desc
+            )
+          [0...6]
+          {
+            "id":
+              _id,
 
-          "id": _id,
+            title,
 
-          title,
+            "slug":
+              slug.current,
 
-          "slug":
-            slug.current,
+            "image":
+              coalesce(
+                image.asset->url,
+                mainImage.asset->url,
+                thumbnail.asset->url
+              ),
 
-          "image":
-            coalesce(
-              image.asset->url,
-              "/images/banner.png"
-            ),
+            "category":
+              coalesce(
+                category->title,
+                category,
+                "Program"
+              ),
 
-          "collectedAmount":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
+            sectionType,
 
-          "collectedRaw":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
+            "collectedAmount":
+              coalesce(
+                collectedAmount,
+                collectedRaw,
+                0
+              ),
 
-          "targetAmount":
-            coalesce(
-              targetAmount,
-              50000000
-            ),
+            "collectedRaw":
+              coalesce(
+                collectedRaw,
+                collectedAmount,
+                0
+              ),
 
-          daysLeft,
+            "targetAmount":
+              coalesce(
+                targetAmount,
+                targetRaw,
+                50000000
+              ),
 
-          donors,
+            daysLeft,
 
-          "donorsCount":
-            count(donors)
-        },
+            donors,
+
+            "donorsCount":
+              coalesce(
+                donorsCount,
+                count(donors),
+                0
+              )
+          },
 
 
-      "pilihan":
-        *[
-          _type == "program" &&
-          (
-            sectionType == "pilihan" ||
-            !defined(sectionType)
-          ) &&
-          defined(slug.current)
-        ]
-        | order(_createdAt desc)
-        [0...5] {
+        "unggulan":
+          *[
+            _type == "program" &&
+            sectionType == "unggulan" &&
+            defined(slug.current)
+          ]
+          | order(
+              _createdAt desc
+            )
+          [0...6]
+          {
+            "id":
+              _id,
 
-          "id": _id,
+            title,
 
-          title,
+            "slug":
+              slug.current,
 
-          "slug":
-            slug.current,
+            "image":
+              coalesce(
+                image.asset->url,
+                mainImage.asset->url,
+                thumbnail.asset->url
+              ),
 
-          "image":
-            coalesce(
-              image.asset->url,
-              "/images/banner.png"
-            ),
+            "category":
+              coalesce(
+                category->title,
+                category,
+                "Program"
+              ),
 
-          "collectedAmount":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
+            sectionType,
 
-          "collectedRaw":
-            coalesce(
-              collectedAmount,
-              collectedRaw,
-              0
-            ),
+            "collectedAmount":
+              coalesce(
+                collectedAmount,
+                collectedRaw,
+                0
+              ),
 
-          "targetAmount":
-            coalesce(
-              targetAmount,
-              50000000
-            ),
+            "collectedRaw":
+              coalesce(
+                collectedRaw,
+                collectedAmount,
+                0
+              ),
 
-          daysLeft,
+            "targetAmount":
+              coalesce(
+                targetAmount,
+                targetRaw,
+                50000000
+              ),
 
-          donors,
+            daysLeft,
 
-          "donorsCount":
-            count(donors)
-        }
-    }`;
+            donors,
+
+            "donorsCount":
+              coalesce(
+                donorsCount,
+                count(donors),
+                0
+              )
+          },
+
+
+        "pilihan":
+          *[
+            _type == "program" &&
+            sectionType == "pilihan" &&
+            defined(slug.current)
+          ]
+          | order(
+              _createdAt desc
+            )
+          [0...8]
+          {
+            "id":
+              _id,
+
+            title,
+
+            "slug":
+              slug.current,
+
+            "image":
+              coalesce(
+                image.asset->url,
+                mainImage.asset->url,
+                thumbnail.asset->url
+              ),
+
+            "category":
+              coalesce(
+                category->title,
+                category,
+                "Program"
+              ),
+
+            sectionType,
+
+            "collectedAmount":
+              coalesce(
+                collectedAmount,
+                collectedRaw,
+                0
+              ),
+
+            "collectedRaw":
+              coalesce(
+                collectedRaw,
+                collectedAmount,
+                0
+              ),
+
+            "targetAmount":
+              coalesce(
+                targetAmount,
+                targetRaw,
+                50000000
+              ),
+
+            daysLeft,
+
+            donors,
+
+            "donorsCount":
+              coalesce(
+                donorsCount,
+                count(donors),
+                0
+              )
+          }
+      }
+    `;
+
+    // ========================================================
+    // FETCH LANGSUNG KE SANITY BMA
+    // ========================================================
 
     const data =
       await serverClient.fetch<HomeSanityData>(
-        query
+        query,
+        {},
+        {
+          cache:
+            'no-store',
+        }
       );
+
+    // ========================================================
+    // DEBUG
+    //
+    // Saat deploy, log ini akan memastikan sumbernya BMA.
+    // ========================================================
+
+    console.log(
+      '=============================================='
+    );
+
+    console.log(
+      '✅ HOMEPAGE BMA SANITY'
+    );
+
+    console.log(
+      'PROJECT ID:',
+      SANITY_PROJECT_ID
+    );
+
+    console.log(
+      'DATASET:',
+      SANITY_DATASET
+    );
+
+    console.log(
+      'MENDESAK:',
+      Array.isArray(
+        data?.mendesak
+      )
+        ? data.mendesak
+            .length
+        : 0
+    );
+
+    console.log(
+      'UNGGULAN:',
+      Array.isArray(
+        data?.unggulan
+      )
+        ? data.unggulan
+            .length
+        : 0
+    );
+
+    console.log(
+      'PILIHAN:',
+      Array.isArray(
+        data?.pilihan
+      )
+        ? data.pilihan
+            .length
+        : 0
+    );
+
+    console.log(
+      '=============================================='
+    );
+
+    // ========================================================
+    // HERO
+    // ========================================================
 
     if (
       Array.isArray(
         data?.heroBanners
       )
     ) {
+      const result:
+        HeroBanner[] = [];
+
+      for (
+        const item of
+          data.heroBanners
+      ) {
+        if (
+          !item?.id ||
+          !item?.imageUrl
+        ) {
+          continue;
+        }
+
+        result.push({
+          _id:
+            String(
+              item.id
+            ),
+
+          title:
+            item.title ||
+            'Banner BMA',
+
+          imageUrl:
+            String(
+              item.imageUrl
+            ),
+
+          linkUrl:
+            item.linkUrl ||
+            undefined,
+        });
+      }
+
       heroBanners =
-        data.heroBanners
-          .filter(
-            (item) =>
-              Boolean(
-                item?.id &&
-                item?.imageUrl
-              )
-          )
-          .map((item) => ({
-            _id:
-              String(item.id),
-
-            title:
-              item.title || '',
-
-            imageUrl:
-              String(
-                item.imageUrl
-              ),
-
-            linkUrl:
-              item.linkUrl ||
-              undefined,
-          }));
+        result;
     }
+
+    // ========================================================
+    // CAMPAIGN
+    // ========================================================
 
     mendesakPrograms =
       normalizePrograms(
@@ -505,10 +817,35 @@ export default async function HomePage() {
 
   } catch (error) {
     console.error(
-      'Gagal mengambil data homepage BMA dari Sanity:',
+      '=============================================='
+    );
+
+    console.error(
+      '🔥 GAGAL MENGAMBIL HOMEPAGE SANITY BMA'
+    );
+
+    console.error(
+      'PROJECT:',
+      SANITY_PROJECT_ID
+    );
+
+    console.error(
+      'DATASET:',
+      SANITY_DATASET
+    );
+
+    console.error(
       error
     );
+
+    console.error(
+      '=============================================='
+    );
   }
+
+  // ==========================================================
+  // RENDER
+  // ==========================================================
 
   return (
     <main
@@ -523,12 +860,12 @@ export default async function HomePage() {
 
       <div
         className="
+          mx-auto
           w-full
           max-w-md
-          mx-auto
+          space-y-5
           px-3.5
           pt-4
-          space-y-4
         "
       >
 
@@ -542,12 +879,8 @@ export default async function HomePage() {
           }
         />
 
-
         {/* ====================================================
             IDENTITAS BMA
-            ABU-ABU LEBIH TEGAS
-            TANPA GARIS HIJAU
-            TANPA ROUNDED CORNER
         ===================================================== */}
 
         <section
@@ -558,12 +891,12 @@ export default async function HomePage() {
             border-[#cfcfcf]
             bg-[#dedede]
             px-5
-            py-4
+            py-5
             shadow-[0_5px_18px_rgba(0,0,0,0.06)]
           "
         >
 
-          {/* Ornamen lingkaran */}
+          {/* ORNAMEN */}
           <div
             className="
               pointer-events-none
@@ -582,8 +915,8 @@ export default async function HomePage() {
             className="
               pointer-events-none
               absolute
-              right-2
               -bottom-20
+              right-2
               h-32
               w-32
               rounded-full
@@ -592,14 +925,13 @@ export default async function HomePage() {
             "
           />
 
-          {/* CONTENT */}
           <div
             className="
               relative
               z-10
               flex
               items-center
-              gap-3.5
+              gap-4
             "
           >
 
@@ -607,8 +939,8 @@ export default async function HomePage() {
             <div
               className="
                 flex
-                h-11
-                w-11
+                h-12
+                w-12
                 shrink-0
                 items-center
                 justify-center
@@ -621,21 +953,28 @@ export default async function HomePage() {
 
               <Landmark
                 className="
-                  h-[18px]
-                  w-[18px]
+                  h-5
+                  w-5
                   text-[#4b4b4b]
                 "
-                strokeWidth={1.8}
+                strokeWidth={
+                  1.8
+                }
               />
 
             </div>
 
             {/* TEXT */}
-            <div className="min-w-0 flex-1">
+            <div
+              className="
+                min-w-0
+                flex-1
+              "
+            >
 
               <div
                 className="
-                  mb-1
+                  mb-1.5
                   flex
                   items-center
                   gap-1.5
@@ -644,34 +983,38 @@ export default async function HomePage() {
 
                 <MapPin
                   className="
-                    h-2.5
-                    w-2.5
-                    text-[#6b6b6b]
+                    h-3.5
+                    w-3.5
+                    text-[#666666]
                   "
-                  strokeWidth={2.4}
+                  strokeWidth={
+                    2.2
+                  }
                 />
 
                 <p
                   className="
-                    text-[8px]
-                    font-black
+                    text-[11px]
+                    font-bold
                     uppercase
-                    tracking-[0.18em]
+                    tracking-[0.14em]
                     text-[#666666]
                   "
                 >
-                  {SITE_SHORT_NAME} • {SITE_LOCATION}
+                  {SITE_SHORT_NAME}
+                  {' • '}
+                  {SITE_LOCATION}
                 </p>
 
               </div>
 
               <h1
                 className="
-                  text-[14px]
-                  font-extrabold
+                  text-[18px]
+                  font-bold
                   leading-tight
                   tracking-tight
-                  text-[#2f2f2f]
+                  text-[#383838]
                 "
               >
                 {SITE_NAME}
@@ -679,8 +1022,8 @@ export default async function HomePage() {
 
               <p
                 className="
-                  mt-1
-                  text-[8px]
+                  mt-1.5
+                  text-[12px]
                   font-medium
                   leading-relaxed
                   text-[#666666]
@@ -696,16 +1039,14 @@ export default async function HomePage() {
 
         </section>
 
-
         {/* ====================================================
             TOTAL AKUMULASI
         ===================================================== */}
 
         <TotalAccumulationWidget />
 
-
         {/* ====================================================
-            TRUST / INFORMATION STRIP
+            TRUST STRIP
         ===================================================== */}
 
         <section
@@ -714,7 +1055,7 @@ export default async function HomePage() {
             border-[#d4d4d4]
             bg-[#eeeeee]
             px-4
-            py-3.5
+            py-4
             shadow-[0_4px_14px_rgba(0,0,0,0.035)]
           "
         >
@@ -723,16 +1064,15 @@ export default async function HomePage() {
             className="
               flex
               items-start
-              gap-3
+              gap-3.5
             "
           >
 
-            {/* ICON */}
             <div
               className="
                 flex
-                h-9
-                w-9
+                h-10
+                w-10
                 shrink-0
                 items-center
                 justify-center
@@ -744,16 +1084,17 @@ export default async function HomePage() {
 
               <ShieldCheck
                 className="
-                  h-4
-                  w-4
+                  h-5
+                  w-5
                   text-[#555555]
                 "
-                strokeWidth={2}
+                strokeWidth={
+                  2
+                }
               />
 
             </div>
 
-            {/* CONTENT */}
             <div
               className="
                 min-w-0
@@ -763,9 +1104,9 @@ export default async function HomePage() {
 
               <p
                 className="
-                  text-[9px]
-                  font-extrabold
-                  text-[#333333]
+                  text-[14px]
+                  font-bold
+                  text-[#414141]
                 "
               >
                 Gerakan Kebaikan Bersama
@@ -773,9 +1114,9 @@ export default async function HomePage() {
 
               <p
                 className="
-                  mt-1
-                  text-[8px]
-                  leading-relaxed
+                  mt-1.5
+                  text-[12px]
+                  leading-[1.65]
                   text-[#666666]
                 "
               >
@@ -801,25 +1142,21 @@ export default async function HomePage() {
 
         </section>
 
-
         {/* ====================================================
-            CAMPAIGN
+            CAMPAIGN BMA
         ===================================================== */}
 
         <Campaign
           mendesak={
             mendesakPrograms
           }
-
           unggulan={
             unggulanPrograms
           }
-
           pilihan={
             pilihanPrograms
           }
         />
-
 
         {/* ====================================================
             NEWS
@@ -827,13 +1164,11 @@ export default async function HomePage() {
 
         <News />
 
-
         {/* ====================================================
             FOOTER
         ===================================================== */}
 
         <Footer />
-
 
         {/* ====================================================
             BRAND SIGNATURE
@@ -843,18 +1178,18 @@ export default async function HomePage() {
           className="
             border-t
             border-[#d8d8d8]
-            pb-2
-            pt-4
+            pb-3
+            pt-5
             text-center
           "
         >
 
           <p
             className="
-              text-[8px]
-              font-extrabold
+              text-[12px]
+              font-bold
               uppercase
-              tracking-[0.16em]
+              tracking-[0.14em]
               text-[#555555]
             "
           >
@@ -863,10 +1198,10 @@ export default async function HomePage() {
 
           <p
             className="
-              mt-1
-              text-[7px]
+              mt-1.5
+              text-[11px]
               font-medium
-              text-[#888888]
+              text-[#777777]
             "
           >
             {SITE_DOMAIN}
