@@ -295,7 +295,7 @@ const DonationFormFields = ({
         disabled={submitting}
         className="w-full bg-[#e91e63] hover:bg-pink-700 active:scale-[0.99] text-white font-extrabold py-4 transition text-sm sm:text-base uppercase tracking-wider disabled:bg-gray-300 shadow-md flex items-center justify-center gap-2 cursor-pointer rounded-xl mt-3"
       >
-        {submitting ? 'Memproses Tagihan...' : 'Lanjut pembayaran'}
+        {submitting ? 'Memproses Tagihan...' : 'DONASI SEKARANG'}
       </button>
     </div>
   );
@@ -382,31 +382,9 @@ export default function CampaignDetailClient({ slug, referral }: CampaignDetailC
 
     setSavingPhone(true);
     try {
-      // Menggunakan upsert langsung agar aman tanpa error session rute server
-      const userId = profile?.id;
-      if (!userId) {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session?.user) {
-          // Jika tanpa sesi login ketat, lewati update tabel profiles khusus inline, simpan di state lokal
-          setProfile((prev: any) => ({ ...prev, phone: clean }));
-          setInlinePhone('');
-          alert('Nomor WhatsApp berhasil dicatat!');
-          setSavingPhone(false);
-          return;
-        }
-      }
-
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await supabase
-          .from('profiles')
-          .update({ phone: clean, updated_at: new Date().toISOString() })
-          .eq('id', session.user.id);
-      }
-
       setProfile((prev: any) => ({ ...prev, phone: clean }));
       setInlinePhone('');
-      alert('Nomor WhatsApp berhasil disimpan! Silakan lanjutkan donasi.');
+      alert('Nomor WhatsApp berhasil dicatat!');
     } catch (err: any) {
       alert('Gagal menyimpan: ' + err.message);
     } finally {
