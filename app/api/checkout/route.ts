@@ -1,169 +1,768 @@
 // app/api/checkout/route.ts
+
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
+// ============================================================
+// NEXT.JS
+// ============================================================
+
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-// 🚀 INITIALIZE SANITY CLIENT (ID Proyek: ks29gg6v)
-const client = createClient({
-  projectId: 'ks29gg6v', 
-  dataset: 'production',
-  useCdn: false,
-  apiVersion: '2026-07-18',
-  token: process.env.SANITY_API_WRITE_TOKEN || 'skTkgR8oTccSIXr6lsYEhhShtcblvWtNod41Oq1DSARiIqwBqTEpWqaaO3AFWwLKCch2Z0SviYoIOftVnn6S37ypRTvvCPmHtC9fELz2EbMnlh0Vt70al8UZZHWE6y8VvsqRA2GUYo7uhz9WhdFWkG4BPwTbwotrE3KfB3MZthvBbIo6QxrK', 
-});
+// ============================================================
+// IDENTITAS BMA
+// ============================================================
 
-export async function POST(request: Request) {
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://bma.or.id';
+
+// ============================================================
+// SANITY BMA
+//
+// JANGAN hardcode token di source code.
+//
+// Vercel Environment Variables:
+//
+// NEXT_PUBLIC_SANITY_PROJECT_ID=im4qx3kd
+// NEXT_PUBLIC_SANITY_DATASET=production
+// SANITY_API_WRITE_TOKEN=xxxxxxxx
+// ============================================================
+
+const sanityProjectId =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
+  'im4qx3kd';
+
+const sanityDataset =
+  process.env.NEXT_PUBLIC_SANITY_DATASET ||
+  'production';
+
+const sanityWriteToken =
+  process.env.SANITY_API_WRITE_TOKEN;
+
+const sanityClient =
+  createClient({
+    projectId:
+      sanityProjectId,
+
+    dataset:
+      sanityDataset,
+
+    apiVersion:
+      '2026-07-18',
+
+    useCdn:
+      false,
+
+    token:
+      sanityWriteToken,
+  });
+
+// ============================================================
+// HELPER: NOMOR
+// ============================================================
+
+function cleanNumber(
+  value: unknown
+): number {
+  if (
+    typeof value === 'number'
+  ) {
+    return Number.isFinite(value)
+      ? Math.floor(value)
+      : 0;
+  }
+
+  const result =
+    String(value || '')
+      .replace(/[^0-9]/g, '');
+
+  return Number(result || 0);
+}
+
+// ============================================================
+// HELPER: STRING
+// ============================================================
+
+function cleanString(
+  value: unknown,
+  fallback = ''
+): string {
+  if (
+    typeof value !== 'string'
+  ) {
+    return fallback;
+  }
+
+  const result =
+    value.trim();
+
+  return result || fallback;
+}
+
+// ============================================================
+// HELPER: PHONE
+// ============================================================
+
+function cleanPhoneNumber(
+  value: unknown
+): string {
+  return String(
+    value || ''
+  ).replace(
+    /[^0-9]/g,
+    ''
+  );
+}
+
+// ============================================================
+// HELPER: PAYMENT METHOD
+// ============================================================
+
+function normalizePaymentMethod(
+  value: unknown
+): string {
+  const method =
+    String(
+      value || 'qris'
+    )
+      .toLowerCase()
+      .trim();
+
+  const allowedMethods = [
+    'qris',
+    'cimb_niaga_va',
+    'bni_va',
+    'sampoerna_va',
+    'bnc_va',
+    'maybank_va',
+    'permata_va',
+    'atm_bersama_va',
+    'artha_graha_va',
+    'bri_va',
+  ];
+
+  if (
+    allowedMethods.includes(
+      method
+    )
+  ) {
+    return method;
+  }
+
+  return 'qris';
+}
+
+// ============================================================
+// HELPER: PREFIX INVOICE
+// ============================================================
+
+function buildInvoicePrefix(
+  slug: string
+): string {
+  const normalized =
+    slug
+      .toUpperCase()
+      .replace(
+        /[^A-Z0-9]+/g,
+        '-'
+      );
+
+  if (
+    normalized.includes(
+      'BERAS'
+    )
+  ) {
+    return 'BERAS';
+  }
+
+  if (
+    normalized.includes(
+      'ZAKAT'
+    )
+  ) {
+    return 'ZAKAT';
+  }
+
+  if (
+    normalized.includes(
+      'YATIM'
+    )
+  ) {
+    return 'YATIM';
+  }
+
+  if (
+    normalized.includes(
+      'DHUAFA'
+    )
+  ) {
+    return 'DHUAFA';
+  }
+
+  if (
+    normalized.includes(
+      'WAKAF'
+    )
+  ) {
+    return 'WAKAF';
+  }
+
+  if (
+    normalized.includes(
+      'SUBUH'
+    )
+  ) {
+    return 'SUBUH';
+  }
+
+  if (
+    normalized.includes(
+      'FIDYAH'
+    )
+  ) {
+    return 'FIDYAH';
+  }
+
+  if (
+    normalized.includes(
+      'MUALAF'
+    )
+  ) {
+    return 'MUALAF';
+  }
+
+  return 'DONASI';
+}
+
+// ============================================================
+// HELPER: ORDER ID
+// ============================================================
+
+function generateOrderId(
+  slug: string
+): string {
+  const prefix =
+    buildInvoicePrefix(
+      slug
+    );
+
+  const timestamp =
+    Date.now();
+
+  const random =
+    Math.random()
+      .toString(36)
+      .substring(2, 7)
+      .toUpperCase();
+
+  return (
+    `INV-BMA-` +
+    `${prefix}-` +
+    `${timestamp}-` +
+    `${random}`
+  );
+}
+
+// ============================================================
+// POST CHECKOUT
+// ============================================================
+
+export async function POST(
+  request: Request
+) {
   try {
-    const body = await request.json();
-    
-    const slug = body.slug || '';
-    const donorName = body.donorName || body.name || 'Hamba Allah';
-    const donorPhone = body.donorPhone || body.phone || body.whatsapp || ''; 
-    
-    // 🚀 LOGIKA AFILIASI: Tangkap nomor WhatsApp fundraiser
-    const fundraiserPhone = body.fundraiserPhone || body.referral || '';
-    
-    // 🚀 PILIHAN METODE PEMBAYARAN PAKASIR (Default 'qris')
-    const paymentMethod = body.paymentMethod || 'qris';
-    const cleanMethod = String(paymentMethod).toLowerCase().trim();
-    
-    const rawAmount = body.amount || body.nominal || 0;
-    const cleanAmountNumber = Number(String(rawAmount).replace(/\D/g, ''));
+    // ========================================================
+    // 1. VALIDASI ENVIRONMENT
+    // ========================================================
 
-    // Validasi dasar transaksi minimal Rp 1.000
-    if (!slug || !cleanAmountNumber || cleanAmountNumber < 1000) {
+    if (
+      !sanityWriteToken
+    ) {
+      console.error(
+        '🔥 SANITY_API_WRITE_TOKEN tidak tersedia.'
+      );
+
       return NextResponse.json(
-        { success: false, error: 'Data tidak valid. Minimal donasi adalah Rp 1.000' },
-        { status: 400 }
+        {
+          success:
+            false,
+
+          error:
+            'Konfigurasi server Sanity belum lengkap.',
+        },
+        {
+          status:
+            500,
+        }
       );
     }
 
-    // Kustomisasi invoice prefix berdasarkan slug program donasi
-    const cleanSlug = String(slug).toUpperCase();
-    const prefix = cleanSlug.includes('BERAS') ? 'BERAS' : cleanSlug.includes('MUALAF') ? 'MUALAF' : 'SUBUH';
-    const generatedOrderId = `INV-BDB-${prefix}-${Date.now()}`;
+    // ========================================================
+    // PAKASIR PROJECT
+    //
+    // SERVER variable utama:
+    //
+    // PAKASIR_PROJECT_SLUG
+    //
+    // Bisa fallback ke NEXT_PUBLIC agar kompatibel
+    // dengan frontend yang sudah ada.
+    // ========================================================
 
-    // 🚀 KONFIGURASI KREDENSIAL PAKASIR
-    const projectSlug = process.env.PAKASIR_PROJECT_SLUG || 'depodomain';
-    const apiKey = process.env.PAKASIR_API_KEY || '';
+    const projectSlug =
+      process.env
+        .PAKASIR_PROJECT_SLUG ||
+      process.env
+        .NEXT_PUBLIC_PAKASIR_PROJECT_SLUG ||
+      '';
 
-    if (!apiKey) {
+    if (
+      !projectSlug
+    ) {
+      console.error(
+        '🔥 PAKASIR_PROJECT_SLUG belum tersedia.'
+      );
+
       return NextResponse.json(
-        { success: false, error: 'Internal Server Error: PAKASIR_API_KEY belum disetel di Environment Variables.' },
-        { status: 500 }
+        {
+          success:
+            false,
+
+          error:
+            'Konfigurasi project Pakasir BMA belum lengkap.',
+        },
+        {
+          status:
+            500,
+        }
       );
     }
 
-    // 🚀 ENDPOINT API TRANSACTION CREATE PAKASIR
-    const targetPakasirUrl = `https://app.pakasir.com/api/transactioncreate/${cleanMethod}`;
+    // ========================================================
+    // 2. READ BODY
+    // ========================================================
 
-    const pakasirPayload = {
-      project: projectSlug,
-      order_id: generatedOrderId,
-      amount: cleanAmountNumber,
-      api_key: apiKey,
-    };
-
-    const pakasirResponse = await fetch(targetPakasirUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(pakasirPayload),
-    });
-
-    const responseText = await pakasirResponse.text();
-    let pakasirData;
+    let body:
+      Record<
+        string,
+        any
+      >;
 
     try {
-      pakasirData = JSON.parse(responseText);
-    } catch (e) {
-      console.error('🔥 Respon mentah bukan JSON dari Pakasir:', responseText);
+      body =
+        await request.json();
+    } catch {
       return NextResponse.json(
-        { success: false, error: 'Gagal memproses respons dari gateway Pakasir (Invalid JSON).' },
-        { status: 500 }
+        {
+          success:
+            false,
+
+          error:
+            'Request checkout tidak valid.',
+        },
+        {
+          status:
+            400,
+        }
       );
     }
 
-    // Memeriksa kegagalan respon dari API Pakasir
-    if (!pakasirResponse.ok || !pakasirData.payment) {
-      throw new Error(pakasirData.error || `Gagal membuat transaksi ke gateway Pakasir.`);
+    // ========================================================
+    // 3. NORMALISASI DATA
+    // ========================================================
+
+    const slug =
+      cleanString(
+        body.slug
+      );
+
+    const donorName =
+      cleanString(
+        body.donorName ||
+          body.name,
+        'Hamba Allah'
+      );
+
+    const donorPhone =
+      cleanPhoneNumber(
+        body.donorPhone ||
+          body.phone ||
+          body.whatsapp
+      );
+
+    const fundraiserPhone =
+      cleanPhoneNumber(
+        body.fundraiserPhone ||
+          body.referral
+      );
+
+    const paymentMethod =
+      normalizePaymentMethod(
+        body.paymentMethod
+      );
+
+    const amount =
+      cleanNumber(
+        body.amount ||
+          body.nominal
+      );
+
+    // ========================================================
+    // 4. VALIDASI TRANSAKSI
+    // ========================================================
+
+    if (!slug) {
+      return NextResponse.json(
+        {
+          success:
+            false,
+
+          error:
+            'Program donasi tidak ditemukan.',
+        },
+        {
+          status:
+            400,
+        }
+      );
     }
 
-    const paymentInfo = pakasirData.payment;
-    const paymentNumber = paymentInfo.payment_number || '';
-    const totalPayment = Number(paymentInfo.total_payment || cleanAmountNumber);
-    const expiredAt = paymentInfo.expired_at || '';
+    if (
+      !amount ||
+      amount < 1000
+    ) {
+      return NextResponse.json(
+        {
+          success:
+            false,
 
-    // URL Redirect sukses milik bdb.or.id
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://bdb.or.id';
-    const returnUrl = `${siteUrl}/thank-you?order_id=${generatedOrderId}`;
+          error:
+            'Minimal donasi adalah Rp 1.000.',
+        },
+        {
+          status:
+            400,
+        }
+      );
+    }
 
-    // 🚀 MEMBUAT URL PEMBAYARAN RESMI PAKASIR
-    const pakasirPayUrl = `https://app.pakasir.com/pay/${projectSlug}/${cleanAmountNumber}?order_id=${generatedOrderId}&redirect=${encodeURIComponent(returnUrl)}`;
+    if (
+      donorPhone &&
+      donorPhone.length < 9
+    ) {
+      return NextResponse.json(
+        {
+          success:
+            false,
 
-    // 🚀 1. MENULIS DATA TRANSAKSI LENGKAP KE SANITY (Menggunakan URL Pembayaran Pakasir yang benar)
-    await client.create({
-      _type: 'donationTransaction',
-      orderId: String(generatedOrderId),
-      donorName: String(donorName),
-      donorPhone: String(donorPhone),
-      amount: Number(cleanAmountNumber),            
-      totalAmount: Number(totalPayment), 
-      status: 'pending',
-      slug: String(slug),
-      paymentMethod: String(cleanMethod),  
-      paymentUrl: String(pakasirPayUrl), // 🚀 Diperbaiki: Mengarah ke URL Pembayaran Pakasir
-      paymentNumber: String(paymentNumber), 
-      fundraiserPhone: fundraiserPhone ? String(fundraiserPhone).trim() : '',
-    });
+          error:
+            'Nomor WhatsApp donatur tidak valid.',
+        },
+        {
+          status:
+            400,
+        }
+      );
+    }
 
-    console.log(`🔒 TRANSAKSI PAKASIR DICATAT DI SANITY: ${generatedOrderId} | Fundraiser: ${fundraiserPhone || 'Non-Afiliasi'}`);
+    // ========================================================
+    // 5. GENERATE ORDER ID BMA
+    // ========================================================
 
-    // 🚀 2. SYNC KE GOOGLE SHEET
-    const googleSheetScriptUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL || '';
+    const orderId =
+      generateOrderId(
+        slug
+      );
 
-    if (googleSheetScriptUrl && googleSheetScriptUrl.trim()) {
-      try {
-        await fetch(googleSheetScriptUrl.trim(), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            orderId: generatedOrderId,
-            donorName: String(donorName),
-            donorPhone: `'${String(donorPhone)}`, 
-            amount: cleanAmountNumber,
-            programSlug: String(slug),
-            paymentMethod: cleanMethod,
-            fundraiserPhone: fundraiserPhone ? `'${String(fundraiserPhone)}` : '-',
-            status: 'pending',
-            createdAt: new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })
-          }),
-        });
-        console.log(`📊 DATA SINKRON KE GOOGLE SHEET: ${generatedOrderId}`);
-      } catch (sheetError) {
-        console.error('🔥 Gagal mengirim data transaksi ke Google Sheet:', sheetError);
+    // ========================================================
+    // 6. RETURN URL
+    // ========================================================
+
+    const returnUrl =
+      `${SITE_URL}` +
+      `/thank-you` +
+      `?order_id=${encodeURIComponent(
+        orderId
+      )}`;
+
+    // ========================================================
+    // 7. BUILD HOSTED PAYMENT URL PAKASIR
+    //
+    // Kita TIDAK memanggil transactioncreate lagi.
+    //
+    // Pakasir mendukung pembayaran langsung via URL:
+    //
+    // /pay/{project}/{amount}?order_id=...
+    // ========================================================
+
+    let paymentUrl =
+      `https://app.pakasir.com/pay/` +
+      `${encodeURIComponent(
+        projectSlug
+      )}/` +
+      `${amount}` +
+      `?order_id=${encodeURIComponent(
+        orderId
+      )}` +
+      `&redirect=${encodeURIComponent(
+        returnUrl
+      )}`;
+
+    // ========================================================
+    // QRIS ONLY
+    // ========================================================
+
+    if (
+      paymentMethod ===
+      'qris'
+    ) {
+      paymentUrl +=
+        '&qris_only=1';
+    }
+
+    // ========================================================
+    // 8. SIMPAN TRANSAKSI KE SANITY BMA
+    // ========================================================
+
+    const transactionDocument =
+      await sanityClient.create(
+        {
+          _type:
+            'donationTransaction',
+
+          orderId:
+            orderId,
+
+          donorName:
+            donorName,
+
+          donorPhone:
+            donorPhone,
+
+          amount:
+            amount,
+
+          totalAmount:
+            amount,
+
+          status:
+            'pending',
+
+          slug:
+            slug,
+
+          programSlug:
+            slug,
+
+          paymentMethod:
+            paymentMethod,
+
+          paymentUrl:
+            paymentUrl,
+
+          fundraiserPhone:
+            fundraiserPhone,
+
+          source:
+            'bma.or.id',
+
+          gateway:
+            'pakasir',
+
+          createdAt:
+            new Date()
+              .toISOString(),
+        }
+      );
+
+    console.log(
+      '✅ TRANSAKSI BMA DICATAT:',
+      {
+        sanityId:
+          transactionDocument
+            ?._id,
+
+        orderId,
+
+        slug,
+
+        amount,
+
+        paymentMethod,
+
+        fundraiser:
+          fundraiserPhone ||
+          'non-afiliasi',
       }
-    } else {
-      console.warn('⚠️ GOOGLE_SHEET_WEBHOOK_URL belum dipasang di environment variables.');
+    );
+
+    // ========================================================
+    // 9. SYNC GOOGLE SHEET
+    //
+    // Kegagalan Sheet TIDAK menggagalkan checkout.
+    // ========================================================
+
+    const googleSheetScriptUrl =
+      process.env
+        .GOOGLE_SHEET_WEBHOOK_URL ||
+      '';
+
+    if (
+      googleSheetScriptUrl.trim()
+    ) {
+      try {
+        const sheetResponse =
+          await fetch(
+            googleSheetScriptUrl.trim(),
+            {
+              method:
+                'POST',
+
+              headers: {
+                'Content-Type':
+                  'application/json',
+              },
+
+              body:
+                JSON.stringify(
+                  {
+                    orderId,
+
+                    donorName,
+
+                    donorPhone:
+                      donorPhone
+                        ? `'${donorPhone}`
+                        : '',
+
+                    amount,
+
+                    programSlug:
+                      slug,
+
+                    paymentMethod,
+
+                    fundraiserPhone:
+                      fundraiserPhone
+                        ? `'${fundraiserPhone}`
+                        : '-',
+
+                    status:
+                      'pending',
+
+                    source:
+                      'bma.or.id',
+
+                    createdAt:
+                      new Date()
+                        .toLocaleString(
+                          'id-ID',
+                          {
+                            timeZone:
+                              'Asia/Jakarta',
+                          }
+                        ),
+                  }
+                ),
+            }
+          );
+
+        if (
+          !sheetResponse.ok
+        ) {
+          console.warn(
+            '⚠️ Google Sheet merespons:',
+            sheetResponse.status
+          );
+        } else {
+          console.log(
+            '📊 GOOGLE SHEET SYNC:',
+            orderId
+          );
+        }
+      } catch (
+        sheetError
+      ) {
+        console.error(
+          '⚠️ Google Sheet sync gagal:',
+          sheetError
+        );
+      }
     }
 
-    // Mengembalikan response sukses ke frontend
-    return NextResponse.json({
-      success: true,
-      orderId: generatedOrderId,
-      amount: cleanAmountNumber,
-      totalPayment: totalPayment,
-      paymentMethod: cleanMethod,
-      paymentNumber: paymentNumber, 
-      expiredAt: expiredAt,
-      returnUrl: returnUrl,
-      paymentUrl: pakasirPayUrl,
-    });
+    // ========================================================
+    // 10. RESPONSE
+    // ========================================================
 
-  } catch (error: any) {
-    console.error('🔥 BACKEND CHECKOUT ERROR VIA API PAKASIR:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      {
+        success:
+          true,
+
+        orderId:
+          orderId,
+
+        amount:
+          amount,
+
+        totalPayment:
+          amount,
+
+        paymentMethod:
+          paymentMethod,
+
+        paymentNumber:
+          '',
+
+        expiredAt:
+          '',
+
+        returnUrl:
+          returnUrl,
+
+        paymentUrl:
+          paymentUrl,
+
+        programSlug:
+          slug,
+      },
+      {
+        status:
+          200,
+
+        headers: {
+          'Cache-Control':
+            'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
+  } catch (
+    error: any
+  ) {
+    console.error(
+      '🔥 BMA CHECKOUT ERROR:',
+      error
+    );
+
+    return NextResponse.json(
+      {
+        success:
+          false,
+
+        error:
+          error?.message ||
+          'Terjadi kesalahan saat membuat transaksi.',
+      },
+      {
+        status:
+          500,
+
+        headers: {
+          'Cache-Control':
+            'no-store, no-cache, must-revalidate',
+        },
+      }
+    );
   }
 }
