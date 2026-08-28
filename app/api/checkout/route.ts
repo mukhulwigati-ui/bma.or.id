@@ -27,7 +27,7 @@ const SITE_URL =
 //
 // NEXT_PUBLIC_SANITY_PROJECT_ID=im4qx3kd
 // NEXT_PUBLIC_SANITY_DATASET=production
-// SANITY_API_WRITE_TOKEN=xxxxxxxx
+// SANITY_API_WRITE_TOKEN=skHrEa1F7Gk1tz5okfVRPhSsU1mitr6EtoCOvFUj6fF7sKMbJOmYNaWTyDIpSZFthB67Z7nRudr7BFhmWYOeLftuWHHIlX5GXKzhIOcRhlWAmxxkk6lZgKUivUDpiP1NRB4JVXIhr4LWdqDih9mgDY24RijPmUHRRRmjMtOaYI5fGCw4iK9r
 // ============================================================
 
 const sanityProjectId =
