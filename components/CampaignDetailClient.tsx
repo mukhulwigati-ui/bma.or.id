@@ -17,7 +17,10 @@ import { supabase } from '@/lib/supabase/client';
 // KONFIGURASI CANONICAL SHARE
 // ===================================================================
 
-const CANONICAL_SITE_URL = 'https://bma.or.id';
+const CANONICAL_SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://www.bma.or.id'
+).replace(/\/$/, '');
 
 // ===================================================================
 // 1. HEADER KHUSUS DETAIL PROGRAM
@@ -541,13 +544,22 @@ export default function CampaignDetailClient({
     );
 
   // =================================================================
-  // CANONICAL SHARE URL
+  // CANONICAL + VERSIONED SHARE URL
   // =================================================================
+  // URL dasar tetap canonical, sedangkan link share diberi versi
+  // dari _updatedAt Sanity (program.shareVersion) agar WhatsApp
+  // tidak terus memakai cache preview/gambar lama.
+
+  const canonicalUrl =
+    `${CANONICAL_SITE_URL}/campaign/${encodeURIComponent(slug)}`;
+
+  const shareVersion =
+    String(program?.shareVersion || '1')
+      .replace(/[^0-9A-Za-z]/g, '')
+      .slice(0, 40) || '1';
 
   const canonicalShareUrl =
-    `${CANONICAL_SITE_URL}/campaign/${encodeURIComponent(
-      slug
-    )}`;
+    `${canonicalUrl}?v=${encodeURIComponent(shareVersion)}`;
 
   // =================================================================
   // AUTH / PROFILE
