@@ -32,13 +32,50 @@ const SITE_DOMAIN =
   'bma.or.id';
 
 const SITE_URL =
-  'https://bma.or.id';
+  'https://www.bma.or.id';
 
 const SITE_LOCATION =
   'Jepara';
 
 const SITE_REGION =
   'Jawa Tengah';
+
+
+const HOME_IMAGE =
+  `${SITE_URL}/images/banner.png`;
+
+const HOME_TITLE =
+  'Baitul Maal Al Muttaqin | Zakat, Infak, Sedekah, Wakaf & Donasi';
+
+const HOME_DESCRIPTION =
+  'Salurkan zakat, infak, sedekah, wakaf, dan donasi terbaik Anda melalui Baitul Maal Al Muttaqin. Dukung program yatim, dhuafa, santri, dakwah, pendidikan, sosial, dan kemanusiaan dari Jepara, Jawa Tengah.';
+
+const HOME_KEYWORDS = [
+  'Baitul Maal Al Muttaqin',
+  'BMA Jepara',
+  'bma.or.id',
+  'www.bma.or.id',
+  'baitul maal jepara',
+  'lembaga zakat jepara',
+  'zakat jepara',
+  'zakat online',
+  'bayar zakat online',
+  'infak online',
+  'infaq online',
+  'sedekah online',
+  'sedekah subuh',
+  'wakaf online',
+  'donasi online',
+  'donasi yatim',
+  'donasi dhuafa',
+  'donasi santri',
+  'donasi masjid',
+  'donasi dakwah',
+  'donasi pendidikan',
+  'donasi kemanusiaan',
+  'program sosial jepara',
+  'amal jariyah',
+];
 
 // ============================================================
 // SANITY BMA
@@ -58,41 +95,61 @@ const SANITY_DATASET =
 // ============================================================
 
 export const metadata: Metadata = {
-  title:
-    'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
+  metadataBase:
+    new URL(SITE_URL),
+
+  title: {
+    default:
+      HOME_TITLE,
+
+    template:
+      `%s | ${SITE_NAME}`,
+  },
 
   description:
-    'Salurkan zakat, infak, sedekah, wakaf, dan donasi program sosial melalui Baitul Maal Al Muttaqin di bma.or.id. Bersama menghadirkan manfaat untuk yatim, dhuafa, santri, dakwah, pendidikan, dan kemanusiaan.',
+    HOME_DESCRIPTION,
 
-  keywords: [
-    'Baitul Maal Al Muttaqin',
-    'BMA Jepara',
-    'bma.or.id',
-    'baitul maal jepara',
-    'zakat jepara',
-    'zakat online',
-    'infak online',
-    'sedekah online',
-    'sedekah subuh',
-    'wakaf online',
-    'donasi yatim',
-    'donasi dhuafa',
-    'donasi santri',
-    'donasi kemanusiaan',
-    'program sosial jepara',
+  applicationName:
+    SITE_NAME,
+
+  authors: [
+    {
+      name:
+        SITE_NAME,
+
+      url:
+        SITE_URL,
+    },
   ],
+
+  creator:
+    SITE_NAME,
+
+  publisher:
+    SITE_NAME,
+
+  category:
+    'Charity',
+
+  keywords:
+    HOME_KEYWORDS,
 
   alternates: {
     canonical:
       SITE_URL,
+
+    languages: {
+      'id-ID':
+        SITE_URL,
+    },
   },
 
   openGraph: {
-    title:
-      'bma.or.id | Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah & Wakaf',
+    type:
+      'website',
 
-    description:
-      'Temukan dan dukung program zakat, infak, sedekah, wakaf, pendidikan, dakwah, sosial, dan kemanusiaan bersama Baitul Maal Al Muttaqin.',
+    locale:
+      'id_ID',
 
     url:
       SITE_URL,
@@ -100,25 +157,19 @@ export const metadata: Metadata = {
     siteName:
       SITE_NAME,
 
-    locale:
-      'id_ID',
+    title:
+      HOME_TITLE,
 
-    type:
-      'website',
+    description:
+      HOME_DESCRIPTION,
 
     images: [
       {
         url:
-          `${SITE_URL}/images/banner.png`,
+          HOME_IMAGE,
 
-        width:
-          1200,
-
-        height:
-          630,
-
-        type:
-          'image/png',
+        secureUrl:
+          HOME_IMAGE,
 
         alt:
           `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
@@ -131,13 +182,13 @@ export const metadata: Metadata = {
       'summary_large_image',
 
     title:
-      'bma.or.id | Baitul Maal Al Muttaqin',
+      HOME_TITLE,
 
     description:
-      'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin.',
+      HOME_DESCRIPTION,
 
     images: [
-      `${SITE_URL}/images/banner.png`,
+      HOME_IMAGE,
     ],
   },
 
@@ -148,12 +199,18 @@ export const metadata: Metadata = {
     follow:
       true,
 
+    nocache:
+      false,
+
     googleBot: {
       index:
         true,
 
       follow:
         true,
+
+      noimageindex:
+        false,
 
       'max-video-preview':
         -1,
@@ -164,6 +221,31 @@ export const metadata: Metadata = {
       'max-snippet':
         -1,
     },
+  },
+
+  referrer:
+    'origin-when-cross-origin',
+
+  formatDetection: {
+    email:
+      false,
+
+    address:
+      false,
+
+    telephone:
+      false,
+  },
+
+  other: {
+    'geo.region':
+      'ID-JT',
+
+    'geo.placename':
+      `${SITE_LOCATION}, ${SITE_REGION}, Indonesia`,
+
+    'content-language':
+      'id-ID',
   },
 };
 
@@ -846,8 +928,100 @@ export default async function HomePage() {
   // RENDER
   // ==========================================================
 
+  const organizationJsonLd = {
+    '@context':
+      'https://schema.org',
+
+    '@type':
+      'Organization',
+
+    '@id':
+      `${SITE_URL}/#organization`,
+
+    name:
+      SITE_NAME,
+
+    alternateName:
+      SITE_SHORT_NAME,
+
+    url:
+      SITE_URL,
+
+    logo:
+      `${SITE_URL}/favicon.ico`,
+
+    image:
+      HOME_IMAGE,
+
+    description:
+      HOME_DESCRIPTION,
+
+    address: {
+      '@type':
+        'PostalAddress',
+
+      addressLocality:
+        SITE_LOCATION,
+
+      addressRegion:
+        SITE_REGION,
+
+      addressCountry:
+        'ID',
+    },
+  };
+
+  const websiteJsonLd = {
+    '@context':
+      'https://schema.org',
+
+    '@type':
+      'WebSite',
+
+    '@id':
+      `${SITE_URL}/#website`,
+
+    url:
+      SITE_URL,
+
+    name:
+      SITE_NAME,
+
+    alternateName:
+      SITE_SHORT_NAME,
+
+    inLanguage:
+      'id-ID',
+
+    publisher: {
+      '@id':
+        `${SITE_URL}/#organization`,
+    },
+  };
+
   return (
-    <main
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html:
+            JSON.stringify(
+              organizationJsonLd
+            ),
+        }}
+      />
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html:
+            JSON.stringify(
+              websiteJsonLd
+            ),
+        }}
+      />
+
+      <main
       className="
         min-h-screen
         w-full
@@ -1172,6 +1346,7 @@ export default async function HomePage() {
 
       </div>
 
-    </main>
+      </main>
+    </>
   );
 }
