@@ -107,16 +107,13 @@ function getPercentage(
 function getDonorsCount(
   item: CampaignItem
 ): number {
-  const explicitCount =
+  const explicit =
     Number(
-      item.donorsCount ??
-        0
+      item.donorsCount ?? 0
     ) || 0;
 
-  if (
-    explicitCount > 0
-  ) {
-    return explicitCount;
+  if (explicit > 0) {
+    return explicit;
   }
 
   if (
@@ -168,9 +165,15 @@ function SectionHeader({
   href: string;
 }) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-end justify-between gap-3">
-
+    <div>
+      <div
+        className="
+          flex
+          items-end
+          justify-between
+          gap-3
+        "
+      >
         <div className="min-w-0">
 
           <p
@@ -178,7 +181,7 @@ function SectionHeader({
               text-[9px]
               font-bold
               uppercase
-              tracking-[0.16em]
+              tracking-[0.17em]
               text-[#858585]
             "
           >
@@ -187,9 +190,10 @@ function SectionHeader({
 
           <h2
             className="
-              mt-0.5
+              mt-1
               text-[20px]
               font-bold
+              leading-tight
               tracking-tight
               text-[#353535]
             "
@@ -206,11 +210,12 @@ function SectionHeader({
             shrink-0
             items-center
             gap-1
+            pb-[2px]
             text-[10px]
             font-semibold
-            text-[#666666]
+            text-[#555555]
             transition
-            hover:text-[#222222]
+            hover:text-[#073f2e]
           "
         >
           Lihat Semua
@@ -222,11 +227,11 @@ function SectionHeader({
             "
           />
         </Link>
-
       </div>
 
       <p
         className="
+          mt-2
           text-[12px]
           leading-relaxed
           text-[#777777]
@@ -297,25 +302,22 @@ function GeneralCampaignCard({
         group
         flex
         items-center
-        gap-3.5
+        gap-3
         border
         border-[#dddddd]
         bg-white
         p-3
-        shadow-[0_3px_10px_rgba(0,0,0,0.025)]
         transition
-        hover:border-[#c8c8c8]
-        hover:bg-[#fafafa]
+        hover:border-[#c7c7c7]
       "
     >
-
       <div
         className="
           aspect-[16/10]
           w-28
           shrink-0
           overflow-hidden
-          bg-[#dedede]
+          bg-[#e2e2e2]
         "
       >
         <img
@@ -323,7 +325,6 @@ function GeneralCampaignCard({
             item.image
           )}
           alt={item.title}
-          loading="lazy"
           className="
             h-full
             w-full
@@ -339,111 +340,84 @@ function GeneralCampaignCard({
         className="
           min-w-0
           flex-1
-          space-y-2
         "
       >
-
-        {item.category && (
-          <p
-            className="
-              text-[9px]
-              font-bold
-              uppercase
-              tracking-[0.12em]
-              text-[#999999]
-            "
-          >
-            {item.category}
-          </p>
-        )}
-
         <h3
           className="
             line-clamp-2
             text-[13px]
-            font-semibold
+            font-bold
             leading-snug
-            text-[#4b4b4b]
+            text-[#444444]
           "
         >
           {item.title}
         </h3>
 
-        <div>
-
-          <div
-            className="
-              mb-1.5
-              flex
-              items-end
-              justify-between
-              gap-2
-            "
-          >
-
-            <div>
-              <span
-                className="
-                  block
-                  text-[9px]
-                  text-[#999999]
-                "
-              >
-                Terkumpul
-              </span>
-
-              <span
-                className="
-                  text-[11px]
-                  font-bold
-                  text-[#555555]
-                "
-              >
-                Rp{' '}
-                {formatRupiah(
-                  collected
-                )}
-              </span>
-            </div>
-
-            <div
+        <div
+          className="
+            mt-3
+            flex
+            items-end
+            justify-between
+            gap-2
+          "
+        >
+          <div>
+            <span
               className="
-                text-right
+                block
+                text-[9px]
+                text-[#999999]
               "
             >
-              <span
-                className="
-                  block
-                  text-[9px]
-                  text-[#999999]
-                "
-              >
-                Donatur
-              </span>
+              Terkumpul
+            </span>
 
-              <span
-                className="
-                  text-[11px]
-                  font-bold
-                  text-[#555555]
-                "
-              >
-                {donorCount}
-              </span>
-            </div>
-
+            <strong
+              className="
+                text-[11px]
+                font-bold
+                text-[#444444]
+              "
+            >
+              Rp{' '}
+              {formatRupiah(
+                collected
+              )}
+            </strong>
           </div>
 
+          <div className="text-right">
+            <span
+              className="
+                block
+                text-[9px]
+                text-[#999999]
+              "
+            >
+              Donatur
+            </span>
+
+            <strong
+              className="
+                text-[11px]
+                text-[#444444]
+              "
+            >
+              {donorCount}
+            </strong>
+          </div>
+        </div>
+
+        <div className="mt-2">
           <ProgressBar
             percentage={
               percentage
             }
           />
-
         </div>
-
       </div>
-
     </Link>
   );
 }
@@ -460,9 +434,6 @@ function UrgentCampaignCard({
   const collected =
     getCollected(item);
 
-  const target =
-    getTarget(item);
-
   const percentage =
     getPercentage(item);
 
@@ -477,29 +448,26 @@ function UrgentCampaignCard({
         block
         border
         border-[#dddddd]
-        bg-[#f7f7f7]
+        bg-[#fafafa]
         p-3
         transition
-        hover:border-[#c5c5c5]
+        hover:border-[#c7c7c7]
         hover:bg-white
       "
     >
-
       <div
         className="
           relative
           aspect-[16/10]
           overflow-hidden
-          bg-[#dddddd]
+          bg-[#e2e2e2]
         "
       >
-
         <img
           src={getImage(
             item.image
           )}
           alt={item.title}
-          loading="lazy"
           className="
             h-full
             w-full
@@ -513,8 +481,7 @@ function UrgentCampaignCard({
         {typeof item.daysLeft ===
           'number' &&
           item.daysLeft > 0 && (
-
-            <div
+            <span
               className="
                 absolute
                 left-2
@@ -522,7 +489,7 @@ function UrgentCampaignCard({
                 flex
                 items-center
                 gap-1
-                bg-[#505050]
+                bg-[#555555]
                 px-2
                 py-1
                 text-[8px]
@@ -537,24 +504,21 @@ function UrgentCampaignCard({
                 "
               />
 
-              {item.daysLeft}
-              {' '}
-              hari lagi
-            </div>
+              {item.daysLeft} hari
+            </span>
           )}
-
       </div>
 
-      <div className="mt-3">
+      <div className="mt-2.5">
 
         {item.category && (
           <p
             className="
               mb-1
-              text-[9px]
+              text-[8px]
               font-bold
               uppercase
-              tracking-[0.12em]
+              tracking-[0.14em]
               text-[#999999]
             "
           >
@@ -565,131 +529,84 @@ function UrgentCampaignCard({
         <h3
           className="
             line-clamp-2
-            min-h-[36px]
             text-[13px]
-            font-semibold
+            font-bold
             leading-snug
-            text-[#4c4c4c]
+            text-[#424242]
           "
         >
           {item.title}
         </h3>
 
-      </div>
-
-      <div className="mt-3">
-
         <div
           className="
-            mb-2
+            mt-3
             flex
             items-end
             justify-between
-            gap-2
           "
         >
+          <strong
+            className="
+              text-[11px]
+              text-[#444444]
+            "
+          >
+            Rp{' '}
+            {formatRupiah(
+              collected
+            )}
+          </strong>
 
-          <div>
-            <span
+          <span
+            className="
+              inline-flex
+              items-center
+              gap-1
+              text-[10px]
+              text-[#777777]
+            "
+          >
+            <Users
               className="
-                block
-                text-[9px]
-                text-[#999999]
+                h-3
+                w-3
               "
-            >
-              Terkumpul
-            </span>
+            />
 
-            <strong
-              className="
-                text-[11px]
-                font-bold
-                text-[#555555]
-              "
-            >
-              Rp{' '}
-              {formatRupiah(
-                collected
-              )}
-            </strong>
-          </div>
-
-          <div className="text-right">
-
-            <span
-              className="
-                block
-                text-[9px]
-                text-[#999999]
-              "
-            >
-              Donatur
-            </span>
-
-            <span
-              className="
-                inline-flex
-                items-center
-                gap-1
-                text-[10px]
-                font-bold
-                text-[#555555]
-              "
-            >
-              <Users
-                className="
-                  h-3
-                  w-3
-                "
-              />
-
-              {donorCount}
-            </span>
-
-          </div>
-
+            {donorCount}
+          </span>
         </div>
 
-        <ProgressBar
-          percentage={
-            percentage
-          }
-        />
-
-        <div
-          className="
-            mt-1.5
-            flex
-            justify-between
-            text-[8px]
-            text-[#999999]
-          "
-        >
-          <span>
-            {percentage}%
-          </span>
-
-          <span>
-            Target Rp{' '}
-            {formatRupiah(
-              target
-            )}
-          </span>
+        <div className="mt-2">
+          <ProgressBar
+            percentage={
+              percentage
+            }
+          />
         </div>
 
       </div>
-
     </Link>
   );
 }
 
 // ============================================================
-// PROGRAM UNGGULAN
+// PROGRAM UNGGULAN CARD
 //
-// KHUSUS MODEL KOTAK 2 KOLOM
+// INI YANG DIPERBAIKI.
+//
+// Tidak aspect-square.
+// Tidak flex-col.
+// Tidak mt-auto.
+// Tidak min-height besar.
+// Tidak memaksa card tinggi.
+//
+// Struktur mengikuti prinsip kode pembanding:
+// image 16:10 → kategori → judul → statistik → progress.
 // ============================================================
 
-function FeaturedSquareCard({
+function FeaturedCampaignCard({
   item,
 }: {
   item: CampaignItem;
@@ -708,30 +625,24 @@ function FeaturedSquareCard({
       href={`/campaign/${item.slug}`}
       className="
         group
-        flex
+        block
         min-w-0
-        flex-col
         border
-        border-[#dddddd]
+        border-[#d9d9d9]
         bg-[#fafafa]
-        p-3
+        p-2.5
         transition
-        hover:border-[#c7c7c7]
+        hover:border-[#bdbdbd]
         hover:bg-white
-        hover:shadow-[0_4px_14px_rgba(0,0,0,0.05)]
       "
     >
-
-      {/* ======================================================
-          IMAGE
-      ====================================================== */}
-
+      {/* IMAGE LANDSCAPE - BUKAN KOTAK */}
       <div
         className="
-          aspect-square
+          aspect-[16/10]
           w-full
           overflow-hidden
-          bg-[#e1e1e1]
+          bg-[#e2e2e2]
         "
       >
         <img
@@ -751,151 +662,138 @@ function FeaturedSquareCard({
         />
       </div>
 
-      {/* ======================================================
-          CATEGORY
-      ====================================================== */}
-
+      {/* CATEGORY */}
       {item.category && (
         <p
           className="
-            mt-3
+            mt-2.5
             truncate
-            text-[9px]
+            text-[8px]
             font-bold
             uppercase
-            tracking-[0.14em]
-            text-[#969696]
+            tracking-[0.15em]
+            text-[#9b9b9b]
           "
         >
           {item.category}
         </p>
       )}
 
-      {/* ======================================================
-          TITLE
-      ====================================================== */}
-
+      {/* TITLE */}
       <h3
         className="
           mt-1
           line-clamp-2
-          min-h-[40px]
-          text-[14px]
+          text-[13px]
           font-bold
-          leading-[1.35]
-          text-[#3c3c3c]
-          transition
-          group-hover:text-[#222222]
+          leading-[1.3]
+          text-[#404040]
+          transition-colors
+          group-hover:text-[#073f2e]
         "
       >
         {item.title}
       </h3>
 
-      {/* ======================================================
-          AMOUNT / DONOR
-      ====================================================== */}
-
+      {/* DATA */}
       <div
         className="
-          mt-auto
-          pt-4
+          mt-3
+          flex
+          items-end
+          justify-between
+          gap-1.5
         "
       >
+        <div className="min-w-0">
 
-        <div
-          className="
-            mb-2.5
-            flex
-            items-end
-            justify-between
-            gap-2
-          "
-        >
-
-          <div className="min-w-0">
-
-            <span
-              className="
-                block
-                text-[9px]
-                text-[#999999]
-              "
-            >
-              Terkumpul
-            </span>
-
-            <strong
-              className="
-                block
-                truncate
-                text-[12px]
-                font-bold
-                text-[#4a4a4a]
-              "
-            >
-              Rp{' '}
-              {formatRupiah(
-                collected
-              )}
-            </strong>
-
-          </div>
-
-          <div
+          <span
             className="
-              shrink-0
-              text-right
+              block
+              text-[8px]
+              leading-none
+              text-[#999999]
             "
           >
+            Terkumpul
+          </span>
 
-            <span
-              className="
-                block
-                text-[9px]
-                text-[#999999]
-              "
-            >
-              Donatur
-            </span>
-
-            <span
-              className="
-                inline-flex
-                items-center
-                gap-1
-                text-[11px]
-                font-semibold
-                text-[#555555]
-              "
-            >
-              <Users
-                className="
-                  h-3
-                  w-3
-                "
-              />
-
-              {donorCount}
-            </span>
-
-          </div>
+          <strong
+            className="
+              mt-1
+              block
+              truncate
+              text-[11px]
+              font-bold
+              leading-tight
+              text-[#444444]
+            "
+          >
+            Rp{' '}
+            {formatRupiah(
+              collected
+            )}
+          </strong>
 
         </div>
 
+        <div
+          className="
+            shrink-0
+            text-right
+          "
+        >
+
+          <span
+            className="
+              block
+              text-[8px]
+              leading-none
+              text-[#999999]
+            "
+          >
+            Donatur
+          </span>
+
+          <span
+            className="
+              mt-1
+              inline-flex
+              items-center
+              gap-1
+              text-[10px]
+              font-semibold
+              leading-tight
+              text-[#555555]
+            "
+          >
+            <Users
+              className="
+                h-3
+                w-3
+              "
+            />
+
+            {donorCount}
+          </span>
+
+        </div>
+      </div>
+
+      {/* PROGRESS */}
+      <div className="mt-2.5">
         <ProgressBar
           percentage={
             percentage
           }
         />
-
       </div>
-
     </Link>
   );
 }
 
 // ============================================================
-// COMPACT CARD PILIHAN
+// COMPACT / PILIHAN
 // ============================================================
 
 function CompactCampaignCard({
@@ -916,17 +814,15 @@ function CompactCampaignCard({
         group
         flex
         items-center
-        gap-3.5
+        gap-3
         border-b
         border-[#e1e1e1]
         pb-3.5
         transition
         last:border-b-0
         last:pb-0
-        hover:opacity-90
       "
     >
-
       <div
         className="
           aspect-[16/10]
@@ -941,7 +837,6 @@ function CompactCampaignCard({
             item.image
           )}
           alt={item.title}
-          loading="lazy"
           className="
             h-full
             w-full
@@ -959,15 +854,14 @@ function CompactCampaignCard({
           flex-1
         "
       >
-
         {item.category && (
           <p
             className="
               mb-1
-              text-[9px]
+              text-[8px]
               font-bold
               uppercase
-              tracking-[0.12em]
+              tracking-[0.13em]
               text-[#999999]
             "
           >
@@ -979,9 +873,9 @@ function CompactCampaignCard({
           className="
             line-clamp-2
             text-[13px]
-            font-semibold
+            font-bold
             leading-snug
-            text-[#505050]
+            text-[#494949]
           "
         >
           {item.title}
@@ -993,15 +887,14 @@ function CompactCampaignCard({
             flex
             items-end
             justify-between
-            gap-3
+            gap-2
           "
         >
-
           <div>
             <span
               className="
                 block
-                text-[9px]
+                text-[8px]
                 text-[#999999]
               "
             >
@@ -1011,7 +904,6 @@ function CompactCampaignCard({
             <strong
               className="
                 text-[11px]
-                font-bold
                 text-[#555555]
               "
             >
@@ -1027,7 +919,7 @@ function CompactCampaignCard({
             <span
               className="
                 block
-                text-[9px]
+                text-[8px]
                 text-[#999999]
               "
             >
@@ -1037,7 +929,6 @@ function CompactCampaignCard({
             <strong
               className="
                 text-[11px]
-                font-bold
                 text-[#555555]
               "
             >
@@ -1045,9 +936,7 @@ function CompactCampaignCard({
             </strong>
 
           </div>
-
         </div>
-
       </div>
 
       <ArrowRight
@@ -1055,16 +944,15 @@ function CompactCampaignCard({
           h-3.5
           w-3.5
           shrink-0
-          text-[#c0c0c0]
+          text-[#bdbdbd]
         "
       />
-
     </Link>
   );
 }
 
 // ============================================================
-// MAIN
+// COMPONENT
 // ============================================================
 
 export default function Campaign({
@@ -1092,7 +980,6 @@ export default function Campaign({
           text-left
         "
       >
-
         <div
           className="
             border-b
@@ -1100,7 +987,6 @@ export default function Campaign({
             pb-3
           "
         >
-
           <div
             className="
               flex
@@ -1108,13 +994,11 @@ export default function Campaign({
               gap-2.5
             "
           >
-
             <div
               className="
                 flex
                 h-9
                 w-9
-                shrink-0
                 items-center
                 justify-center
                 border
@@ -1132,10 +1016,9 @@ export default function Campaign({
             </div>
 
             <div>
-
               <p
                 className="
-                  text-[9px]
+                  text-[8px]
                   font-bold
                   uppercase
                   tracking-[0.16em]
@@ -1150,21 +1033,16 @@ export default function Campaign({
                   mt-0.5
                   text-[18px]
                   font-bold
-                  tracking-tight
                   text-[#414141]
                 "
               >
                 Daftar Program
               </h2>
-
             </div>
-
           </div>
-
         </div>
 
         <div className="space-y-3">
-
           {initialData.map(
             (item) => (
               <GeneralCampaignCard
@@ -1173,9 +1051,7 @@ export default function Campaign({
               />
             )
           )}
-
         </div>
-
       </section>
     );
   }
@@ -1199,7 +1075,6 @@ export default function Campaign({
 
       {mendesak.length >
         0 && (
-
         <section
           className="
             space-y-4
@@ -1210,7 +1085,6 @@ export default function Campaign({
             shadow-[0_3px_12px_rgba(0,0,0,0.025)]
           "
         >
-
           <SectionHeader
             eyebrow="Butuh Dukungan Segera"
             title="Penggalangan Dana Mendesak"
@@ -1221,13 +1095,11 @@ export default function Campaign({
           <div
             className="
               grid
-              grid-cols-1
-              gap-3.5
+              grid-cols-2
+              gap-3
               pt-1
-              sm:grid-cols-2
             "
           >
-
             {mendesak.map(
               (item) => (
                 <UrgentCampaignCard
@@ -1236,19 +1108,16 @@ export default function Campaign({
                 />
               )
             )}
-
           </div>
-
         </section>
       )}
 
       {/* ======================================================
-          UNGGULAN
+          PROGRAM UNGGULAN
       ====================================================== */}
 
       {unggulan.length >
         0 && (
-
         <section
           className="
             space-y-4
@@ -1259,7 +1128,6 @@ export default function Campaign({
             shadow-[0_3px_12px_rgba(0,0,0,0.025)]
           "
         >
-
           <SectionHeader
             eyebrow="Rekomendasi Program"
             title="Program Unggulan"
@@ -1267,31 +1135,25 @@ export default function Campaign({
             href="/campaign/unggulan"
           />
 
-          {/* ==================================================
-              KHUSUS UNGGULAN:
-              SELALU 2 KOLOM SEPERTI CONTOH
-          =================================================== */}
-
+          {/* SELALU 2 KOLOM, TERMASUK MOBILE */}
           <div
             className="
               grid
               grid-cols-2
-              gap-3.5
+              items-start
+              gap-3
               pt-1
             "
           >
-
             {unggulan.map(
               (item) => (
-                <FeaturedSquareCard
+                <FeaturedCampaignCard
                   key={item.id}
                   item={item}
                 />
               )
             )}
-
           </div>
-
         </section>
       )}
 
@@ -1301,7 +1163,6 @@ export default function Campaign({
 
       {pilihan.length >
         0 && (
-
         <section
           className="
             space-y-4
@@ -1312,7 +1173,6 @@ export default function Campaign({
             shadow-[0_3px_12px_rgba(0,0,0,0.025)]
           "
         >
-
           <SectionHeader
             eyebrow="Pilihan Kebaikan"
             title="Program Pilihan"
@@ -1326,7 +1186,6 @@ export default function Campaign({
               pt-1
             "
           >
-
             {pilihan.map(
               (item) => (
                 <CompactCampaignCard
@@ -1335,9 +1194,7 @@ export default function Campaign({
                 />
               )
             )}
-
           </div>
-
         </section>
       )}
 
