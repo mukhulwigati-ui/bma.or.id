@@ -169,6 +169,55 @@ function createDescription(
 }
 
 // ============================================================
+// SOCIAL IMAGE
+// ============================================================
+
+function makeSocialImage(
+  originalImage: string | undefined,
+  updatedAt?: string
+): string {
+  const fallback = `${SITE_URL}/images/banner.png`;
+  const source = String(originalImage || fallback).trim() || fallback;
+
+  try {
+    const url = new URL(
+      source.startsWith('http://') || source.startsWith('https://')
+        ? source
+        : `${SITE_URL}${source.startsWith('/') ? '' : '/'}${source}`
+    );
+
+    if (
+      url.hostname === 'cdn.sanity.io' ||
+      url.hostname.endsWith('.sanity.io')
+    ) {
+      [
+        'w', 'h', 'width', 'height',
+        'q', 'quality',
+        'fm', 'format',
+        'fit', 'crop', 'rect'
+      ].forEach((key) => url.searchParams.delete(key));
+
+      url.searchParams.set('w', '1200');
+      url.searchParams.set('h', '630');
+      url.searchParams.set('fit', 'crop');
+      url.searchParams.set('fm', 'jpg');
+      url.searchParams.set('q', '70');
+    }
+
+    if (updatedAt) {
+      const timestamp = new Date(updatedAt).getTime();
+      if (!Number.isNaN(timestamp)) {
+        url.searchParams.set('v', String(timestamp));
+      }
+    }
+
+    return url.toString();
+  } catch {
+    return source;
+  }
+}
+
+// ============================================================
 // SHARE VERSION
 // ============================================================
 
@@ -225,6 +274,9 @@ export async function generateMetadata({
   let updatedAt =
     '1';
 
+  let campaignImage =
+    `${SITE_URL}/images/banner.png`;
+
   // ==========================================================
   // SANITY
   // ==========================================================
@@ -247,13 +299,11 @@ export async function generateMetadata({
 
         content,
 
-        "hasImage": defined(
-          coalesce(
-            image.asset,
-            mainImage.asset,
-            thumbnail.asset,
-            banner.asset
-          )
+        "image": coalesce(
+          image.asset->url,
+          mainImage.asset->url,
+          thumbnail.asset->url,
+          banner.asset->url
         )
       }
     `;
@@ -284,6 +334,14 @@ export async function generateMetadata({
     ) {
       title =
         campaign.title.trim();
+    }
+
+    if (
+      campaign?.image &&
+      typeof campaign.image === 'string' &&
+      campaign.image.trim()
+    ) {
+      campaignImage = campaign.image.trim();
     }
 
     // ========================================================
@@ -371,25 +429,15 @@ export async function generateMetadata({
 
   // ==========================================================
   // OG IMAGE
-  //
-  // PENTING:
-  // WhatsApp sekarang TIDAK membaca cdn.sanity.io.
-  //
-  // Dia membaca image dari domain BMA:
-  //
-  // /api/og/campaign/{slug}
-  //
-  // ?v= membuat crawler melihat image URL baru setelah campaign
-  // diperbarui.
   // ==========================================================
+  // Sama seperti web BDB yang sudah bekerja:
+  // gambar langsung dari Sanity, hanya dioptimasi untuk social preview.
 
   const ogImageUrl =
-    `${SITE_URL}/api/og/campaign/${encodeURIComponent(
-      decodedSlug
-    )}` +
-    `?v=${encodeURIComponent(
-      updatedAt
-    )}`;
+    makeSocialImage(
+      campaignImage,
+      updatedAt === '1' ? undefined : updatedAt
+    );
 
   // ==========================================================
   // RETURN
