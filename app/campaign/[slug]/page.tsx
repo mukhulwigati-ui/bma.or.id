@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import { createClient } from '@sanity/client';
+
 import CampaignDetailClient from '@/components/CampaignDetailClient';
 
 // ============================================================
@@ -15,6 +16,7 @@ interface Props {
 
   searchParams: Promise<{
     ref?: string;
+    v?: string;
   }>;
 }
 
@@ -22,27 +24,23 @@ interface Props {
 // NEXT.JS
 // ============================================================
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+export const dynamic =
+  'force-dynamic';
+
+export const revalidate =
+  0;
 
 // ============================================================
-// IDENTITAS WEBSITE BMA
-// ============================================================
-//
-// PENTING:
-// Pakai SATU domain canonical saja.
-// Kita gunakan non-WWW karena link yang dibagikan memang bma.or.id.
-//
-// Vercel:
-// NEXT_PUBLIC_SITE_URL=https://bma.or.id
+// IDENTITAS WEBSITE
 // ============================================================
 
 const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://bma.or.id'
+  'https://www.bma.or.id'
 ).replace(/\/$/, '');
 
-const SITE_NAME = 'Baitul Maal Al Muttaqin';
+const SITE_NAME =
+  'Baitul Maal Al Muttaqin';
 
 // ============================================================
 // SANITY BMA
@@ -56,26 +54,26 @@ const SANITY_DATASET =
   process.env.NEXT_PUBLIC_SANITY_DATASET ||
   'production';
 
+const sanityMetaClient =
+  createClient({
+    projectId:
+      SANITY_PROJECT_ID,
+
+    dataset:
+      SANITY_DATASET,
+
+    apiVersion:
+      '2026-08-01',
+
+    useCdn:
+      false,
+
+    perspective:
+      'published',
+  });
+
 // ============================================================
-// SANITY PUBLIC CLIENT
-//
-// Metadata hanya membaca published document.
-// Tidak perlu SANITY write token.
-// ============================================================
-
-const sanityMetaClient = createClient({
-  projectId: SANITY_PROJECT_ID,
-  dataset: SANITY_DATASET,
-
-  apiVersion: '2026-08-01',
-
-  useCdn: false,
-
-  perspective: 'published',
-});
-
-// ============================================================
-// PORTABLE TEXT → PLAIN TEXT
+// PORTABLE TEXT → STRING
 // ============================================================
 
 function portableTextToPlainText(
@@ -85,39 +83,51 @@ function portableTextToPlainText(
     return '';
   }
 
-  // ==========================================================
-  // STRING / HTML
-  // ==========================================================
-
-  if (typeof value === 'string') {
+  if (
+    typeof value ===
+    'string'
+  ) {
     return value
-      .replace(/<[^>]*>/g, ' ')
-      .replace(/\s+/g, ' ')
+      .replace(
+        /<[^>]*>/g,
+        ' '
+      )
+      .replace(
+        /\s+/g,
+        ' '
+      )
       .trim();
   }
 
-  // ==========================================================
-  // SANITY PORTABLE TEXT
-  // ==========================================================
-
-  if (Array.isArray(value)) {
+  if (
+    Array.isArray(value)
+  ) {
     return value
       .filter(
         (block: any) =>
-          block?._type === 'block' &&
-          Array.isArray(block.children)
-      )
-      .map((block: any) =>
-        block.children
-          .map((child: any) =>
-            typeof child?.text === 'string'
-              ? child.text
-              : ''
+          block?._type ===
+            'block' &&
+          Array.isArray(
+            block.children
           )
-          .join('')
+      )
+      .map(
+        (block: any) =>
+          block.children
+            .map(
+              (child: any) =>
+                typeof child?.text ===
+                'string'
+                  ? child.text
+                  : ''
+            )
+            .join('')
       )
       .join(' ')
-      .replace(/\s+/g, ' ')
+      .replace(
+        /\s+/g,
+        ' '
+      )
       .trim();
   }
 
@@ -125,116 +135,62 @@ function portableTextToPlainText(
 }
 
 // ============================================================
-// NORMALISASI DESCRIPTION
+// DESCRIPTION
 // ============================================================
 
-function normalizeDescription(
+function createDescription(
   value: string,
   fallback: string
 ): string {
-  const result = String(value || '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  const clean =
+    String(value || '')
+      .replace(
+        /\s+/g,
+        ' '
+      )
+      .trim();
 
-  if (!result) {
+  if (!clean) {
     return fallback;
   }
 
-  // Hindari deskripsi terlalu panjang untuk social crawler
-  if (result.length <= 155) {
-    return result;
+  if (
+    clean.length <= 155
+  ) {
+    return clean;
   }
 
-  return `${result.slice(0, 152).trim()}...`;
+  return (
+    clean
+      .slice(0, 152)
+      .trim() +
+    '...'
+  );
 }
 
 // ============================================================
-// NORMALISASI URL IMAGE
-// ============================================================
-//
-// PENTING UNTUK WHATSAPP:
-//
-// JANGAN gunakan:
-//
-// &auto=format
-//
-// karena Sanity bisa mengembalikan WebP / AVIF tergantung User-Agent.
-//
-// Kita paksa:
-//
-// fm=jpg
-// w=1200
-// h=630
-// fit=crop
-// q=85
-//
-// Sehingga Content-Type benar-benar JPEG.
+// SHARE VERSION
 // ============================================================
 
-function normalizeImageUrl(
-  value:
-    | string
-    | null
-    | undefined
+function createShareVersion(
+  updatedAt?: string
 ): string {
-  // ==========================================================
-  // FALLBACK
-  // ==========================================================
-
-  const fallback =
-    `${SITE_URL}/images/banner.png`;
-
-  if (
-    !value ||
-    typeof value !== 'string'
-  ) {
-    return fallback;
+  if (!updatedAt) {
+    return '1';
   }
 
-  let image = value.trim();
+  const clean =
+    updatedAt.replace(
+      /[^0-9A-Za-z]/g,
+      ''
+    );
 
-  if (!image) {
-    return fallback;
-  }
-
-  // ==========================================================
-  // BUAT ABSOLUTE URL
-  // ==========================================================
-
-  if (image.startsWith('/')) {
-    image =
-      `${SITE_URL}${image}`;
-  } else if (
-    !image.startsWith('http://') &&
-    !image.startsWith('https://')
-  ) {
-    image =
-      `${SITE_URL}/${image}`;
-  }
-
-  // ==========================================================
-  // KHUSUS SANITY CDN
-  // ==========================================================
-
-  if (
-    image.includes(
-      'cdn.sanity.io/images/'
-    )
-  ) {
-    // Hapus parameter lama lebih dulu agar URL bersih.
-    const baseImage =
-      image.split('?')[0];
-
-    image =
-      `${baseImage}` +
-      `?w=1200` +
-      `&h=630` +
-      `&fit=crop` +
-      `&fm=jpg` +
-      `&q=85`;
-  }
-
-  return image;
+  return (
+    clean.slice(
+      0,
+      40
+    ) || '1'
+  );
 }
 
 // ============================================================
@@ -248,17 +204,16 @@ export async function generateMetadata({
     slug: string;
   }>;
 }): Promise<Metadata> {
-  // ==========================================================
-  // SLUG
-  // ==========================================================
-
-  const { slug } = await params;
+  const { slug } =
+    await params;
 
   const decodedSlug =
-    decodeURIComponent(slug).trim();
+    decodeURIComponent(
+      slug
+    ).trim();
 
   // ==========================================================
-  // DEFAULT METADATA
+  // DEFAULT
   // ==========================================================
 
   let title =
@@ -267,11 +222,11 @@ export async function generateMetadata({
   let description =
     'Salurkan zakat, infak, sedekah, wakaf, dan donasi melalui Baitul Maal Al Muttaqin.';
 
-  let image =
-    `${SITE_URL}/images/banner.png`;
+  let updatedAt =
+    '1';
 
   // ==========================================================
-  // FETCH SANITY
+  // SANITY
   // ==========================================================
 
   try {
@@ -282,6 +237,8 @@ export async function generateMetadata({
       ][0] {
         _id,
 
+        _updatedAt,
+
         title,
 
         excerpt,
@@ -290,11 +247,13 @@ export async function generateMetadata({
 
         content,
 
-        "imageUrl": coalesce(
-          image.asset->url,
-          mainImage.asset->url,
-          thumbnail.asset->url,
-          banner.asset->url
+        "hasImage": defined(
+          coalesce(
+            image.asset,
+            mainImage.asset,
+            thumbnail.asset,
+            banner.asset
+          )
         )
       }
     `;
@@ -304,55 +263,15 @@ export async function generateMetadata({
         query,
 
         {
-          slug: decodedSlug,
+          slug:
+            decodedSlug,
         },
 
         {
-          cache: 'no-store',
+          cache:
+            'no-store',
         }
       );
-
-    // ========================================================
-    // DEBUG SERVER
-    // ========================================================
-
-    console.log(
-      '=============================================='
-    );
-
-    console.log(
-      'BMA SOCIAL METADATA'
-    );
-
-    console.log(
-      'Project ID:',
-      SANITY_PROJECT_ID
-    );
-
-    console.log(
-      'Dataset:',
-      SANITY_DATASET
-    );
-
-    console.log(
-      'Slug:',
-      decodedSlug
-    );
-
-    console.log(
-      'Campaign ditemukan:',
-      Boolean(campaign)
-    );
-
-    console.log(
-      'Image Sanity:',
-      campaign?.imageUrl ||
-        'TIDAK ADA'
-    );
-
-    console.log(
-      '=============================================='
-    );
 
     // ========================================================
     // TITLE
@@ -360,7 +279,8 @@ export async function generateMetadata({
 
     if (
       campaign?.title &&
-      typeof campaign.title === 'string'
+      typeof campaign.title ===
+        'string'
     ) {
       title =
         campaign.title.trim();
@@ -370,43 +290,78 @@ export async function generateMetadata({
     // DESCRIPTION
     // ========================================================
 
-    const descriptionSource =
+    const source =
       campaign?.excerpt ||
       campaign?.description ||
       campaign?.content;
 
-    const plainDescription =
+    const plainText =
       portableTextToPlainText(
-        descriptionSource
+        source
       );
 
-    if (plainDescription) {
+    if (plainText) {
       description =
-        normalizeDescription(
-          plainDescription,
+        createDescription(
+          plainText,
           description
         );
     }
 
     // ========================================================
-    // IMAGE
+    // VERSION
     // ========================================================
 
-    if (campaign?.imageUrl) {
-      image =
-        normalizeImageUrl(
-          campaign.imageUrl
+    if (
+      campaign?._updatedAt
+    ) {
+      updatedAt =
+        createShareVersion(
+          campaign._updatedAt
         );
     }
-  } catch (error) {
+
+    // ========================================================
+    // DEBUG
+    // ========================================================
+
+    console.log(
+      '=============================================='
+    );
+
+    console.log(
+      'BMA CAMPAIGN METADATA'
+    );
+
+    console.log(
+      'Slug:',
+      decodedSlug
+    );
+
+    console.log(
+      'Title:',
+      title
+    );
+
+    console.log(
+      'Updated:',
+      updatedAt
+    );
+
+    console.log(
+      '=============================================='
+    );
+  } catch (
+    error
+  ) {
     console.error(
-      'BMA generateMetadata Sanity Error:',
+      '🔥 BMA metadata error:',
       error
     );
   }
 
   // ==========================================================
-  // CANONICAL PAGE URL
+  // PAGE URL
   // ==========================================================
 
   const pageUrl =
@@ -415,33 +370,39 @@ export async function generateMetadata({
     )}`;
 
   // ==========================================================
-  // FINAL DEBUG
+  // OG IMAGE
+  //
+  // PENTING:
+  // WhatsApp sekarang TIDAK membaca cdn.sanity.io.
+  //
+  // Dia membaca image dari domain BMA:
+  //
+  // /api/og/campaign/{slug}
+  //
+  // ?v= membuat crawler melihat image URL baru setelah campaign
+  // diperbarui.
   // ==========================================================
 
-  console.log(
-    'FINAL OG URL:',
-    pageUrl
-  );
-
-  console.log(
-    'FINAL OG IMAGE:',
-    image
-  );
+  const ogImageUrl =
+    `${SITE_URL}/api/og/campaign/${encodeURIComponent(
+      decodedSlug
+    )}` +
+    `?v=${encodeURIComponent(
+      updatedAt
+    )}`;
 
   // ==========================================================
-  // RETURN METADATA
+  // RETURN
   // ==========================================================
 
   return {
-    // ========================================================
-    // BASE
-    // ========================================================
-
     metadataBase:
-      new URL(SITE_URL),
+      new URL(
+        SITE_URL
+      ),
 
     // ========================================================
-    // BASIC SEO
+    // BASIC
     // ========================================================
 
     title,
@@ -453,7 +414,8 @@ export async function generateMetadata({
     // ========================================================
 
     alternates: {
-      canonical: pageUrl,
+      canonical:
+        pageUrl,
     },
 
     // ========================================================
@@ -461,67 +423,73 @@ export async function generateMetadata({
     // ========================================================
 
     robots: {
-      index: true,
-      follow: true,
+      index:
+        true,
+
+      follow:
+        true,
 
       googleBot: {
-        index: true,
-        follow: true,
+        index:
+          true,
+
+        follow:
+          true,
 
         'max-image-preview':
           'large',
 
         'max-snippet':
           -1,
-
-        'max-video-preview':
-          -1,
       },
     },
 
     // ========================================================
     // OPEN GRAPH
-    //
-    // Ini yang paling penting untuk:
-    //
-    // WhatsApp
-    // Facebook
-    // Messenger
-    // Telegram
     // ========================================================
 
     openGraph: {
-      type: 'website',
+      type:
+        'website',
 
-      url: pageUrl,
-
-      siteName: SITE_NAME,
-
-      locale: 'id_ID',
+      url:
+        pageUrl,
 
       title,
 
       description,
 
+      siteName:
+        SITE_NAME,
+
+      locale:
+        'id_ID',
+
       images: [
         {
-          url: image,
+          url:
+            ogImageUrl,
 
-          secureUrl: image,
+          secureUrl:
+            ogImageUrl,
 
-          width: 1200,
+          width:
+            1200,
 
-          height: 630,
+          height:
+            630,
 
-          type: 'image/jpeg',
+          type:
+            'image/jpeg',
 
-          alt: title,
+          alt:
+            title,
         },
       ],
     },
 
     // ========================================================
-    // TWITTER / X
+    // X / TWITTER
     // ========================================================
 
     twitter: {
@@ -533,7 +501,7 @@ export async function generateMetadata({
       description,
 
       images: [
-        image,
+        ogImageUrl,
       ],
     },
   };
