@@ -17,7 +17,7 @@ import { supabase } from '@/lib/supabase/client';
 // KONFIGURASI CANONICAL SHARE
 // ===================================================================
 
-const CANONICAL_SITE_URL = 'https://www.bma.or.id';
+const CANONICAL_SITE_URL = 'https://bma.or.id';
 
 // ===================================================================
 // 1. HEADER KHUSUS DETAIL PROGRAM
