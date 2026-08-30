@@ -137,80 +137,6 @@ function createDescription(
   );
 }
 
-// ============================================================
-// SOCIAL IMAGE
-// ============================================================
-
-function makeSocialImage(
-  originalImage: string | undefined,
-  updatedAt?: string
-): string {
-  const fallback = `${SITE_URL}/images/banner.png`;
-  const source = String(originalImage || fallback).trim() || fallback;
-
-  try {
-    const url = new URL(
-      source.startsWith('http://') || source.startsWith('https://')
-        ? source
-        : `${SITE_URL}${source.startsWith('/') ? '' : '/'}${source}`
-    );
-
-    if (
-      url.hostname === 'cdn.sanity.io' ||
-      url.hostname.endsWith('.sanity.io')
-    ) {
-      [
-        'w', 'h', 'width', 'height',
-        'q', 'quality',
-        'fm', 'format',
-        'fit', 'crop', 'rect'
-      ].forEach((key) => url.searchParams.delete(key));
-
-      url.searchParams.set('w', '1200');
-      url.searchParams.set('h', '630');
-      url.searchParams.set('fit', 'crop');
-      url.searchParams.set('fm', 'jpg');
-      url.searchParams.set('q', '70');
-    }
-
-    if (updatedAt) {
-      const timestamp = new Date(updatedAt).getTime();
-      if (!Number.isNaN(timestamp)) {
-        url.searchParams.set('v', String(timestamp));
-      }
-    }
-
-    return url.toString();
-  } catch {
-    return source;
-  }
-}
-
-// ============================================================
-// SHARE VERSION
-// ============================================================
-
-function createShareVersion(
-  updatedAt?: string
-): string {
-  if (!updatedAt) {
-    return '1';
-  }
-
-  const clean =
-    updatedAt.replace(
-      /[^0-9A-Za-z]/g,
-      ''
-    );
-
-  return (
-    clean.slice(
-      0,
-      40
-    ) || '1'
-  );
-}
-
 interface ProgramData {
   _id?: string;
   _updatedAt?: string;
@@ -315,10 +241,9 @@ export async function generateMetadata({
       ? program.image.trim()
       : DEFAULT_IMAGE;
 
-  const socialImage = makeSocialImage(
-    originalImage,
-    program?._updatedAt
-  );
+  // Gunakan URL gambar asli dari Sanity tanpa transformasi.
+  // Tidak dipaksa menjadi JPEG dan tidak di-resize.
+  const socialImage = originalImage;
 
   const canonicalUrl =
     `${SITE_URL}/campaign/${encodeURIComponent(decodedSlug)}`;
@@ -355,9 +280,6 @@ export async function generateMetadata({
         {
           url: socialImage,
           secureUrl: socialImage,
-          width: 1200,
-          height: 630,
-          type: 'image/jpeg',
           alt: program?.title || title,
         },
       ],
@@ -375,11 +297,6 @@ export async function generateMetadata({
       ],
     },
 
-    other: {
-      'og:image:type': 'image/jpeg',
-      'og:image:width': '1200',
-      'og:image:height': '630',
-    },
   };
 }
 
