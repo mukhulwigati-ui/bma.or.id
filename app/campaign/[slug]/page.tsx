@@ -1,146 +1,566 @@
 // app/campaign/[slug]/page.tsx
-import { Metadata } from "next";
-import CampaignDetailClient from "@/components/CampaignDetailClient";
-import { createClient } from "@sanity/client";
+
+import type { Metadata } from 'next';
+import { createClient } from '@sanity/client';
+
+import CampaignDetailClient from '@/components/CampaignDetailClient';
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface Props {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ ref?: string }>;
+  params: Promise<{
+    slug: string;
+  }>;
+
+  searchParams: Promise<{
+    ref?: string;
+  }>;
 }
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// ============================================================
+// NEXT.JS
+// ============================================================
 
-const sanityMetaClient = createClient({
-  projectId: "xqggeww8",
-  dataset: "production",
-  useCdn: false,
-  apiVersion: "2024-01-01",
-  token: "skzKLS9YXZtUK01FN8VMv2TUleuscVo9d9SXtqAlcLjt3MvaRh0IWaaruV6ObSlpJwD5UoDI0QpPJ26Xh8EpaZsK7DIIMSZ1aq7EnLzUiCUY7aHsAm1a6LeJZb9I9ygWcRTKjEJzw8c5rRCbcFAxPhzjvAgPF715JSXnJxy2lbtWm6ePtVfl",
-});
+export const dynamic =
+  'force-dynamic';
+
+export const revalidate =
+  0;
+
+// ============================================================
+// IDENTITAS BMA
+// ============================================================
+
+const SITE_URL =
+  (
+    process.env
+      .NEXT_PUBLIC_SITE_URL ||
+    'https://www.bma.or.id'
+  ).replace(/\/$/, '');
+
+const SITE_NAME =
+  'Baitul Maal Al Muttaqin';
+
+const SITE_DOMAIN =
+  'bma.or.id';
+
+// ============================================================
+// SANITY BMA
+//
+// Project ID dikunci ke project BMA agar tidak tertukar lagi
+// dengan BDB / Islami / project lama.
+// ============================================================
+
+const SANITY_PROJECT_ID =
+  'im4qx3kd';
+
+const SANITY_DATASET =
+  'production';
+
+// ============================================================
+// SANITY CLIENT KHUSUS METADATA
+//
+// Published data tidak perlu token.
+// Ini justru lebih aman untuk metadata publik.
+// ============================================================
+
+const sanityMetaClient =
+  createClient({
+    projectId:
+      SANITY_PROJECT_ID,
+
+    dataset:
+      SANITY_DATASET,
+
+    apiVersion:
+      '2026-08-01',
+
+    useCdn:
+      false,
+
+    perspective:
+      'published',
+  });
+
+// ============================================================
+// HELPERS
+// ============================================================
+
+function portableTextToPlainText(
+  value: any
+): string {
+  if (!value) {
+    return '';
+  }
+
+  if (
+    typeof value ===
+    'string'
+  ) {
+    return value
+      .replace(
+        /<[^>]*>/g,
+        ' '
+      )
+      .replace(
+        /\s+/g,
+        ' '
+      )
+      .trim();
+  }
+
+  if (
+    Array.isArray(value)
+  ) {
+    return value
+      .filter(
+        (block: any) =>
+          block?._type ===
+            'block' &&
+          Array.isArray(
+            block.children
+          )
+      )
+      .map(
+        (block: any) =>
+          block.children
+            .map(
+              (child: any) =>
+                typeof child?.text ===
+                'string'
+                  ? child.text
+                  : ''
+            )
+            .join('')
+      )
+      .join(' ')
+      .replace(
+        /\s+/g,
+        ' '
+      )
+      .trim();
+  }
+
+  return '';
+}
+
+function normalizeImageUrl(
+  value:
+    | string
+    | null
+    | undefined
+): string {
+  const fallback =
+    `${SITE_URL}/images/banner.png`;
+
+  if (
+    !value ||
+    typeof value !==
+      'string'
+  ) {
+    return fallback;
+  }
+
+  let image =
+    value.trim();
+
+  if (!image) {
+    return fallback;
+  }
+
+  // ==========================================================
+  // ABSOLUTE URL
+  // ==========================================================
+
+  if (
+    image.startsWith('/')
+  ) {
+    image =
+      `${SITE_URL}${image}`;
+  } else if (
+    !image.startsWith(
+      'http://'
+    ) &&
+    !image.startsWith(
+      'https://'
+    )
+  ) {
+    image =
+      `${SITE_URL}/${image}`;
+  }
+
+  // ==========================================================
+  // SANITY IMAGE
+  //
+  // WhatsApp lebih aman jika menerima gambar JPEG,
+  // ukuran cukup besar, dan URL sederhana.
+  // ==========================================================
+
+  if (
+    image.includes(
+      'cdn.sanity.io/images/'
+    )
+  ) {
+    const separator =
+      image.includes('?')
+        ? '&'
+        : '?';
+
+    image =
+      `${image}${separator}` +
+      `w=1200` +
+      `&h=630` +
+      `&fit=crop` +
+      `&auto=format`;
+  }
+
+  return image;
+}
+
+// ============================================================
+// METADATA
+// ============================================================
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{
+    slug: string;
+  }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const decodedSlug = decodeURIComponent(slug).trim();
+  const {
+    slug,
+  } = await params;
 
-  const siteUrl = (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    "https://www.islami.or.id"
-  ).replace(/\/$/, "");
+  const decodedSlug =
+    decodeURIComponent(
+      slug
+    ).trim();
 
-  let title = "Program Donasi | islami.or.id";
-  let description = "Salurkan sedekah, infak, zakat, dan wakaf terbaik Anda melalui islami.or.id.";
-  let image = `${siteUrl}/images/banner.png`;
+  // ==========================================================
+  // DEFAULT / FALLBACK BMA
+  // ==========================================================
+
+  let title =
+    `Program Donasi | ${SITE_NAME}`;
+
+  let description =
+    'Salurkan zakat, infak, sedekah, wakaf, dan donasi melalui Baitul Maal Al Muttaqin.';
+
+  let image =
+    `${SITE_URL}/images/banner.png`;
+
+  // ==========================================================
+  // FETCH CAMPAIGN SANITY BMA
+  // ==========================================================
 
   try {
-    // 🚀 Ambil langsung dari Sanity agar pasti valid di Server Production
-    const query = `*[(_type == "program" || _type == "campaign") && (slug.current == $slug || _id == $slug)][0] {
-      title,
-      description,
-      excerpt,
-      "mainImageUrl": mainImage.asset->url,
-      "imageUrl": image.asset->url,
-      "thumbnailUrl": thumbnail.asset->url,
-      "bannerUrl": banner.asset->url
-    }`;
+    const query = `
+      *[
+        _type in [
+          "program",
+          "campaign"
+        ] &&
+        slug.current == $slug
+      ][0] {
+        _id,
 
-    const campaign = await sanityMetaClient.fetch(query, { slug: decodedSlug });
+        title,
 
-    if (campaign) {
-      if (campaign.title) {
-        title = campaign.title;
+        excerpt,
+
+        description,
+
+        content,
+
+        "image":
+          coalesce(
+            image.asset->url,
+            mainImage.asset->url,
+            thumbnail.asset->url,
+            banner.asset->url
+          )
       }
+    `;
 
-      const rawDesc = campaign.excerpt || campaign.description;
-      if (rawDesc) {
-        if (typeof rawDesc === 'string') {
-          description = rawDesc.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().substring(0, 160);
-        } else if (Array.isArray(rawDesc)) {
-          const plainText = rawDesc
-            .filter((block: any) => block._type === 'block' && block.children)
-            .map((block: any) => block.children.map((child: any) => child.text).join(''))
-            .join(' ');
-          if (plainText) {
-            description = plainText.replace(/\s+/g, " ").trim().substring(0, 160);
-          }
+    const campaign =
+      await sanityMetaClient.fetch(
+        query,
+        {
+          slug:
+            decodedSlug,
+        },
+        {
+          cache:
+            'no-store',
         }
-      }
+      );
 
-      const foundImage = campaign.mainImageUrl || campaign.imageUrl || campaign.thumbnailUrl || campaign.bannerUrl;
-      if (foundImage) {
-        image = foundImage;
-      }
+    console.log(
+      '======================================'
+    );
+
+    console.log(
+      '✅ BMA CAMPAIGN METADATA'
+    );
+
+    console.log(
+      'PROJECT:',
+      SANITY_PROJECT_ID
+    );
+
+    console.log(
+      'SLUG:',
+      decodedSlug
+    );
+
+    console.log(
+      'FOUND:',
+      Boolean(campaign)
+    );
+
+    console.log(
+      'IMAGE:',
+      campaign?.image ||
+        'NO IMAGE'
+    );
+
+    console.log(
+      '======================================'
+    );
+
+    // ========================================================
+    // TITLE
+    // ========================================================
+
+    if (
+      campaign?.title &&
+      typeof campaign.title ===
+        'string'
+    ) {
+      title =
+        campaign.title.trim();
     }
-  } catch (err) {
-    console.error("Sanity Metadata Error:", err);
+
+    // ========================================================
+    // DESCRIPTION
+    // ========================================================
+
+    const descriptionSource =
+      campaign?.excerpt ||
+      campaign?.description ||
+      campaign?.content;
+
+    const plainDescription =
+      portableTextToPlainText(
+        descriptionSource
+      );
+
+    if (
+      plainDescription
+    ) {
+      description =
+        plainDescription
+          .slice(
+            0,
+            160
+          )
+          .trim();
+    }
+
+    // ========================================================
+    // IMAGE
+    // ========================================================
+
+    if (
+      campaign?.image
+    ) {
+      image =
+        normalizeImageUrl(
+          campaign.image
+        );
+    }
+  } catch (
+    error
+  ) {
+    console.error(
+      '🔥 BMA CAMPAIGN METADATA ERROR:',
+      error
+    );
   }
 
-  // Bersihkan parameter format gambar jika ada
-  image = image
-    .replace("?format=jpg", "")
-    .replace("&format=jpg", "")
-    .replace("?fm=jpg", "")
-    .replace("&fm=jpg", "");
+  // ==========================================================
+  // FINAL URL
+  // ==========================================================
 
-  // 🚀 Pastikan URL Gambar Absolut menggunakan domain publik (Cegah isu localhost)
-  if (image.startsWith("/")) {
-    image = `${siteUrl}${image}`;
-  } else if (!image.startsWith("http")) {
-    image = `${siteUrl}/${image}`;
-  }
+  const pageUrl =
+    `${SITE_URL}` +
+    `/campaign/` +
+    `${encodeURIComponent(
+      decodedSlug
+    )}`;
+
+  // ==========================================================
+  // METADATA RESULT
+  // ==========================================================
 
   return {
-    metadataBase: new URL(siteUrl),
+    metadataBase:
+      new URL(
+        SITE_URL
+      ),
+
     title,
+
     description,
+
+    // ========================================================
+    // CANONICAL
+    // ========================================================
+
     alternates: {
-      canonical: `${siteUrl}/campaign/${slug}`,
+      canonical:
+        pageUrl,
     },
+
+    // ========================================================
+    // ROBOTS
+    // ========================================================
+
     robots: {
-      index: true,
-      follow: true,
+      index:
+        true,
+
+      follow:
+        true,
+
+      googleBot: {
+        index:
+          true,
+
+        follow:
+          true,
+
+        'max-image-preview':
+          'large',
+      },
     },
+
+    // ========================================================
+    // OPEN GRAPH
+    //
+    // Ini yang dibaca WhatsApp / Facebook
+    // ========================================================
+
     openGraph: {
-      type: "website",
-      url: `${siteUrl}/campaign/${slug}`,
-      siteName: "islami.or.id",
-      locale: "id_ID",
+      type:
+        'website',
+
+      url:
+        pageUrl,
+
+      siteName:
+        SITE_NAME,
+
+      locale:
+        'id_ID',
+
       title,
+
       description,
+
       images: [
         {
-          url: image,
-          width: 1200,
-          height: 630,
-          alt: title,
-          type: "image/jpeg",
+          url:
+            image,
+
+          secureUrl:
+            image,
+
+          width:
+            1200,
+
+          height:
+            630,
+
+          alt:
+            title,
+
+          type:
+            'image/jpeg',
         },
       ],
     },
+
+    // ========================================================
+    // TWITTER / X
+    // ========================================================
+
     twitter: {
-      card: "summary_large_image",
+      card:
+        'summary_large_image',
+
       title,
+
       description,
-      images: [image],
+
+      images: [
+        image,
+      ],
+    },
+
+    // ========================================================
+    // EXTRA META
+    //
+    // Membantu crawler tertentu.
+    // ========================================================
+
+    other: {
+      'og:site_name':
+        SITE_NAME,
+
+      'og:image':
+        image,
+
+      'og:image:secure_url':
+        image,
+
+      'og:image:width':
+        '1200',
+
+      'og:image:height':
+        '630',
+
+      'og:image:type':
+        'image/jpeg',
     },
   };
 }
+
+// ============================================================
+// PAGE
+// ============================================================
 
 export default async function CampaignPage({
   params,
   searchParams,
 }: Props) {
-  const { slug } = await params;
-  const { ref } = await searchParams;
+  const {
+    slug,
+  } = await params;
+
+  const {
+    ref,
+  } = await searchParams;
 
   return (
     <CampaignDetailClient
       slug={slug}
-      referral={ref ?? null}
+      referral={
+        ref ?? null
+      }
     />
   );
 }
