@@ -610,10 +610,16 @@ export default async function HomePage() {
             donors,
 
             "donorsCount":
-              coalesce(
-                donorsCount,
-                count(donors),
-                0
+              count(
+                *[
+                  _type == "donationTransaction" &&
+                  status == "success" &&
+                  (
+                    slug == ^.slug.current ||
+                    programSlug == ^.slug.current ||
+                    programId == ^._id
+                  )
+                ]
               )
           },
 
@@ -679,10 +685,16 @@ export default async function HomePage() {
             donors,
 
             "donorsCount":
-              coalesce(
-                donorsCount,
-                count(donors),
-                0
+              count(
+                *[
+                  _type == "donationTransaction" &&
+                  status == "success" &&
+                  (
+                    slug == ^.slug.current ||
+                    programSlug == ^.slug.current ||
+                    programId == ^._id
+                  )
+                ]
               )
           },
 
@@ -748,10 +760,16 @@ export default async function HomePage() {
             donors,
 
             "donorsCount":
-              coalesce(
-                donorsCount,
-                count(donors),
-                0
+              count(
+                *[
+                  _type == "donationTransaction" &&
+                  status == "success" &&
+                  (
+                    slug == ^.slug.current ||
+                    programSlug == ^.slug.current ||
+                    programId == ^._id
+                  )
+                ]
               )
           }
       }
