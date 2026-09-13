@@ -5,15 +5,15 @@ import { createClient } from '@sanity/client';
 export const dynamic = 'force-dynamic';
 
 const client = createClient({
-  projectId: 'ks29gg6v', 
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'im4qx3kd', 
   dataset: 'production',
   useCdn: false,
   apiVersion: '2026-07-18',
-  token: process.env.SANITY_API_WRITE_TOKEN || 'skTkgR8oTccSIXr6lsYEhhShtcblvWtNod41Oq1DSARiIqwBqTEpWqaaO3AFWwLKCch2Z0SviYoIOftVnn6S37ypRTvvCPmHtC9fELz2EbMnlh0Vt70al8UZZHWE6y8VvsqRA2GUYo7uhz9WhdFWkG4BPwTbwotrE3KfB3MZthvBbIo6QxrK', 
+  token: process.env.SANITY_API_WRITE_TOKEN, 
 });
 
 async function sendFonnteNotification(targetPhone: string, donorName: string, amount: number, programTitle: string, orderId: string) {
-  const fonnteToken = process.env.FONNTE_API_TOKEN || 'UhDfk5MNYJeRHvhkWAvC'; // Fallback token langsung
+  const fonnteToken = process.env.FONNTE_API_TOKEN || '';
   if (!fonnteToken) {
     console.warn('[Fonnte Warning] FONNTE_API_TOKEN kosong.');
     return;
@@ -24,7 +24,7 @@ async function sendFonnteNotification(targetPhone: string, donorName: string, am
     formattedPhone = '62' + formattedPhone.slice(1);
   }
 
-  const message = `Alhamdulillah, jazakumullahu khairan *${donorName}*! 🙏\n\nDonasi Anda sebesar *Rp ${amount.toLocaleString('id-ID')}* untuk program *${programTitle}* telah berhasil dikonfirmasi dan terverifikasi otomatis.\n\nNo. Invoice: \`${orderId}\`\n\nSemoga menjadi amal jariyah yang berlipat ganda, mendatangkan keberkahan, serta diberikan ganti yang lebih baik oleh Allah SWT. Aamiin ya Rabbal 'alamin. 🤲\n\n*Balai Dakwah Banjarnegara*`;
+  const message = `Alhamdulillah, jazakumullahu khairan *${donorName}*! 🙏\n\nDonasi Anda sebesar *Rp ${amount.toLocaleString('id-ID')}* untuk program *${programTitle}* telah berhasil dikonfirmasi dan terverifikasi otomatis.\n\nNo. Invoice: \`${orderId}\`\n\nSemoga menjadi amal jariyah yang berlipat ganda, mendatangkan keberkahan, serta diberikan ganti yang lebih baik oleh Allah SWT. Aamiin ya Rabbal 'alamin. 🤲\n\n*Baitul Maal Al Muttaqin*`;
 
   try {
     console.log(`[Fonnte Debug] Mencoba mengirim pesan ke ${formattedPhone}...`);
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
 
         const programSlug = transaction.slug || transaction.programSlug;
         if (programSlug) {
-          const progQuery = `*[_type == "program" && (slug.current == $slug || _id == $slug)][0]`;
+          const progQuery = `*[_type in ["program", "campaign"] && (slug.current == $slug || _id == $slug)][0]`;
           const programDoc = await client.fetch(progQuery, { slug: programSlug });
 
           if (programDoc) {
@@ -105,7 +105,6 @@ export async function POST(request: Request) {
             await client
               .patch(programDoc._id)
               .set({ collectedAmount: newCollected })
-              .append('donors', [newDonorEntry])
               .commit();
           }
         }
@@ -116,7 +115,7 @@ export async function POST(request: Request) {
       }
 
       // Paksa kirim notif Fonnte meskipun transaksi tidak ketemu di Sanity (untuk keperluan uji coba)
-      const targetNo = donorPhone || '62895324383400'; 
+      const targetNo = donorPhone; 
       await sendFonnteNotification(targetNo, donorName, donationAmount, programTitle, orderId);
     }
 
