@@ -4,6 +4,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Heart,
   CheckCircle2,
@@ -25,9 +26,11 @@ const SITE_DOMAIN = 'bma.or.id';
 const SITE_LOCATION = 'Jepara';
 
 export default function DonasiSayaPage() {
+  const router = useRouter();
   const [donations, setDonations] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<
     'semua' | 'pending' | 'sukses'
@@ -55,42 +58,109 @@ export default function DonasiSayaPage() {
   );
 
   useEffect(() => {
+    let active = true;
+
     const fetchDashboardData = async () => {
       setLoading(true);
+      setAuthError(null);
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      try {
+        // getSession membaca sesi browser terlebih dahulu dan tidak
+        // menjadikan request jaringan Supabase sebagai bagian routing Vercel.
+        const {
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession();
 
-      if (user) {
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .maybeSingle();
+        if (!active) return;
 
-        if (prof) {
-          setProfile(prof);
+        if (sessionError) {
+          console.error('Gagal membaca sesi Supabase:', sessionError);
+          setAuthError('Sesi login tidak dapat diperiksa. Silakan login kembali.');
+          setLoading(false);
+          return;
         }
 
-        const { data: donData } = await supabase
-          .from('donations')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', {
-            ascending: false,
-          });
+        if (!session?.user) {
+          const redirect = encodeURIComponent('/donasi-saya');
+          router.replace(`/login?redirect=${redirect}`);
+          return;
+        }
 
-        if (donData) {
-          setDonations(donData);
+        const user = session.user;
+
+        // Profil dan donasi boleh diambil paralel agar halaman lebih cepat.
+        const [profileResult, donationsResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle(),
+          supabase
+            .from('donations')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', {
+              ascending: false,
+            }),
+        ]);
+
+        if (!active) return;
+
+        if (profileResult.error) {
+          console.error('Gagal mengambil profil:', profileResult.error);
+        } else {
+          setProfile(
+            profileResult.data || {
+              id: user.id,
+              email: user.email,
+              name:
+                user.user_metadata?.name ||
+                user.user_metadata?.full_name ||
+                '',
+              created_at: user.created_at,
+            }
+          );
+        }
+
+        if (donationsResult.error) {
+          console.error(
+            'Gagal mengambil riwayat donasi:',
+            donationsResult.error
+          );
+          setAuthError('Riwayat donasi belum dapat dimuat. Silakan coba lagi.');
+          setDonations([]);
+        } else {
+          setDonations(donationsResult.data || []);
+        }
+
+        setLoading(false);
+      } catch (error) {
+        console.error('DonasiSayaPage error:', error);
+
+        if (active) {
+          setAuthError('Terjadi gangguan saat memuat akun. Silakan coba lagi.');
+          setLoading(false);
         }
       }
-
-      setLoading(false);
     };
 
     fetchDashboardData();
-  }, [supabase]);
+
+    // Sinkronkan bila status login berubah di tab/browser yang sama.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        router.replace('/login?redirect=%2Fdonasi-saya');
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, [router, supabase]);
 
   const successfulStatuses = [
     'success',
@@ -226,6 +296,30 @@ export default function DonasiSayaPage() {
           </p>
         </div>
       </div>
+    );
+  }
+
+  if (authError) {
+    return (
+      <main className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
+        <div className="w-full max-w-[420px] bg-white border border-slate-200 p-6 text-center shadow-sm">
+          <AlertCircle className="w-8 h-8 text-[#a37c32] mx-auto" />
+          <h1 className="mt-3 text-[15px] font-bold text-slate-800">
+            Riwayat donasi belum dapat dimuat
+          </h1>
+          <p className="mt-2 text-[10px] leading-relaxed text-slate-500">
+            {authError}
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 inline-flex items-center justify-center gap-2 bg-[#073f2e] px-4 py-2.5 text-[9px] font-bold uppercase tracking-wider text-white"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Coba Lagi
+          </button>
+        </div>
+      </main>
     );
   }
 
