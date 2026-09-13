@@ -1,63 +1,136 @@
 // middleware.ts
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
+import { createServerClient } from '@supabase/ssr';
+import {
+  NextResponse,
+  type NextRequest,
+} from 'next/server';
+
+export async function middleware(
+  request: NextRequest
+) {
+  const response = NextResponse.next({
     request,
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => {
-            request.cookies.set(name, value);
-          });
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
-          });
-        },
-      },
-    }
-  );
+  const supabaseUrl =
+    process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-  // Memeriksa status user secara aman di serverless
-  const { data: { user } } = await supabase.auth.getUser();
+  const supabaseAnonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  const pathname = request.nextUrl.pathname;
+  // Jangan sampai middleware crash jika ENV belum tersedia.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error(
+      'Supabase environment variables belum tersedia.'
+    );
 
-  // Proteksi rute khusus member
-  if (!user && (pathname.startsWith('/akun') || pathname.startsWith('/donasi-saya'))) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
+    const loginUrl =
+      request.nextUrl.clone();
+
+    loginUrl.pathname = '/login';
+
+    return NextResponse.redirect(
+      loginUrl
+    );
   }
 
-  return supabaseResponse;
+  let supabaseResponse =
+    response;
+
+  const supabase =
+    createServerClient(
+      supabaseUrl,
+      supabaseAnonKey,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(
+              ({
+                name,
+                value,
+              }) => {
+                request.cookies.set(
+                  name,
+                  value
+                );
+              }
+            );
+
+            supabaseResponse =
+              NextResponse.next({
+                request,
+              });
+
+            cookiesToSet.forEach(
+              ({
+                name,
+                value,
+                options,
+              }) => {
+                supabaseResponse.cookies.set(
+                  name,
+                  value,
+                  options
+                );
+              }
+            );
+          },
+        },
+      }
+    );
+
+  try {
+    const {
+      data: {
+        user,
+      },
+    } =
+      await supabase.auth.getUser();
+
+    if (!user) {
+      const loginUrl =
+        request.nextUrl.clone();
+
+      loginUrl.pathname =
+        '/login';
+
+      loginUrl.searchParams.set(
+        'redirect',
+        request.nextUrl.pathname
+      );
+
+      return NextResponse.redirect(
+        loginUrl
+      );
+    }
+
+    return supabaseResponse;
+  } catch (error) {
+    console.error(
+      'Middleware Supabase error:',
+      error
+    );
+
+    const loginUrl =
+      request.nextUrl.clone();
+
+    loginUrl.pathname =
+      '/login';
+
+    return NextResponse.redirect(
+      loginUrl
+    );
+  }
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - auth (callback)
-     * - login (halaman login)
-     * - api (semua route API backend seperti /api/checkout, /api/programs, dll)
-     * - campaign (halaman detail donasi publik)
-     * - ekstensi file publik (svg, png, jpg, webp, dll)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|auth|login|api|campaign|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/akun/:path*',
+    '/donasi-saya/:path*',
   ],
 };
