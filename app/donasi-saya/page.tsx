@@ -1,8 +1,8 @@
 // app/donasi-saya/page.tsx
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import React, { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -48,67 +48,100 @@ export default function DonasiSayaPage() {
   const [selectedDonation, setSelectedDonation] =
     useState<any>(null);
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
-
   useEffect(() => {
     let active = true;
 
+    const withTimeout = async <T,>(
+      promise: PromiseLike<T>,
+      ms = 10000
+    ): Promise<T> => {
+      return await Promise.race([
+        Promise.resolve(promise),
+        new Promise<T>((_, reject) =>
+          window.setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `Permintaan melebihi batas waktu ${ms / 1000} detik.`
+                )
+              ),
+            ms
+          )
+        ),
+      ]);
+    };
+
     const fetchDashboardData = async () => {
+      if (!active) return;
+
       setLoading(true);
       setAuthError(null);
 
       try {
-        // getSession membaca sesi browser terlebih dahulu dan tidak
-        // menjadikan request jaringan Supabase sebagai bagian routing Vercel.
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
+        const sessionResult = await withTimeout(
+          supabase.auth.getSession(),
+          8000
+        );
 
         if (!active) return;
 
+        const session = sessionResult.data.session;
+        const sessionError = sessionResult.error;
+
         if (sessionError) {
-          console.error('Gagal membaca sesi Supabase:', sessionError);
-          setAuthError('Sesi login tidak dapat diperiksa. Silakan login kembali.');
-          setLoading(false);
-          return;
+          throw sessionError;
         }
 
         if (!session?.user) {
-          const redirect = encodeURIComponent('/donasi-saya');
-          router.replace(`/login?redirect=${redirect}`);
+          setLoading(false);
+
+          // Gunakan navigasi browser penuh agar tidak bergantung
+          // pada router client/PWA cache ketika sesi memang tidak ada.
+          window.location.replace(
+            '/login?redirect=%2Fdonasi-saya'
+          );
           return;
         }
 
         const user = session.user;
 
-        // Profil dan donasi boleh diambil paralel agar halaman lebih cepat.
-        const [profileResult, donationsResult] = await Promise.all([
-          supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', user.id)
-            .maybeSingle(),
-          supabase
-            .from('donations')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', {
-              ascending: false,
-            }),
-        ]);
+        const [profileResult, donationsResult] =
+          await withTimeout(
+            Promise.all([
+              supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .maybeSingle(),
+              supabase
+                .from('donations')
+                .select('*')
+                .eq('user_id', user.id)
+                .order('created_at', {
+                  ascending: false,
+                }),
+            ]),
+            12000
+          );
 
         if (!active) return;
 
         if (profileResult.error) {
-          console.error('Gagal mengambil profil:', profileResult.error);
+          console.error(
+            'Gagal mengambil profil:',
+            profileResult.error
+          );
+
+          setProfile({
+            id: user.id,
+            email: user.email,
+            name:
+              user.user_metadata?.name ||
+              user.user_metadata?.full_name ||
+              user.email?.split('@')[0] ||
+              'Dermawan BMA',
+            created_at: user.created_at,
+          });
         } else {
           setProfile(
             profileResult.data || {
@@ -117,7 +150,8 @@ export default function DonasiSayaPage() {
               name:
                 user.user_metadata?.name ||
                 user.user_metadata?.full_name ||
-                '',
+                user.email?.split('@')[0] ||
+                'Dermawan BMA',
               created_at: user.created_at,
             }
           );
@@ -128,18 +162,27 @@ export default function DonasiSayaPage() {
             'Gagal mengambil riwayat donasi:',
             donationsResult.error
           );
-          setAuthError('Riwayat donasi belum dapat dimuat. Silakan coba lagi.');
           setDonations([]);
+          setAuthError(
+            'Riwayat donasi belum dapat dimuat. Silakan coba lagi.'
+          );
         } else {
           setDonations(donationsResult.data || []);
         }
-
-        setLoading(false);
-      } catch (error) {
-        console.error('DonasiSayaPage error:', error);
+      } catch (error: any) {
+        console.error(
+          'DonasiSayaPage load error:',
+          error
+        );
 
         if (active) {
-          setAuthError('Terjadi gangguan saat memuat akun. Silakan coba lagi.');
+          setAuthError(
+            error?.message ||
+              'Terjadi gangguan saat memuat akun. Silakan coba lagi.'
+          );
+        }
+      } finally {
+        if (active) {
           setLoading(false);
         }
       }
@@ -147,12 +190,13 @@ export default function DonasiSayaPage() {
 
     fetchDashboardData();
 
-    // Sinkronkan bila status login berubah di tab/browser yang sama.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        router.replace('/login?redirect=%2Fdonasi-saya');
+        window.location.replace(
+          '/login?redirect=%2Fdonasi-saya'
+        );
       }
     });
 
@@ -160,7 +204,7 @@ export default function DonasiSayaPage() {
       active = false;
       subscription.unsubscribe();
     };
-  }, [router, supabase]);
+  }, []);
 
   const successfulStatuses = [
     'success',
