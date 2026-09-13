@@ -774,41 +774,16 @@ export default function CampaignDetailClient({
 
         if (
           json.success &&
-          json.orderId
+          json.orderId &&
+          json.paymentUrl
         ) {
-          const projectSlug =
-            process.env
-              .NEXT_PUBLIC_PAKASIR_PROJECT_SLUG ||
-            'bma';
-
-          const returnUrl =
-            `${CANONICAL_SITE_URL}/thank-you?order_id=${encodeURIComponent(
-              json.orderId
-            )}`;
-
-          let pakasirPayUrl =
-            `https://app.pakasir.com/pay/` +
-            `${encodeURIComponent(
-              projectSlug
-            )}/` +
-            `${cleanAmount}` +
-            `?order_id=${encodeURIComponent(
-              json.orderId
-            )}` +
-            `&redirect=${encodeURIComponent(
-              returnUrl
-            )}`;
-
-          if (
-            paymentMethod ===
-            'qris'
-          ) {
-            pakasirPayUrl +=
-              '&qris_only=1';
-          }
-
-          window.location.href =
-            pakasirPayUrl;
+          // Payment URL wajib berasal dari server /api/checkout.
+          // Dengan begitu slug project Pakasir hanya diatur sekali
+          // melalui PAKASIR_PROJECT_SLUG di server, bukan di browser.
+          window.location.assign(
+            String(json.paymentUrl)
+          );
+          return;
         } else {
           alert(
             json.error ||
@@ -829,84 +804,300 @@ export default function CampaignDetailClient({
     };
 
   // =================================================================
-  // LOAD PROGRAM
+  // LOAD / REFRESH PROGRAM
+  // =================================================================
+  //
+  // /api/programs adalah sumber data utama untuk halaman detail.
+  // Data dinormalisasi di sini agar homepage dan detail selalu membaca
+  // saldo + daftar donatur dari sumber yang sama.
+  //
+  // Refresh dilakukan:
+  // - saat halaman pertama dibuka
+  // - saat tab/browser kembali aktif
+  // - saat pageshow (termasuk back/forward cache)
+  // - setiap 15 detik selama halaman terbuka
   // =================================================================
 
   useEffect(() => {
-    fetch(
-      `/api/programs?t=${Date.now()}`,
-      {
-        cache:
-          'no-store',
-      }
-    )
-      .then(
-        (res) =>
-          res.json()
-      )
-      .then(
-        (json) => {
+    let isMounted = true;
+
+    const normalizeSlug =
+      (value: unknown) =>
+        decodeURIComponent(
+          String(value || '')
+        )
+          .trim()
+          .toLowerCase()
+          .replace(
+            /[^a-z0-9]/g,
+            ''
+          );
+
+    const toNumber =
+      (
+        value: unknown,
+        fallback = 0
+      ) => {
+        if (
+          typeof value ===
+          'number'
+        ) {
+          return Number.isFinite(
+            value
+          )
+            ? value
+            : fallback;
+        }
+
+        const cleaned =
+          String(
+            value ?? ''
+          ).replace(
+            /[^0-9-]/g,
+            ''
+          );
+
+        const parsed =
+          Number(cleaned);
+
+        return Number.isFinite(
+          parsed
+        )
+          ? parsed
+          : fallback;
+      };
+
+    const loadProgram =
+      async (
+        showLoader = false
+      ) => {
+        if (
+          showLoader &&
+          isMounted
+        ) {
+          setLoading(true);
+        }
+
+        try {
+          const response =
+            await fetch(
+              `/api/programs?t=${Date.now()}`,
+              {
+                method: 'GET',
+                cache: 'no-store',
+                headers: {
+                  Accept:
+                    'application/json',
+                },
+              }
+            );
+
           if (
-            json.success &&
-            json.data
+            !response.ok
           ) {
-            const cleanParamSlug =
-              decodeURIComponent(
-                slug
-              )
-                .toLowerCase()
-                .replace(
-                  /[^a-z0-9]/g,
-                  ''
-                );
-
-            const found =
-              json.data.find(
-                (p: any) => {
-                  const cleanDbSlug =
-                    (
-                      p.slug ||
-                      ''
-                    )
-                      .toLowerCase()
-                      .replace(
-                        /[^a-z0-9]/g,
-                        ''
-                      );
-
-                  return (
-                    cleanDbSlug ===
-                      cleanParamSlug ||
-                    p.slug ===
-                      slug ||
-                    p._id ===
-                      slug
-                  );
-                }
-              );
-
-            setProgram(
-              found
+            throw new Error(
+              `API programs HTTP ${response.status}`
             );
           }
 
-          setLoading(
-            false
-          );
-        }
-      )
-      .catch(
-        (err) => {
+          const json =
+            await response.json();
+
+          if (
+            !json?.success ||
+            !Array.isArray(
+              json?.data
+            )
+          ) {
+            throw new Error(
+              'Format data /api/programs tidak valid.'
+            );
+          }
+
+          const wantedSlug =
+            normalizeSlug(
+              slug
+            );
+
+          const found =
+            json.data.find(
+              (item: any) => {
+                const itemSlug =
+                  normalizeSlug(
+                    item?.slug
+                  );
+
+                const itemId =
+                  String(
+                    item?._id ||
+                    item?.id ||
+                    ''
+                  );
+
+                return (
+                  itemSlug ===
+                    wantedSlug ||
+                  itemId ===
+                    slug
+                );
+              }
+            );
+
+          if (!isMounted) {
+            return;
+          }
+
+          if (!found) {
+            setProgram(null);
+            return;
+          }
+
+          // API normalnya mengirim ketiga field berikut:
+          // collectedAmount (number)
+          // collectedRaw (number)
+          // collected ("Rp 10.000")
+          //
+          // Fallback berlapis mencegah detail menampilkan Rp 0
+          // ketika salah satu field kosong/berbeda tipe.
+          const collectedAmount =
+            toNumber(
+              found
+                ?.collectedAmount ??
+              found
+                ?.collectedRaw ??
+              found
+                ?.collected ??
+              0,
+              0
+            );
+
+          const targetAmount =
+            Math.max(
+              1,
+              toNumber(
+                found
+                  ?.targetAmount ??
+                found
+                  ?.target ??
+                50000000,
+                50000000
+              )
+            );
+
+          const donors =
+            Array.isArray(
+              found?.donors
+            )
+              ? found.donors
+              : [];
+
+          const reports =
+            Array.isArray(
+              found?.reports
+            )
+              ? found.reports
+              : [];
+
+          const donorsCount =
+            Math.max(
+              donors.length,
+              toNumber(
+                found
+                  ?.donorsCount,
+                donors.length
+              )
+            );
+
+          setProgram({
+            ...found,
+
+            collectedAmount,
+            collectedRaw:
+              collectedAmount,
+
+            targetAmount,
+
+            donors,
+            donorsCount,
+
+            reports,
+          });
+        } catch (err) {
           console.error(
             'Fetch detail campaign error:',
             err
           );
-
-          setLoading(
-            false
-          );
+        } finally {
+          if (isMounted) {
+            setLoading(false);
+          }
         }
+      };
+
+    const refresh =
+      () => {
+        void loadProgram(
+          false
+        );
+      };
+
+    const handleVisibility =
+      () => {
+        if (
+          document.visibilityState ===
+          'visible'
+        ) {
+          refresh();
+        }
+      };
+
+    void loadProgram(
+      true
+    );
+
+    window.addEventListener(
+      'focus',
+      refresh
+    );
+
+    window.addEventListener(
+      'pageshow',
+      refresh
+    );
+
+    document.addEventListener(
+      'visibilitychange',
+      handleVisibility
+    );
+
+    const intervalId =
+      window.setInterval(
+        refresh,
+        15000
       );
+
+    return () => {
+      isMounted = false;
+
+      window.removeEventListener(
+        'focus',
+        refresh
+      );
+
+      window.removeEventListener(
+        'pageshow',
+        refresh
+      );
+
+      document.removeEventListener(
+        'visibilitychange',
+        handleVisibility
+      );
+
+      window.clearInterval(
+        intervalId
+      );
+    };
   }, [slug]);
 
   // =================================================================
@@ -986,23 +1177,95 @@ export default function CampaignDetailClient({
   // DATA
   // =================================================================
 
+  const parseAmount =
+    (
+      value: unknown,
+      fallback = 0
+    ) => {
+      if (
+        typeof value ===
+        'number'
+      ) {
+        return Number.isFinite(
+          value
+        )
+          ? value
+          : fallback;
+      }
+
+      const parsed =
+        Number(
+          String(
+            value ?? ''
+          ).replace(
+            /[^0-9-]/g,
+            ''
+          )
+        );
+
+      return Number.isFinite(
+        parsed
+      )
+        ? parsed
+        : fallback;
+    };
+
   const rawTarget =
-    program.targetAmount ||
-    50000000;
+    Math.max(
+      1,
+      parseAmount(
+        program.targetAmount ??
+        program.target ??
+        50000000,
+        50000000
+      )
+    );
 
   const currentCollected =
-    Number(
-      program.collectedAmount ||
+    Math.max(
+      0,
+      parseAmount(
+        program.collectedAmount ??
+        program.collectedRaw ??
+        program.collected ??
+        0,
         0
+      )
     );
+
+  const donorList =
+    Array.isArray(
+      program.donors
+    )
+      ? program.donors
+      : [];
+
+  const donorCount =
+    Math.max(
+      donorList.length,
+      parseAmount(
+        program.donorsCount,
+        donorList.length
+      )
+    );
+
+  const reportList =
+    Array.isArray(
+      program.reports
+    )
+      ? program.reports
+      : [];
 
   const percentage =
     Math.min(
-      Math.round(
-        (
-          currentCollected /
-          rawTarget
-        ) * 100
+      Math.max(
+        Math.round(
+          (
+            currentCollected /
+            rawTarget
+          ) * 100
+        ),
+        0
       ),
       100
     );
@@ -1120,10 +1383,7 @@ export default function CampaignDetailClient({
             >
               Donatur (
               {
-                (
-                  program.donors ||
-                  []
-                ).length
+                donorCount
               }
               )
             </button>
@@ -1143,10 +1403,7 @@ export default function CampaignDetailClient({
             >
               Laporan (
               {
-                (
-                  program.reports ||
-                  []
-                ).length
+                reportList.length
               }
               )
             </button>
@@ -1200,11 +1457,10 @@ export default function CampaignDetailClient({
             {activeTab ===
               'donatur' && (
               <div className="space-y-3 py-1">
-                {(program.donors ||
-                  []).length >
+                {donorList.length >
                 0 ? (
                   [
-                    ...program.donors,
+                    ...donorList,
                   ]
                     .reverse()
                     .map(
@@ -1268,11 +1524,10 @@ export default function CampaignDetailClient({
             {activeTab ===
               'laporan' && (
               <div className="space-y-4 py-1">
-                {(program.reports ||
-                  []).length >
+                {reportList.length >
                 0 ? (
                   [
-                    ...program.reports,
+                    ...reportList,
                   ]
                     .reverse()
                     .map(
