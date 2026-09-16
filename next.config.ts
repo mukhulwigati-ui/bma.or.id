@@ -37,20 +37,40 @@ const nextConfig: NextConfig = {
 
   // ==========================================================================
   // HTML LIMITED BOTS
+  // ==========================================================================
   //
-  // PENTING UNTUK:
-  // WhatsApp
-  // Facebook
-  // Twitter / X
-  // Telegram
-  // LinkedIn
+  // Next.js secara default dapat melakukan streaming metadata.
   //
-  // Bot yang cocok regex ini akan menunggu generateMetadata()
-  // selesai sehingga OG metadata tersedia di <head> HTML awal.
+  // Browser biasa:
+  //   HTML dapat dikirim lebih dahulu, metadata menyusul.
+  //
+  // Social crawler:
+  //   kita ingin Next.js MENUNGGU generateMetadata()
+  //   sebelum HTML dikirim.
+  //
+  // Ini penting untuk:
+  // - WhatsApp
+  // - Facebook
+  // - Meta crawler
+  // - Messenger
+  // - Twitter / X
+  // - Telegram
+  // - LinkedIn
+  // - Slack
+  // - Discord
+  //
+  // Meta memakai beberapa User-Agent berbeda, antara lain:
+  // facebookexternalhit
+  // Facebot
+  // Meta-ExternalAgent
+  // Meta-ExternalFetcher
+  //
+  // Jangan hapus konfigurasi ini karena sangat penting
+  // untuk Open Graph halaman News dan Campaign.
   // ==========================================================================
 
   htmlLimitedBots:
-    /facebookexternalhit|Facebot|WhatsApp|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot|Googlebot|bingbot/i,
+    /facebookexternalhit|Facebot|Meta-ExternalAgent|Meta-ExternalFetcher|WhatsApp|WhatsApp\/|Twitterbot|TelegramBot|LinkedInBot|Slackbot|Discordbot/i,
 
   // ==========================================================================
   // SECURITY HEADERS
