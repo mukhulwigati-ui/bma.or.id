@@ -31,30 +31,59 @@ const SITE_URL = 'https://www.bma.or.id';
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
 
 const DEFAULT_TITLE =
-  'bma.or.id | Baitul Maal Al Muttaqin';
+  'Baitul Maal Al Muttaqin | Zakat, Infak, Sedekah, Wakaf & Donasi';
 
 const DEFAULT_DESCRIPTION =
-  'Platform resmi Baitul Maal Al Muttaqin Jepara untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.';
+  'Salurkan zakat, infak, sedekah, wakaf, dan donasi terbaik Anda melalui Baitul Maal Al Muttaqin.';
+
+// ============================================================
+// OPEN GRAPH IMAGE
+//
+// File:
+// public/images/og-home.jpg
+//
+// Ukuran:
+// 1200 x 630
+//
+// Format:
+// JPEG
+//
+// File dibuat khusus lebih ringan untuk crawler WhatsApp,
+// Facebook, Telegram, LinkedIn, dan media sosial lainnya.
+// ============================================================
 
 const DEFAULT_IMAGE =
-  `${SITE_URL}/images/banner.png`;
+  `${SITE_URL}/images/og-home.jpg`;
 
 // ============================================================
 // ROOT METADATA
 // ============================================================
 
 export const metadata: Metadata = {
-  // PENTING:
-  // sebelumnya salah:
-  // https://wwww.bma.or.id
+  // ==========================================================
+  // METADATA BASE
+  // ==========================================================
+
   metadataBase: new URL(SITE_URL),
+
+  // ==========================================================
+  // TITLE
+  // ==========================================================
 
   title: {
     default: DEFAULT_TITLE,
     template: '%s | bma.or.id',
   },
 
+  // ==========================================================
+  // DESCRIPTION
+  // ==========================================================
+
   description: DEFAULT_DESCRIPTION,
+
+  // ==========================================================
+  // APPLICATION
+  // ==========================================================
 
   applicationName: SITE_NAME,
 
@@ -84,17 +113,25 @@ export const metadata: Metadata = {
     'bma.or.id',
     'Baitul Maal Al Muttaqin',
     'BMA Jepara',
+    'Baitul Maal Jepara',
     'zakat online',
     'infak online',
+    'infaq online',
     'sedekah online',
     'wakaf online',
     'donasi online',
+    'sedekah Jepara',
+    'zakat Jepara',
   ],
 
   // ==========================================================
   // CANONICAL HOMEPAGE
   //
-  // Child page seperti /campaign/[slug] dan /news/[slug]
+  // Child page seperti:
+  //
+  // /campaign/[slug]
+  // /news/[slug]
+  //
   // dapat menimpa canonical ini melalui generateMetadata().
   // ==========================================================
 
@@ -103,9 +140,17 @@ export const metadata: Metadata = {
   },
 
   // ==========================================================
-  // OPEN GRAPH DEFAULT HOMEPAGE
+  // OPEN GRAPH
   //
-  // Campaign dan News akan menimpa bagian ini.
+  // Digunakan oleh:
+  //
+  // - WhatsApp
+  // - Facebook
+  // - Telegram
+  // - LinkedIn
+  // - crawler sosial lainnya
+  //
+  // Campaign dan News dapat menimpa metadata ini.
   // ==========================================================
 
   openGraph: {
@@ -119,20 +164,22 @@ export const metadata: Metadata = {
 
     title: DEFAULT_TITLE,
 
-    description:
-      'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin Jepara.',
+    description: DEFAULT_DESCRIPTION,
 
     images: [
       {
         url: DEFAULT_IMAGE,
 
+        secureUrl: DEFAULT_IMAGE,
+
         width: 1200,
 
         height: 630,
 
-        type: 'image/png',
+        type: 'image/jpeg',
 
-        alt: SITE_NAME,
+        alt:
+          'Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah, Wakaf dan Donasi',
       },
     ],
   },
@@ -146,15 +193,43 @@ export const metadata: Metadata = {
 
     title: DEFAULT_TITLE,
 
-    description:
-      'Platform resmi Baitul Maal Al Muttaqin Jepara.',
+    description: DEFAULT_DESCRIPTION,
 
     images: [
       {
         url: DEFAULT_IMAGE,
-        alt: SITE_NAME,
+
+        width: 1200,
+
+        height: 630,
+
+        alt:
+          'Baitul Maal Al Muttaqin - Zakat, Infak, Sedekah, Wakaf dan Donasi',
       },
     ],
+  },
+
+  // ==========================================================
+  // META TAMBAHAN UNTUK CRAWLER SOSIAL
+  //
+  // Pola ini sama dengan yang berhasil pada Mukhlasin.
+  //
+  // Selain:
+  //
+  // <meta property="og:image" ...>
+  //
+  // dari openGraph.images, Next.js juga akan menghasilkan:
+  //
+  // <meta name="og:image" ...>
+  // <meta name="og:image:secure_url" ...>
+  //
+  // Ini sengaja dipertahankan untuk kompatibilitas crawler.
+  // ==========================================================
+
+  other: {
+    'og:image': DEFAULT_IMAGE,
+
+    'og:image:secure_url': DEFAULT_IMAGE,
   },
 
   // ==========================================================
@@ -226,7 +301,7 @@ export default function RootLayout({
             __html: `
               window.dataLayer = window.dataLayer || [];
 
-              function gtag(){
+              function gtag() {
                 dataLayer.push(arguments);
               }
 
@@ -250,9 +325,7 @@ export default function RootLayout({
         <Script
           src="https://app.midtrans.com/snap/snap.js"
           data-client-key={
-            process.env
-              .NEXT_PUBLIC_MIDTRANS_CLIENT_KEY ||
-            ''
+            process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || ''
           }
           strategy="lazyOnload"
           crossOrigin="anonymous"

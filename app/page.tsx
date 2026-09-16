@@ -42,7 +42,7 @@ const SITE_REGION =
 
 
 const HOME_IMAGE =
-  `${SITE_URL}/images/banner.png`;
+  `${SITE_URL}/images/og-home.jpg`;
 
 const HOME_TITLE =
   'Baitul Maal Al Muttaqin | Zakat, Infak, Sedekah, Wakaf & Donasi';
@@ -171,6 +171,15 @@ export const metadata: Metadata = {
         secureUrl:
           HOME_IMAGE,
 
+        width:
+          1200,
+
+        height:
+          630,
+
+        type:
+          'image/jpeg',
+
         alt:
           `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
       },
@@ -188,7 +197,19 @@ export const metadata: Metadata = {
       HOME_DESCRIPTION,
 
     images: [
-      HOME_IMAGE,
+      {
+        url:
+          HOME_IMAGE,
+
+        width:
+          1200,
+
+        height:
+          630,
+
+        alt:
+          `${SITE_NAME} - Menghubungkan Amanah, Menghadirkan Manfaat`,
+      },
     ],
   },
 
@@ -246,6 +267,12 @@ export const metadata: Metadata = {
 
     'content-language':
       'id-ID',
+
+    'og:image':
+      HOME_IMAGE,
+
+    'og:image:secure_url':
+      HOME_IMAGE,
   },
 };
 
