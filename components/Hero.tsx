@@ -30,7 +30,7 @@ const SITE_NAME =
   'Baitul Maal Al Muttaqin';
 
 const SITE_DOMAIN =
-  'bma.or.id';
+  'www.bma.or.id';
 
 // ============================================================
 // HERO TYPE
@@ -52,44 +52,31 @@ interface HeroProps {
 }
 
 // ============================================================
-// HELPER IMAGE
-// Semua image cdn.sanity.io diproxy melalui domain sendiri
+// VALIDATE BANNERS
 // ============================================================
 
-function getProxiedImageUrl(
-  imageUrl: string
-) {
-  if (!imageUrl) {
-    return '';
+function getValidBanners(
+  value: unknown
+): HeroBanner[] {
+  if (!Array.isArray(value)) {
+    return [];
   }
 
-  // Gambar lokal jangan diproxy
-  if (
-    imageUrl.startsWith('/')
-  ) {
-    return imageUrl;
-  }
-
-  try {
-    const parsed =
-      new URL(imageUrl);
-
-    if (
-      parsed.hostname ===
-      'cdn.sanity.io'
-    ) {
-      return (
-        '/api/sanity-image?src=' +
-        encodeURIComponent(
-          imageUrl
-        )
-      );
-    }
-
-    return imageUrl;
-  } catch {
-    return imageUrl;
-  }
+  return value.filter(
+    (
+      item
+    ): item is HeroBanner =>
+      Boolean(
+        item &&
+          typeof item === 'object' &&
+          '_id' in item &&
+          'imageUrl' in item &&
+          typeof item._id === 'string' &&
+          item._id.trim() &&
+          typeof item.imageUrl === 'string' &&
+          item.imageUrl.trim()
+      )
+  );
 }
 
 // ============================================================
@@ -99,6 +86,21 @@ function getProxiedImageUrl(
 export default function Hero({
   initialBanners = [],
 }: HeroProps) {
+  // ==========================================================
+  // INITIAL DATA
+  //
+  // Kalau homepage sudah membawa banner dari server,
+  // banner langsung digunakan tanpa menunggu API client.
+  // ==========================================================
+
+  const validInitialBanners =
+    useMemo(
+      () =>
+        getValidBanners(
+          initialBanners
+        ),
+      [initialBanners]
+    );
 
   // ==========================================================
   // STATE
@@ -108,13 +110,15 @@ export default function Hero({
     banners,
     setBanners,
   ] = useState<HeroBanner[]>(
-    initialBanners
+    validInitialBanners
   );
 
   const [
     loadingBanner,
     setLoadingBanner,
-  ] = useState(true);
+  ] = useState(
+    validInitialBanners.length === 0
+  );
 
   const [
     bannerError,
@@ -140,16 +144,17 @@ export default function Hero({
   // SUPABASE
   // ==========================================================
 
-  const supabase = useMemo(
-    () =>
-      createBrowserClient(
-        process.env
-          .NEXT_PUBLIC_SUPABASE_URL!,
-        process.env
-          .NEXT_PUBLIC_SUPABASE_ANON_KEY!
-      ),
-    []
-  );
+  const supabase =
+    useMemo(
+      () =>
+        createBrowserClient(
+          process.env
+            .NEXT_PUBLIC_SUPABASE_URL!,
+          process.env
+            .NEXT_PUBLIC_SUPABASE_ANON_KEY!
+        ),
+      []
+    );
 
   // ==========================================================
   // CATEGORY
@@ -269,21 +274,31 @@ export default function Hero({
         );
 
   // ==========================================================
-  // FETCH HERO VIA INTERNAL API
+  // BACKGROUND REFRESH HERO
   //
-  // Sengaja SELALU fetch.
-  // Jadi meskipun app/page.tsx membawa data lama,
-  // data terbaru Sanity akan menimpanya.
+  // PERUBAHAN PENTING:
+  //
+  // 1. initialBanners langsung tampil.
+  // 2. Kalau initialBanners tersedia, TIDAK menampilkan spinner.
+  // 3. API tetap dipanggil di background agar banner terbaru
+  //    dari Sanity tetap masuk.
+  // 4. Jika API gagal, banner awal tetap dipertahankan.
   // ==========================================================
 
   useEffect(() => {
     let cancelled = false;
 
-    async function fetchHeroBanners() {
+    async function refreshHeroBanners() {
+      const hasInitial =
+        validInitialBanners.length >
+        0;
+
       try {
-        setLoadingBanner(
-          true
-        );
+        // Hanya tampilkan loader jika memang
+        // tidak ada banner dari server.
+        if (!hasInitial) {
+          setLoadingBanner(true);
+        }
 
         setBannerError('');
 
@@ -303,87 +318,59 @@ export default function Hero({
             }
           );
 
-        const json =
-          await response.json();
-
         if (!response.ok) {
           throw new Error(
-            json?.error ||
-              'Gagal mengambil banner.'
+            'Gagal mengambil banner.'
           );
         }
+
+        const json =
+          await response.json();
 
         if (cancelled) {
           return;
         }
 
-        const result =
-          Array.isArray(
-            json?.data
-          )
-            ? json.data
-            : [];
-
         const valid =
-          result.filter(
-            (
-              item: HeroBanner
-            ) =>
-              item &&
-              item._id &&
-              typeof item.imageUrl ===
-                'string' &&
-              item.imageUrl.trim() !==
-                ''
+          getValidBanners(
+            json?.data
           );
 
-        console.log(
-          '✅ BMA HERO SANITY:',
-          {
-            projectId:
-              json?.projectId,
-            dataset:
-              json?.dataset,
-            count:
-              valid.length,
-            data: valid,
-          }
-        );
+        // Jangan hapus banner lama hanya
+        // karena API mengembalikan array kosong.
+        if (valid.length > 0) {
+          setBanners(valid);
 
-        setBanners(valid);
-
-        setCurrentIndex(0);
-
-        if (
-          valid.length === 0
+          setCurrentIndex(
+            (previous) =>
+              previous <
+              valid.length
+                ? previous
+                : 0
+          );
+        } else if (
+          !hasInitial
         ) {
+          setBanners([]);
+
           setBannerError(
             'Belum ada banner aktif dari Sanity.'
           );
         }
-      } catch (error: any) {
+      } catch (error) {
         console.error(
-          '❌ Hero BMA error:',
+          '❌ Hero BMA refresh error:',
           error
         );
 
-        if (!cancelled) {
-          // Jika initialBanners
-          // memang ada, tetap gunakan.
-          if (
-            initialBanners.length >
-            0
-          ) {
-            setBanners(
-              initialBanners
-            );
-          } else {
-            setBanners([]);
-          }
-
+        if (
+          !cancelled &&
+          !hasInitial
+        ) {
           setBannerError(
-            error?.message ||
-              'Gagal terhubung ke Sanity.'
+            error instanceof Error
+              ? error.message
+              : 'Gagal terhubung ke Sanity.'
           );
         }
       } finally {
@@ -395,12 +382,12 @@ export default function Hero({
       }
     }
 
-    fetchHeroBanners();
+    refreshHeroBanners();
 
     return () => {
       cancelled = true;
     };
-  }, [initialBanners]);
+  }, [validInitialBanners]);
 
   // ==========================================================
   // RESET INDEX
@@ -463,8 +450,8 @@ export default function Hero({
     async () => {
       try {
         const { error } =
-          await supabase.auth.signInWithOAuth(
-            {
+          await supabase.auth
+            .signInWithOAuth({
               provider:
                 'google',
 
@@ -472,16 +459,20 @@ export default function Hero({
                 redirectTo:
                   `${window.location.origin}/auth/callback`,
               },
-            }
-          );
+            });
 
         if (error) {
           throw error;
         }
-      } catch (error: any) {
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Terjadi kesalahan.';
+
         alert(
           'Gagal masuk dengan Google: ' +
-            error.message
+            message
         );
       }
     };
@@ -505,13 +496,11 @@ export default function Hero({
         space-y-4
       "
     >
-
       {/* ======================================================
           HERO SLIDER
       ====================================================== */}
 
       <div>
-
         <div
           className="
             relative
@@ -523,48 +512,56 @@ export default function Hero({
             bg-[#e5e5e5]
           "
         >
+          {/* ================================================
+              LOADING
 
-          {/* LOADING */}
-          {loadingBanner && (
-            <div
-              className="
-                absolute
-                inset-0
-                z-30
-                flex
-                flex-col
-                items-center
-                justify-center
-                bg-[#e5e5e5]
-              "
-            >
+              Hanya muncul apabila server benar-benar
+              tidak memberikan initial banner.
+          ================================================= */}
 
-              <Loader2
+          {loadingBanner &&
+            banners.length ===
+              0 && (
+              <div
                 className="
-                  h-6
-                  w-6
-                  animate-spin
-                  text-[#555555]
-                "
-              />
-
-              <span
-                className="
-                  mt-3
-                  text-[9px]
-                  font-bold
-                  uppercase
-                  tracking-[0.15em]
-                  text-[#666666]
+                  absolute
+                  inset-0
+                  z-30
+                  flex
+                  flex-col
+                  items-center
+                  justify-center
+                  bg-[#e5e5e5]
                 "
               >
-                Memuat banner BMA
-              </span>
+                <Loader2
+                  className="
+                    h-6
+                    w-6
+                    animate-spin
+                    text-[#555555]
+                  "
+                />
 
-            </div>
-          )}
+                <span
+                  className="
+                    mt-3
+                    text-[9px]
+                    font-bold
+                    uppercase
+                    tracking-[0.15em]
+                    text-[#666666]
+                  "
+                >
+                  Memuat banner BMA
+                </span>
+              </div>
+            )}
 
-          {/* EMPTY / ERROR */}
+          {/* ================================================
+              EMPTY / ERROR
+          ================================================= */}
+
           {!loadingBanner &&
             banners.length ===
               0 && (
@@ -581,7 +578,6 @@ export default function Hero({
                   text-center
                 "
               >
-
                 <ImageOff
                   className="
                     h-7
@@ -612,85 +608,92 @@ export default function Hero({
                   {bannerError ||
                     'Tidak ada banner aktif.'}
                 </p>
-
               </div>
             )}
 
-          {/* BANNER */}
-          {!loadingBanner &&
-            banners.map(
-              (
-                banner,
-                index
-              ) => {
-                const active =
-                  index ===
-                  currentIndex;
+          {/* ================================================
+              BANNERS
 
-                const src =
-                  getProxiedImageUrl(
-                    banner.imageUrl
-                  );
+              PENTING:
+              imageUrl langsung menuju Sanity CDN.
+              Tidak lagi melalui /api/sanity-image.
+          ================================================= */}
 
-                return (
-                  <div
-                    key={
-                      banner._id
+          {banners.map(
+            (
+              banner,
+              index
+            ) => {
+              const active =
+                index ===
+                currentIndex;
+
+              const isFirst =
+                index === 0;
+
+              return (
+                <div
+                  key={
+                    banner._id
+                  }
+                  className={`
+                    absolute
+                    inset-0
+                    transition-opacity
+                    duration-700
+                    ${
+                      active
+                        ? 'z-10 opacity-100'
+                        : 'z-0 opacity-0 pointer-events-none'
                     }
-                    className={`
-                      absolute
-                      inset-0
-                      transition-opacity
-                      duration-700
-                      ${
-                        active
-                          ? 'z-10 opacity-100'
-                          : 'z-0 opacity-0 pointer-events-none'
-                      }
-                    `}
+                  `}
+                >
+                  <Link
+                    href={
+                      banner.linkUrl ||
+                      '#'
+                    }
+                    className="
+                      relative
+                      block
+                      h-full
+                      w-full
+                    "
                   >
-
-                    <Link
-                      href={
-                        banner.linkUrl ||
-                        '#'
+                    <Image
+                      src={
+                        banner.imageUrl
                       }
+                      alt={
+                        banner.title ||
+                        'Banner BMA'
+                      }
+                      fill
+                      sizes="(max-width: 448px) 100vw, 448px"
                       className="
-                        relative
-                        block
-                        h-full
-                        w-full
+                        object-cover
+                        object-center
                       "
-                    >
-
-                      <Image
-                        src={src}
-                        alt={
-                          banner.title ||
-                          'Banner BMA'
-                        }
-                        fill
-                        sizes="(max-width: 448px) 100vw, 448px"
-                        className="
-                          object-cover
-                          object-center
-                        "
-                        priority={
-                          index === 0
-                        }
-                        unoptimized
-                      />
-
-                    </Link>
-
-                  </div>
-                );
-              }
-            )}
-
+                      priority={
+                        isFirst
+                      }
+                      fetchPriority={
+                        isFirst
+                          ? 'high'
+                          : 'auto'
+                      }
+                    />
+                  </Link>
+                </div>
+              );
+            }
+          )}
         </div>
 
-        {/* DOT SLIDER */}
+        {/* ==================================================
+            DOT SLIDER
+        ================================================== */}
+
         {!loadingBanner &&
           banners.length > 1 && (
             <div
@@ -702,7 +705,6 @@ export default function Hero({
                 gap-1.5
               "
             >
-
               {banners.map(
                 (
                   banner,
@@ -735,10 +737,8 @@ export default function Hero({
                   />
                 )
               )}
-
             </div>
           )}
-
       </div>
 
       {/* ======================================================
@@ -746,7 +746,6 @@ export default function Hero({
       ====================================================== */}
 
       <div className="pt-2 pb-1">
-
         <h3
           className="
             mb-4
@@ -769,16 +768,19 @@ export default function Hero({
             text-center
           "
         >
-
           {displayedCategories.map(
-            (cat, index) => {
-
+            (
+              cat,
+              index
+            ) => {
               if (
                 cat.isAuthBtn
               ) {
                 return (
                   <button
-                    key={index}
+                    key={
+                      index
+                    }
                     type="button"
                     onClick={() =>
                       setShowAuthModal(
@@ -794,7 +796,6 @@ export default function Hero({
                       focus:outline-none
                     "
                   >
-
                     <div
                       className="
                         relative
@@ -816,19 +817,22 @@ export default function Hero({
                         sm:w-16
                       "
                     >
-
                       <Image
-                        src={cat.icon}
-                        alt={cat.name}
+                        src={
+                          cat.icon
+                        }
+                        alt={
+                          cat.name
+                        }
                         width={64}
                         height={64}
+                        sizes="64px"
                         className="
                           h-full
                           w-full
                           object-cover
                         "
                       />
-
                     </div>
 
                     <span
@@ -845,7 +849,6 @@ export default function Hero({
                     >
                       {cat.name}
                     </span>
-
                   </button>
                 );
               }
@@ -853,7 +856,9 @@ export default function Hero({
               return (
                 <Link
                   key={index}
-                  href={cat.href}
+                  href={
+                    cat.href
+                  }
                   className="
                     group
                     flex
@@ -861,7 +866,6 @@ export default function Hero({
                     items-center
                   "
                 >
-
                   <div
                     className="
                       relative
@@ -883,19 +887,22 @@ export default function Hero({
                       sm:w-16
                     "
                   >
-
                     <Image
-                      src={cat.icon}
-                      alt={cat.name}
+                      src={
+                        cat.icon
+                      }
+                      alt={
+                        cat.name
+                      }
                       width={64}
                       height={64}
+                      sizes="64px"
                       className="
                         h-full
                         w-full
                         object-cover
                       "
                     />
-
                   </div>
 
                   <span
@@ -912,13 +919,13 @@ export default function Hero({
                   >
                     {cat.name}
                   </span>
-
                 </Link>
               );
             }
           )}
 
           {/* LAINNYA */}
+
           {!isExpanded && (
             <button
               type="button"
@@ -936,7 +943,6 @@ export default function Hero({
                 focus:outline-none
               "
             >
-
               <div
                 className="
                   flex
@@ -955,7 +961,6 @@ export default function Hero({
                   sm:w-16
                 "
               >
-
                 <svg
                   className="
                     h-6
@@ -975,7 +980,6 @@ export default function Hero({
                     d="M4 6h16M4 12h16M4 18h16"
                   />
                 </svg>
-
               </div>
 
               <span
@@ -989,11 +993,11 @@ export default function Hero({
               >
                 Lainnya
               </span>
-
             </button>
           )}
 
           {/* TUTUP */}
+
           {isExpanded && (
             <button
               type="button"
@@ -1011,7 +1015,6 @@ export default function Hero({
                 focus:outline-none
               "
             >
-
               <div
                 className="
                   flex
@@ -1028,7 +1031,6 @@ export default function Hero({
                   sm:w-16
                 "
               >
-
                 <X
                   className="
                     h-6
@@ -1036,7 +1038,6 @@ export default function Hero({
                     text-[#555555]
                   "
                 />
-
               </div>
 
               <span
@@ -1050,12 +1051,9 @@ export default function Hero({
               >
                 Tutup
               </span>
-
             </button>
           )}
-
         </div>
-
       </div>
 
       {/* ======================================================
@@ -1076,7 +1074,6 @@ export default function Hero({
             backdrop-blur-xs
           "
         >
-
           <div
             className="
               relative
@@ -1091,7 +1088,6 @@ export default function Hero({
               shadow-2xl
             "
           >
-
             <button
               type="button"
               onClick={() =>
@@ -1113,9 +1109,7 @@ export default function Hero({
                 hover:text-gray-700
               "
             >
-
               <X className="h-4 w-4" />
-
             </button>
 
             <div
@@ -1125,7 +1119,6 @@ export default function Hero({
                 text-center
               "
             >
-
               <div
                 className="
                   mx-auto
@@ -1140,9 +1133,7 @@ export default function Hero({
                   text-[#444444]
                 "
               >
-
                 <UserPlus className="h-6 w-6" />
-
               </div>
 
               <h4
@@ -1169,11 +1160,9 @@ export default function Hero({
                 program kebaikan melalui akun{' '}
                 {SITE_DOMAIN}.
               </p>
-
             </div>
 
             <div className="space-y-3 pt-2">
-
               <button
                 type="button"
                 onClick={
@@ -1200,7 +1189,6 @@ export default function Hero({
                   sm:text-sm
                 "
               >
-
                 <svg
                   className="h-5 w-5"
                   viewBox="0 0 24 24"
@@ -1209,14 +1197,17 @@ export default function Hero({
                     fill="#4285F4"
                     d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
                   />
+
                   <path
                     fill="#34A853"
                     d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.19v3.15C3.17 21.3 7.28 24 12 24z"
                   />
+
                   <path
                     fill="#FBBC05"
                     d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.19C.43 8.12 0 9.87 0 12s.43 3.88 1.19 5.42l4.09-3.15z"
                   />
+
                   <path
                     fill="#EA4335"
                     d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.28 0 3.17 2.7 1.19 6.58l4.09 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
@@ -1226,7 +1217,6 @@ export default function Hero({
                 <span>
                   Masuk / Daftar dengan Google
                 </span>
-
               </button>
 
               <div
@@ -1240,7 +1230,6 @@ export default function Hero({
                   text-gray-400
                 "
               >
-
                 <ShieldCheck
                   className="
                     h-3.5
@@ -1250,18 +1239,13 @@ export default function Hero({
                 />
 
                 <span>
-                  Autentikasi aman & terverifikasi otomatis
+                  Autentikasi aman &amp; terverifikasi otomatis
                 </span>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 }
