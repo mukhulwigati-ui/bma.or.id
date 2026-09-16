@@ -14,6 +14,17 @@ interface Props {
   }>;
 }
 
+interface NewsMetadata {
+  title?: string;
+  excerpt?: string;
+  description?: string;
+  summary?: string;
+  content?: any[];
+  publishedAt?: string;
+  imageUrl?: string;
+  imageAlt?: string;
+}
+
 // ============================================================
 // IDENTITAS BMA
 // ============================================================
@@ -22,31 +33,46 @@ const SITE_NAME = 'Baitul Maal Al Muttaqin';
 const SITE_DOMAIN = 'www.bma.or.id';
 const SITE_URL = 'https://www.bma.or.id';
 
+const PROJECT_ID = 'im4qx3kd';
+const DATASET = 'production';
+
 // ============================================================
-// SANITY BMA
+// SANITY BMA - SERVER ONLY
 // ============================================================
 
 const serverClient = createClient({
-  projectId: 'im4qx3kd',
-  dataset: 'production',
-  useCdn: false,
+  projectId: PROJECT_ID,
+  dataset: DATASET,
   apiVersion: '2026-08-01',
+  useCdn: false,
   perspective: 'published',
 });
 
 // ============================================================
-// CACHE / DYNAMIC
+// DYNAMIC / CACHE
 // ============================================================
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // ============================================================
+// NORMALIZE SLUG
+// ============================================================
+
+function normalizeSlug(value: string): string {
+  try {
+    return decodeURIComponent(value).trim();
+  } catch {
+    return value.trim();
+  }
+}
+
+// ============================================================
 // PORTABLE TEXT -> PLAIN TEXT
 // ============================================================
 
 function portableTextToPlainText(
-  content: any
+  content: unknown
 ): string {
   if (!content) {
     return '';
@@ -63,8 +89,7 @@ function portableTextToPlainText(
   return content
     .filter(
       (block: any) =>
-        block &&
-        block._type === 'block' &&
+        block?._type === 'block' &&
         Array.isArray(block.children)
     )
     .map((block: any) =>
@@ -86,10 +111,14 @@ function portableTextToPlainText(
 // ============================================================
 
 function makeExcerpt(
-  text: string,
-  maxLength = 160
+  value: unknown,
+  maxLength = 180
 ): string {
-  const clean = String(text || '')
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const clean = value
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -101,35 +130,31 @@ function makeExcerpt(
     return clean;
   }
 
-  return (
-    clean
-      .slice(0, maxLength)
-      .trimEnd() + '...'
-  );
+  return `${clean
+    .slice(0, maxLength)
+    .trimEnd()}...`;
 }
 
 // ============================================================
 // NORMALIZE IMAGE
-//
-// PENTING:
-// Untuk gambar Sanity jangan tambahkan:
-// ?w=1200&h=630&fit=crop&fm=jpg
-//
-// URL asset asli diberikan langsung ke WhatsApp.
 // ============================================================
 
 function normalizeImageUrl(
   value: unknown
 ): string {
+  const fallback =
+    `${SITE_URL}/images/banner.png`;
+
   if (
     typeof value !== 'string' ||
     !value.trim()
   ) {
-    return `${SITE_URL}/images/banner.png`;
+    return fallback;
   }
 
   const image = value.trim();
 
+  // URL asli Sanity dipertahankan.
   if (
     image.startsWith('https://') ||
     image.startsWith('http://')
@@ -143,7 +168,81 @@ function normalizeImageUrl(
 }
 
 // ============================================================
-// DYNAMIC METADATA
+// FETCH ARTICLE UNTUK METADATA
+//
+// Metadata mengambil data LANGSUNG dari Sanity.
+// Tidak melalui /api/news/[slug].
+// ============================================================
+
+async function getNewsMetadata(
+  slug: string
+): Promise<NewsMetadata | null> {
+  if (!slug) {
+    return null;
+  }
+
+  try {
+    return await serverClient.fetch<
+      NewsMetadata | null
+    >(
+      `
+        *[
+          _type == "news" &&
+          defined(slug.current) &&
+          lower(slug.current) == lower($slug)
+        ][0] {
+
+          title,
+
+          excerpt,
+
+          description,
+
+          summary,
+
+          content,
+
+          publishedAt,
+
+          "imageUrl":
+            coalesce(
+              image.asset->url,
+              mainImage.asset->url,
+              thumbnail.asset->url,
+              coverImage.asset->url,
+              banner.asset->url
+            ),
+
+          "imageAlt":
+            coalesce(
+              image.alt,
+              mainImage.alt,
+              thumbnail.alt,
+              coverImage.alt,
+              banner.alt,
+              title
+            )
+        }
+      `,
+      {
+        slug,
+      },
+      {
+        cache: 'no-store',
+      }
+    );
+  } catch (error) {
+    console.error(
+      '🔥 BMA NEWS METADATA FETCH ERROR:',
+      error
+    );
+
+    return null;
+  }
+}
+
+// ============================================================
+// GENERATE METADATA
 // ============================================================
 
 export async function generateMetadata({
@@ -152,145 +251,154 @@ export async function generateMetadata({
   const { slug } = await params;
 
   const cleanSlug =
-    decodeURIComponent(slug).trim();
+    normalizeSlug(slug);
 
-  const pageUrl =
+  const canonicalUrl =
     `${SITE_URL}/news/${encodeURIComponent(
       cleanSlug
     )}`;
 
-  const fallbackImage =
-    `${SITE_URL}/images/banner.png`;
+  const article =
+    await getNewsMetadata(
+      cleanSlug
+    );
 
-  let articleTitle =
-    `Berita | ${SITE_NAME}`;
+  // ==========================================================
+  // TITLE
+  // ==========================================================
 
-  let articleExcerpt =
-    `Baca kabar terbaru, laporan program, dan informasi resmi ${SITE_NAME} melalui ${SITE_DOMAIN}.`;
+  const articleTitle =
+    typeof article?.title === 'string' &&
+    article.title.trim()
+      ? article.title.trim()
+      : `Berita | ${SITE_NAME}`;
 
-  let imageUrl = fallbackImage;
+  // ==========================================================
+  // DESCRIPTION
+  // ==========================================================
 
-  try {
-    const article =
-      await serverClient.fetch(
-        `
-          *[
-            _type == "news" &&
-            defined(slug.current) &&
-            lower(slug.current) == lower($slug)
-          ][0] {
-            _id,
-            title,
-            excerpt,
-            description,
-            summary,
-            content,
-            publishedAt,
-            _updatedAt,
+  let articleDescription = '';
 
-            "imageUrl": coalesce(
-              image.asset->url,
-              mainImage.asset->url,
-              thumbnail.asset->url,
-              coverImage.asset->url,
-              banner.asset->url
-            )
-          }
-        `,
-        {
-          slug: cleanSlug,
-        },
-        {
-          cache: 'no-store',
-        }
+  if (article?.excerpt) {
+    articleDescription =
+      makeExcerpt(article.excerpt);
+  }
+
+  if (
+    !articleDescription &&
+    article?.description
+  ) {
+    articleDescription =
+      makeExcerpt(
+        article.description
+      );
+  }
+
+  if (
+    !articleDescription &&
+    article?.summary
+  ) {
+    articleDescription =
+      makeExcerpt(
+        article.summary
+      );
+  }
+
+  if (!articleDescription) {
+    const plainText =
+      portableTextToPlainText(
+        article?.content
       );
 
-    if (article) {
-      // ======================================================
-      // TITLE
-      // ======================================================
-
-      if (
-        typeof article.title === 'string' &&
-        article.title.trim()
-      ) {
-        articleTitle =
-          article.title.trim();
-      }
-
-      // ======================================================
-      // DESCRIPTION
-      // ======================================================
-
-      if (
-        typeof article.excerpt === 'string' &&
-        article.excerpt.trim()
-      ) {
-        articleExcerpt =
-          makeExcerpt(article.excerpt);
-      } else if (
-        typeof article.description === 'string' &&
-        article.description.trim()
-      ) {
-        articleExcerpt =
-          makeExcerpt(article.description);
-      } else if (
-        typeof article.summary === 'string' &&
-        article.summary.trim()
-      ) {
-        articleExcerpt =
-          makeExcerpt(article.summary);
-      } else {
-        const plainText =
-          portableTextToPlainText(
-            article.content
-          );
-
-        if (plainText) {
-          articleExcerpt =
-            makeExcerpt(plainText);
-        }
-      }
-
-      if (!articleExcerpt) {
-        articleExcerpt =
-          `Baca berita lengkap "${articleTitle}" melalui ${SITE_DOMAIN}.`;
-      }
-
-      // ======================================================
-      // IMAGE
-      //
-      // Gunakan URL ASLI Sanity.
-      // Jangan resize / convert format di URL metadata.
-      // ======================================================
-
-      if (article.imageUrl) {
-        imageUrl =
-          normalizeImageUrl(
-            article.imageUrl
-          );
-      }
-    }
-  } catch (error) {
-    console.error(
-      'BMA NEWS METADATA ERROR:',
-      error
-    );
+    articleDescription =
+      makeExcerpt(
+        plainText
+      );
   }
+
+  if (!articleDescription) {
+    articleDescription =
+      `Baca berita "${articleTitle}" selengkapnya melalui ${SITE_DOMAIN}.`;
+  }
+
+  // ==========================================================
+  // IMAGE
+  //
+  // ORIGINAL SANITY IMAGE.
+  // Tidak resize.
+  // Tidak crop.
+  // Tidak convert JPG/WEBP.
+  // ==========================================================
+
+  const imageUrl =
+    normalizeImageUrl(
+      article?.imageUrl
+    );
+
+  const imageAlt =
+    typeof article?.imageAlt === 'string' &&
+    article.imageAlt.trim()
+      ? article.imageAlt.trim()
+      : articleTitle;
+
+  // ==========================================================
+  // DEBUG VERCEL
+  // ==========================================================
+
+  console.log(
+    '========================================'
+  );
+
+  console.log(
+    '📰 BMA NEWS METADATA'
+  );
+
+  console.log(
+    'Slug:',
+    cleanSlug
+  );
+
+  console.log(
+    'Article found:',
+    Boolean(article)
+  );
+
+  console.log(
+    'Title:',
+    articleTitle
+  );
+
+  console.log(
+    'OG Image:',
+    imageUrl
+  );
+
+  console.log(
+    'Canonical:',
+    canonicalUrl
+  );
+
+  console.log(
+    '========================================'
+  );
 
   // ==========================================================
   // METADATA
   // ==========================================================
 
   return {
-    metadataBase: new URL(SITE_URL),
+    metadataBase:
+      new URL(SITE_URL),
 
-    title: articleTitle,
+    title:
+      articleTitle,
 
-    description: articleExcerpt,
+    description:
+      articleDescription,
 
     alternates: {
-      canonical: pageUrl,
+      canonical:
+        canonicalUrl,
     },
 
     robots: {
@@ -300,39 +408,48 @@ export async function generateMetadata({
       googleBot: {
         index: true,
         follow: true,
-        'max-image-preview': 'large',
+        'max-image-preview':
+          'large',
       },
     },
 
     // ========================================================
     // OPEN GRAPH
-    //
-    // Sengaja TIDAK menentukan:
-    // width
-    // height
-    // type
-    //
-    // WhatsApp membaca asset asli.
     // ========================================================
 
     openGraph: {
-      type: 'article',
+      type:
+        'article',
 
-      url: pageUrl,
+      title:
+        articleTitle,
 
-      siteName: SITE_NAME,
+      description:
+        articleDescription,
 
-      locale: 'id_ID',
+      url:
+        canonicalUrl,
 
-      title: articleTitle,
+      siteName:
+        SITE_NAME,
 
-      description: articleExcerpt,
+      locale:
+        'id_ID',
+
+      publishedTime:
+        article?.publishedAt ||
+        undefined,
 
       images: [
         {
-          url: imageUrl,
-          secureUrl: imageUrl,
-          alt: articleTitle,
+          url:
+            imageUrl,
+
+          secureUrl:
+            imageUrl,
+
+          alt:
+            imageAlt,
         },
       ],
     },
@@ -342,11 +459,14 @@ export async function generateMetadata({
     // ========================================================
 
     twitter: {
-      card: 'summary_large_image',
+      card:
+        'summary_large_image',
 
-      title: articleTitle,
+      title:
+        articleTitle,
 
-      description: articleExcerpt,
+      description:
+        articleDescription,
 
       images: [
         imageUrl,
@@ -354,10 +474,16 @@ export async function generateMetadata({
     },
 
     // ========================================================
-    // EXTRA META
+    // META TAMBAHAN
     // ========================================================
 
     other: {
+      'og:image':
+        imageUrl,
+
+      'og:image:url':
+        imageUrl,
+
       'og:image:secure_url':
         imageUrl,
 
@@ -368,7 +494,7 @@ export async function generateMetadata({
 }
 
 // ============================================================
-// SERVER COMPONENT ENTRY
+// SERVER COMPONENT
 // ============================================================
 
 export default async function NewsDetailPage({
@@ -377,7 +503,7 @@ export default async function NewsDetailPage({
   const { slug } = await params;
 
   const cleanSlug =
-    decodeURIComponent(slug).trim();
+    normalizeSlug(slug);
 
   return (
     <BlogDetailClient
