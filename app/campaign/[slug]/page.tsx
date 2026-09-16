@@ -22,23 +22,17 @@ interface Props {
 
 interface CampaignMetadata {
   _id?: string;
-
   title?: string;
-
   slug?: string;
 
   description?: unknown;
-
   excerpt?: unknown;
-
   shortDescription?: unknown;
 
   imageUrl?: string;
-
   imageAlt?: string;
 
   publishedAt?: string;
-
   _updatedAt?: string;
 }
 
@@ -46,14 +40,12 @@ interface CampaignMetadata {
 // IDENTITAS BMA
 // ============================================================
 
-const SITE_NAME =
-  'Baitul Maal Al Muttaqin';
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
 
-const SITE_URL =
-  (
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    'https://www.bma.or.id'
-  ).replace(/\/$/, '');
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  'https://www.bma.or.id'
+).replace(/\/$/, '');
 
 const PROJECT_ID =
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
@@ -66,19 +58,15 @@ const DATASET =
 // ============================================================
 // SANITY SERVER CLIENT
 //
-// Metadata mengambil data LANGSUNG dari Sanity.
+// Metadata campaign diambil LANGSUNG dari Sanity.
 // Tidak melalui /api/programs.
 // ============================================================
 
 const serverClient = createClient({
   projectId: PROJECT_ID,
-
   dataset: DATASET,
-
   apiVersion: '2026-08-01',
-
   useCdn: false,
-
   perspective: 'published',
 });
 
@@ -86,23 +74,16 @@ const serverClient = createClient({
 // NEXT.JS
 // ============================================================
 
-export const dynamic =
-  'force-dynamic';
-
-export const revalidate =
-  0;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // ============================================================
 // NORMALIZE SLUG
 // ============================================================
 
-function normalizeSlug(
-  value: string
-): string {
+function normalizeSlug(value: string): string {
   try {
-    return decodeURIComponent(
-      value
-    ).trim();
+    return decodeURIComponent(value).trim();
   } catch {
     return value.trim();
   }
@@ -119,58 +100,39 @@ function portableTextToPlainText(
     return '';
   }
 
-  // ==========================================================
+  // ----------------------------------------------------------
   // STRING / HTML
-  // ==========================================================
+  // ----------------------------------------------------------
 
-  if (
-    typeof value === 'string'
-  ) {
+  if (typeof value === 'string') {
     return value
-      .replace(
-        /<[^>]*>/g,
-        ' '
-      )
-      .replace(
-        /\s+/g,
-        ' '
-      )
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
-  // ==========================================================
-  // PORTABLE TEXT
-  // ==========================================================
+  // ----------------------------------------------------------
+  // SANITY PORTABLE TEXT
+  // ----------------------------------------------------------
 
-  if (
-    Array.isArray(value)
-  ) {
+  if (Array.isArray(value)) {
     return value
       .filter(
         (block: any) =>
-          block?._type ===
-            'block' &&
-          Array.isArray(
-            block.children
-          )
+          block?._type === 'block' &&
+          Array.isArray(block.children)
       )
-      .map(
-        (block: any) =>
-          block.children
-            .map(
-              (child: any) =>
-                typeof child?.text ===
-                'string'
-                  ? child.text
-                  : ''
-            )
-            .join('')
+      .map((block: any) =>
+        block.children
+          .map((child: any) =>
+            typeof child?.text === 'string'
+              ? child.text
+              : ''
+          )
+          .join('')
       )
       .join(' ')
-      .replace(
-        /\s+/g,
-        ' '
-      )
+      .replace(/\s+/g, ' ')
       .trim();
   }
 
@@ -187,26 +149,18 @@ function makeDescription(
   maxLength = 180
 ): string {
   const plainText =
-    portableTextToPlainText(
-      value
-    );
+    portableTextToPlainText(value);
 
   if (!plainText) {
     return fallback;
   }
 
-  if (
-    plainText.length <=
-    maxLength
-  ) {
+  if (plainText.length <= maxLength) {
     return plainText;
   }
 
   return `${plainText
-    .slice(
-      0,
-      maxLength
-    )
+    .slice(0, maxLength)
     .trimEnd()}...`;
 }
 
@@ -221,58 +175,38 @@ function normalizeImageUrl(
     `${SITE_URL}/images/banner.png`;
 
   if (
-    typeof value !==
-      'string' ||
+    typeof value !== 'string' ||
     !value.trim()
   ) {
     return fallback;
   }
 
-  const image =
-    value.trim();
+  const image = value.trim();
 
   if (
-    image.startsWith(
-      'https://'
-    ) ||
-    image.startsWith(
-      'http://'
-    )
+    image.startsWith('https://') ||
+    image.startsWith('http://')
   ) {
     return image;
   }
 
   return `${SITE_URL}${
-    image.startsWith('/')
-      ? ''
-      : '/'
+    image.startsWith('/') ? '' : '/'
   }${image}`;
 }
 
 // ============================================================
-// SOCIAL / WHATSAPP IMAGE
+// CREATE SOCIAL IMAGE
 //
-// PENTING:
+// Gambar yang tampil di halaman campaign TIDAK diubah.
 //
-// Gambar asli campaign TIDAK diubah.
+// Khusus Open Graph / WhatsApp / Facebook:
+// Sanity image -> JPEG 1200x630 -> quality 85
 //
-// Jika sumber berasal dari Sanity:
-//
-// PNG/JPG asli
-//        ↓
-// Sanity Image CDN
-//        ↓
-// JPEG 1200x630
-// quality 85
-// fit crop
-//
-// Hasil ini HANYA digunakan untuk:
-// - Open Graph
-// - WhatsApp
-// - Facebook
-// - Twitter / X
-//
-// Gambar pada CampaignDetailClient tetap menggunakan file asli.
+// Berdasarkan pengujian:
+// - HTTP 200
+// - Content-Type image/jpeg
+// - ukuran sekitar 204 KB
 // ============================================================
 
 function createSocialImageUrl(
@@ -282,7 +216,10 @@ function createSocialImageUrl(
     return `${SITE_URL}/images/banner.png`;
   }
 
-  // Hanya transform gambar Sanity.
+  // ----------------------------------------------------------
+  // Hanya transform asset Sanity.
+  // ----------------------------------------------------------
+
   if (
     originalImage.includes(
       'cdn.sanity.io/images/'
@@ -290,22 +227,12 @@ function createSocialImageUrl(
   ) {
     try {
       const url =
-        new URL(
-          originalImage
-        );
-
-      // --------------------------------------------------------
-      // Format JPEG
-      // --------------------------------------------------------
+        new URL(originalImage);
 
       url.searchParams.set(
         'fm',
         'jpg'
       );
-
-      // --------------------------------------------------------
-      // Ukuran standar social preview
-      // --------------------------------------------------------
 
       url.searchParams.set(
         'w',
@@ -317,18 +244,10 @@ function createSocialImageUrl(
         '630'
       );
 
-      // --------------------------------------------------------
-      // Crop proporsional
-      // --------------------------------------------------------
-
       url.searchParams.set(
         'fit',
         'crop'
       );
-
-      // --------------------------------------------------------
-      // Kualitas cukup tinggi tetapi lebih ringan dari PNG
-      // --------------------------------------------------------
 
       url.searchParams.set(
         'q',
@@ -366,13 +285,11 @@ async function getCampaignMetadata(
             defined(slug.current) &&
             lower(slug.current) == lower($slug)
           ][0] {
-
             _id,
 
             title,
 
-            "slug":
-              slug.current,
+            "slug": slug.current,
 
             description,
 
@@ -384,39 +301,33 @@ async function getCampaignMetadata(
 
             _updatedAt,
 
-            "imageUrl":
-              coalesce(
-                image.asset->url,
-                mainImage.asset->url,
-                thumbnail.asset->url,
-                coverImage.asset->url,
-                banner.asset->url
-              ),
+            "imageUrl": coalesce(
+              image.asset->url,
+              mainImage.asset->url,
+              thumbnail.asset->url,
+              coverImage.asset->url,
+              banner.asset->url
+            ),
 
-            "imageAlt":
-              coalesce(
-                image.alt,
-                mainImage.alt,
-                thumbnail.alt,
-                coverImage.alt,
-                banner.alt,
-                title
-              )
+            "imageAlt": coalesce(
+              image.alt,
+              mainImage.alt,
+              thumbnail.alt,
+              coverImage.alt,
+              banner.alt,
+              title
+            )
           }
         `,
         {
           slug,
         },
         {
-          cache:
-            'no-store',
+          cache: 'no-store',
         }
       );
 
-    return (
-      campaign ||
-      null
-    );
+    return campaign || null;
   } catch (error) {
     console.error(
       '🔥 BMA CAMPAIGN METADATA FETCH ERROR:',
@@ -434,13 +345,10 @@ async function getCampaignMetadata(
 export async function generateMetadata({
   params,
 }: Props): Promise<Metadata> {
-  const { slug } =
-    await params;
+  const { slug } = await params;
 
   const cleanSlug =
-    normalizeSlug(
-      slug
-    );
+    normalizeSlug(slug);
 
   // ==========================================================
   // CANONICAL
@@ -465,8 +373,7 @@ export async function generateMetadata({
   // ==========================================================
 
   const title =
-    typeof campaign?.title ===
-      'string' &&
+    typeof campaign?.title === 'string' &&
     campaign.title.trim()
       ? campaign.title.trim()
       : `Program Donasi | ${SITE_NAME}`;
@@ -478,12 +385,9 @@ export async function generateMetadata({
   const fallbackDescription =
     `Salurkan zakat, infak, sedekah, wakaf, dan donasi melalui ${SITE_NAME}.`;
 
-  let description =
-    '';
+  let description = '';
 
-  if (
-    campaign?.excerpt
-  ) {
+  if (campaign?.excerpt) {
     description =
       makeDescription(
         campaign.excerpt,
@@ -519,9 +423,7 @@ export async function generateMetadata({
   }
 
   // ==========================================================
-  // ORIGINAL IMAGE
-  //
-  // Ini tetap URL asli dari Sanity.
+  // ORIGINAL CAMPAIGN IMAGE
   // ==========================================================
 
   const originalImage =
@@ -530,9 +432,7 @@ export async function generateMetadata({
     );
 
   // ==========================================================
-  // SOCIAL IMAGE
-  //
-  // Ini khusus WhatsApp / Facebook / Open Graph.
+  // SOCIAL / WHATSAPP IMAGE
   // ==========================================================
 
   const socialImage =
@@ -541,8 +441,7 @@ export async function generateMetadata({
     );
 
   const imageAlt =
-    typeof campaign?.imageAlt ===
-      'string' &&
+    typeof campaign?.imageAlt === 'string' &&
     campaign.imageAlt.trim()
       ? campaign.imageAlt.trim()
       : title;
@@ -566,9 +465,7 @@ export async function generateMetadata({
 
   console.log(
     'Campaign found:',
-    Boolean(
-      campaign
-    )
+    Boolean(campaign)
   );
 
   console.log(
@@ -607,9 +504,7 @@ export async function generateMetadata({
 
   return {
     metadataBase:
-      new URL(
-        SITE_URL
-      ),
+      new URL(SITE_URL),
 
     title,
 
@@ -629,18 +524,12 @@ export async function generateMetadata({
     // ========================================================
 
     robots: {
-      index:
-        true,
-
-      follow:
-        true,
+      index: true,
+      follow: true,
 
       googleBot: {
-        index:
-          true,
-
-        follow:
-          true,
+        index: true,
+        follow: true,
 
         'max-image-preview':
           'large',
@@ -649,11 +538,12 @@ export async function generateMetadata({
 
     // ========================================================
     // OPEN GRAPH
+    //
+    // Metadata resmi Open Graph.
     // ========================================================
 
     openGraph: {
-      type:
-        'article',
+      type: 'article',
 
       title,
 
@@ -722,18 +612,30 @@ export async function generateMetadata({
     },
 
     // ========================================================
-    // TIDAK ADA metadata.other
+    // EXTRA SOCIAL META
     //
-    // Next.js otomatis menghasilkan:
+    // PENTING:
     //
-    // property="og:image"
-    // property="og:image:secure_url"
-    // property="og:image:width"
-    // property="og:image:height"
-    // property="og:image:type"
+    // NEWS yang SUDAH BERHASIL di WhatsApp menghasilkan:
     //
-    // dari openGraph.images di atas.
+    // <meta name="og:image" ...>
+    // <meta name="og:image:secure_url" ...>
+    //
+    // sekaligus:
+    //
+    // <meta property="og:image" ...>
+    //
+    // Karena itu Campaign sekarang dibuat mengikuti pola yang
+    // sama untuk pengujian WhatsApp.
     // ========================================================
+
+    other: {
+      'og:image':
+        socialImage,
+
+      'og:image:secure_url':
+        socialImage,
+    },
   };
 }
 
@@ -752,9 +654,7 @@ export default async function CampaignPage({
     await searchParams;
 
   const cleanSlug =
-    normalizeSlug(
-      slug
-    );
+    normalizeSlug(slug);
 
   return (
     <CampaignDetailClient
