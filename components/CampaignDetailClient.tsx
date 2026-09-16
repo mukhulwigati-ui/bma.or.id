@@ -35,27 +35,79 @@ function DetailHeader({
 }) {
   const router = useRouter();
 
+  // =================================================================
+  // TOMBOL KEMBALI
+  //
+  // - Jika ada history halaman sebelumnya → kembali ke halaman tersebut
+  // - Jika halaman campaign dibuka langsung / dari WA / tab baru
+  //   → kembali ke homepage
+  // =================================================================
+
+  const handleBack = () => {
+    try {
+      // document.referrer menunjukkan halaman asal.
+      // Jika asalnya masih dari website BMA sendiri,
+      // gunakan router.back().
+      if (document.referrer) {
+        const referrerUrl = new URL(document.referrer);
+
+        if (referrerUrl.origin === window.location.origin) {
+          router.back();
+          return;
+        }
+      }
+
+      // Jika tidak ada referrer internal, misalnya:
+      // - buka link langsung
+      // - dari WhatsApp
+      // - dari Facebook
+      // - tab baru
+      // maka arahkan ke homepage BMA.
+      router.push('/');
+    } catch (error) {
+      console.error('Gagal kembali:', error);
+
+      // Fallback terakhir
+      window.location.href = '/';
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-emerald-950 text-white w-full shadow-sm border-b border-emerald-900">
       <div className="w-full max-w-md mx-auto px-4 h-14 flex items-center justify-between">
+
+        {/* TOMBOL KEMBALI */}
+
         <button
-          onClick={() => router.back()}
-          className="flex items-center justify-center p-2 border border-white/30 hover:bg-white/10 transition-colors cursor-pointer rounded-lg"
+          type="button"
+          onClick={handleBack}
+          className="relative z-[60] flex items-center justify-center p-2 border border-white/30 hover:bg-white/10 active:bg-white/20 transition-colors cursor-pointer rounded-lg pointer-events-auto"
           aria-label="Kembali"
+          title="Kembali"
         >
-          <ArrowLeft className="w-5 h-5 text-white" />
+          <ArrowLeft
+            className="w-5 h-5 text-white pointer-events-none"
+          />
         </button>
+
+        {/* JUDUL */}
 
         <h1 className="text-sm sm:text-base font-bold text-white tracking-tight truncate max-w-[220px] sm:max-w-[280px]">
           {title}
         </h1>
 
+        {/* TOMBOL SHARE */}
+
         <button
+          type="button"
           onClick={onOpenShare}
-          className="flex items-center justify-center p-2 border border-white/30 hover:bg-white/10 transition-colors cursor-pointer rounded-lg"
+          className="relative z-[60] flex items-center justify-center p-2 border border-white/30 hover:bg-white/10 active:bg-white/20 transition-colors cursor-pointer rounded-lg pointer-events-auto"
           aria-label="Bagikan"
+          title="Bagikan"
         >
-          <Share2 className="w-5 h-5 text-white" />
+          <Share2
+            className="w-5 h-5 text-white pointer-events-none"
+          />
         </button>
       </div>
     </header>
