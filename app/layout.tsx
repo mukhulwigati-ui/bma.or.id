@@ -8,6 +8,10 @@ import LayoutClientWrapper from '@/components/LayoutClientWrapper';
 
 import './globals.css';
 
+// ============================================================
+// FONT
+// ============================================================
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -18,27 +22,62 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
+// ============================================================
+// IDENTITAS WEBSITE
+// ============================================================
+
+const SITE_URL = 'https://www.bma.or.id';
+
+const SITE_NAME = 'Baitul Maal Al Muttaqin';
+
+const DEFAULT_TITLE =
+  'bma.or.id | Baitul Maal Al Muttaqin';
+
+const DEFAULT_DESCRIPTION =
+  'Platform resmi Baitul Maal Al Muttaqin Jepara untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.';
+
+const DEFAULT_IMAGE =
+  `${SITE_URL}/images/banner.png`;
+
+// ============================================================
+// ROOT METADATA
+// ============================================================
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://wwww.bma.or.id'),
+  // PENTING:
+  // sebelumnya salah:
+  // https://wwww.bma.or.id
+  metadataBase: new URL(SITE_URL),
 
   title: {
-    default:
-      'bma.or.id | Baitul Maal Al Muttaqin',
-    template:
-      '%s | bma.or.id',
+    default: DEFAULT_TITLE,
+    template: '%s | bma.or.id',
   },
 
-  description:
-    'Platform resmi Baitul Maal Al Muttaqin Jepara untuk zakat, infak, sedekah, wakaf, dan berbagai program kebaikan.',
+  description: DEFAULT_DESCRIPTION,
 
-  manifest:
-    '/manifest.json',
+  applicationName: SITE_NAME,
 
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'BMA',
-  },
+  manifest: '/manifest.json',
+
+  // ==========================================================
+  // AUTHOR
+  // ==========================================================
+
+  authors: [
+    {
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  ],
+
+  creator: SITE_NAME,
+
+  publisher: SITE_NAME,
+
+  // ==========================================================
+  // KEYWORDS
+  // ==========================================================
 
   keywords: [
     'bma',
@@ -52,104 +91,110 @@ export const metadata: Metadata = {
     'donasi online',
   ],
 
-  authors: [
-    {
-      name:
-        'Baitul Maal Al Muttaqin',
-      url:
-        'https://www.bma.or.id',
-    },
-  ],
-
-  creator:
-    'Baitul Maal Al Muttaqin',
-
-  publisher:
-    'Baitul Maal Al Muttaqin',
+  // ==========================================================
+  // CANONICAL HOMEPAGE
+  //
+  // Child page seperti /campaign/[slug] dan /news/[slug]
+  // dapat menimpa canonical ini melalui generateMetadata().
+  // ==========================================================
 
   alternates: {
-    canonical: '/',
+    canonical: SITE_URL,
   },
 
+  // ==========================================================
+  // OPEN GRAPH DEFAULT HOMEPAGE
+  //
+  // Campaign dan News akan menimpa bagian ini.
+  // ==========================================================
+
   openGraph: {
-    title:
-      'bma.or.id | Baitul Maal Al Muttaqin',
+    type: 'website',
+
+    locale: 'id_ID',
+
+    url: SITE_URL,
+
+    siteName: SITE_NAME,
+
+    title: DEFAULT_TITLE,
 
     description:
       'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin Jepara.',
 
-    url:
-      'https://www.bma.or.id',
-
-    siteName:
-      'Baitul Maal Al Muttaqin',
-
-    locale:
-      'id_ID',
-
-    type:
-      'website',
-
     images: [
       {
-        url:
-          'https://www.bma.or.id/images/banner.png',
+        url: DEFAULT_IMAGE,
 
-        width:
-          1200,
+        width: 1200,
 
-        height:
-          630,
+        height: 630,
 
-        type:
-          'image/png',
+        type: 'image/png',
 
-        alt:
-          'Baitul Maal Al Muttaqin',
+        alt: SITE_NAME,
       },
     ],
   },
 
-  twitter: {
-    card:
-      'summary_large_image',
+  // ==========================================================
+  // TWITTER / X
+  // ==========================================================
 
-    title:
-      'bma.or.id | Baitul Maal Al Muttaqin',
+  twitter: {
+    card: 'summary_large_image',
+
+    title: DEFAULT_TITLE,
 
     description:
       'Platform resmi Baitul Maal Al Muttaqin Jepara.',
 
     images: [
-      'https://www.bma.or.id/images/banner.png',
+      {
+        url: DEFAULT_IMAGE,
+        alt: SITE_NAME,
+      },
     ],
   },
 
-  robots: {
-    index:
-      true,
+  // ==========================================================
+  // ROBOTS
+  // ==========================================================
 
-    follow:
-      true,
+  robots: {
+    index: true,
+
+    follow: true,
 
     googleBot: {
-      index:
-        true,
+      index: true,
 
-      follow:
-        true,
+      follow: true,
 
-      'max-video-preview':
-        -1,
+      'max-video-preview': -1,
 
-      'max-image-preview':
-        'large',
+      'max-image-preview': 'large',
 
-      'max-snippet':
-        -1,
+      'max-snippet': -1,
     },
   },
+
+  // ==========================================================
+  // APPLE / PWA
+  // ==========================================================
+
+  appleWebApp: {
+    capable: true,
+
+    statusBarStyle: 'default',
+
+    title: 'BMA',
+  },
 };
+
+// ============================================================
+// ROOT LAYOUT
+// ============================================================
 
 export default function RootLayout({
   children,
@@ -161,15 +206,13 @@ export default function RootLayout({
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
-
       <body
         className="min-h-screen bg-slate-100 text-slate-800"
         suppressHydrationWarning
       >
-
-        {/* =====================================================
+        {/* ===================================================
             GOOGLE ANALYTICS
-        ====================================================== */}
+        ==================================================== */}
 
         <Script
           strategy="afterInteractive"
@@ -193,17 +236,16 @@ export default function RootLayout({
                 'config',
                 'G-FG813S8GLF',
                 {
-                  page_path:
-                    window.location.pathname
+                  page_path: window.location.pathname
                 }
               );
             `,
           }}
         />
 
-        {/* =====================================================
+        {/* ===================================================
             MIDTRANS
-        ====================================================== */}
+        ==================================================== */}
 
         <Script
           src="https://app.midtrans.com/snap/snap.js"
@@ -216,18 +258,14 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
 
-        {/* =====================================================
+        {/* ===================================================
             GLOBAL CLIENT LAYOUT
-
-            Header + BottomNav sekarang dikontrol dari sini.
-        ====================================================== */}
+        ==================================================== */}
 
         <LayoutClientWrapper>
           {children}
         </LayoutClientWrapper>
-
       </body>
-
     </html>
   );
 }
