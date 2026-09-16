@@ -2,6 +2,7 @@
 
 import type { Metadata } from 'next';
 import { createClient } from '@sanity/client';
+
 import CampaignDetailClient from '@/components/CampaignDetailClient';
 
 // ============================================================
@@ -21,17 +22,23 @@ interface Props {
 
 interface CampaignMetadata {
   _id?: string;
+
   title?: string;
+
   slug?: string;
 
   description?: unknown;
+
   excerpt?: unknown;
+
   shortDescription?: unknown;
 
   imageUrl?: string;
+
   imageAlt?: string;
 
   publishedAt?: string;
+
   _updatedAt?: string;
 }
 
@@ -42,30 +49,36 @@ interface CampaignMetadata {
 const SITE_NAME =
   'Baitul Maal Al Muttaqin';
 
-const SITE_DOMAIN =
-  'www.bma.or.id';
-
 const SITE_URL =
-  'https://www.bma.or.id';
+  (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    'https://www.bma.or.id'
+  ).replace(/\/$/, '');
 
 const PROJECT_ID =
+  process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
   'im4qx3kd';
 
 const DATASET =
+  process.env.NEXT_PUBLIC_SANITY_DATASET ||
   'production';
 
 // ============================================================
 // SANITY SERVER CLIENT
 //
-// Metadata campaign mengambil data LANGSUNG dari Sanity.
-// Jangan melalui /api/programs.
+// Metadata mengambil data LANGSUNG dari Sanity.
+// Tidak melalui /api/programs.
 // ============================================================
 
 const serverClient = createClient({
   projectId: PROJECT_ID,
+
   dataset: DATASET,
+
   apiVersion: '2026-08-01',
+
   useCdn: false,
+
   perspective: 'published',
 });
 
@@ -198,21 +211,7 @@ function makeDescription(
 }
 
 // ============================================================
-// NORMALIZE IMAGE URL
-//
-// PENTING:
-//
-// Sanity:
-// https://cdn.sanity.io/images/...
-//
-// diberikan LANGSUNG ke Open Graph.
-//
-// Jangan:
-// - resize
-// - crop
-// - convert jpg
-// - image builder
-// - proxy
+// NORMALIZE ORIGINAL IMAGE URL
 // ============================================================
 
 function normalizeImageUrl(
@@ -248,6 +247,101 @@ function normalizeImageUrl(
       ? ''
       : '/'
   }${image}`;
+}
+
+// ============================================================
+// SOCIAL / WHATSAPP IMAGE
+//
+// PENTING:
+//
+// Gambar asli campaign TIDAK diubah.
+//
+// Jika sumber berasal dari Sanity:
+//
+// PNG/JPG asli
+//        ↓
+// Sanity Image CDN
+//        ↓
+// JPEG 1200x630
+// quality 85
+// fit crop
+//
+// Hasil ini HANYA digunakan untuk:
+// - Open Graph
+// - WhatsApp
+// - Facebook
+// - Twitter / X
+//
+// Gambar pada CampaignDetailClient tetap menggunakan file asli.
+// ============================================================
+
+function createSocialImageUrl(
+  originalImage: string
+): string {
+  if (!originalImage) {
+    return `${SITE_URL}/images/banner.png`;
+  }
+
+  // Hanya transform gambar Sanity.
+  if (
+    originalImage.includes(
+      'cdn.sanity.io/images/'
+    )
+  ) {
+    try {
+      const url =
+        new URL(
+          originalImage
+        );
+
+      // --------------------------------------------------------
+      // Format JPEG
+      // --------------------------------------------------------
+
+      url.searchParams.set(
+        'fm',
+        'jpg'
+      );
+
+      // --------------------------------------------------------
+      // Ukuran standar social preview
+      // --------------------------------------------------------
+
+      url.searchParams.set(
+        'w',
+        '1200'
+      );
+
+      url.searchParams.set(
+        'h',
+        '630'
+      );
+
+      // --------------------------------------------------------
+      // Crop proporsional
+      // --------------------------------------------------------
+
+      url.searchParams.set(
+        'fit',
+        'crop'
+      );
+
+      // --------------------------------------------------------
+      // Kualitas cukup tinggi tetapi lebih ringan dari PNG
+      // --------------------------------------------------------
+
+      url.searchParams.set(
+        'q',
+        '85'
+      );
+
+      return url.toString();
+    } catch {
+      return originalImage;
+    }
+  }
+
+  return originalImage;
 }
 
 // ============================================================
@@ -425,14 +519,25 @@ export async function generateMetadata({
   }
 
   // ==========================================================
-  // IMAGE
+  // ORIGINAL IMAGE
   //
-  // ORIGINAL SANITY IMAGE
+  // Ini tetap URL asli dari Sanity.
   // ==========================================================
 
-  const imageUrl =
+  const originalImage =
     normalizeImageUrl(
       campaign?.imageUrl
+    );
+
+  // ==========================================================
+  // SOCIAL IMAGE
+  //
+  // Ini khusus WhatsApp / Facebook / Open Graph.
+  // ==========================================================
+
+  const socialImage =
+    createSocialImageUrl(
+      originalImage
     );
 
   const imageAlt =
@@ -444,8 +549,6 @@ export async function generateMetadata({
 
   // ==========================================================
   // DEBUG VERCEL
-  //
-  // Bisa dilihat di Function Logs Vercel.
   // ==========================================================
 
   console.log(
@@ -480,8 +583,13 @@ export async function generateMetadata({
   );
 
   console.log(
-    'OG Image:',
-    imageUrl
+    'Original Image:',
+    originalImage
+  );
+
+  console.log(
+    'Social OG Image:',
+    socialImage
   );
 
   console.log(
@@ -521,12 +629,18 @@ export async function generateMetadata({
     // ========================================================
 
     robots: {
-      index: true,
-      follow: true,
+      index:
+        true,
+
+      follow:
+        true,
 
       googleBot: {
-        index: true,
-        follow: true,
+        index:
+          true,
+
+        follow:
+          true,
 
         'max-image-preview':
           'large',
@@ -535,8 +649,6 @@ export async function generateMetadata({
 
     // ========================================================
     // OPEN GRAPH
-    //
-    // Sama seperti pola NEWS yang berhasil di WhatsApp.
     // ========================================================
 
     openGraph: {
@@ -559,15 +671,31 @@ export async function generateMetadata({
       images: [
         {
           url:
-            imageUrl,
+            socialImage,
 
           secureUrl:
-            imageUrl,
+            socialImage,
+
+          width:
+            1200,
+
+          height:
+            630,
+
+          type:
+            'image/jpeg',
 
           alt:
             imageAlt,
         },
       ],
+
+      ...(campaign?.publishedAt
+        ? {
+            publishedTime:
+              campaign.publishedAt,
+          }
+        : {}),
     },
 
     // ========================================================
@@ -583,29 +711,29 @@ export async function generateMetadata({
       description,
 
       images: [
-        imageUrl,
+        {
+          url:
+            socialImage,
+
+          alt:
+            imageAlt,
+        },
       ],
     },
 
     // ========================================================
-    // EXTRA SOCIAL META
+    // TIDAK ADA metadata.other
     //
-    // Kita samakan dengan NEWS yang sekarang sudah berhasil.
+    // Next.js otomatis menghasilkan:
+    //
+    // property="og:image"
+    // property="og:image:secure_url"
+    // property="og:image:width"
+    // property="og:image:height"
+    // property="og:image:type"
+    //
+    // dari openGraph.images di atas.
     // ========================================================
-
-    other: {
-      'og:image':
-        imageUrl,
-
-      'og:image:url':
-        imageUrl,
-
-      'og:image:secure_url':
-        imageUrl,
-
-      'twitter:image':
-        imageUrl,
-    },
   };
 }
 
