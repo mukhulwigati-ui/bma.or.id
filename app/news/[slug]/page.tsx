@@ -19,14 +19,11 @@ interface Props {
 // ============================================================
 
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_DOMAIN = 'bma.or.id';
-const SITE_URL = 'https://bma.or.id';
+const SITE_DOMAIN = 'www.bma.or.id';
+const SITE_URL = 'https://www.bma.or.id';
 
 // ============================================================
 // SANITY BMA
-//
-// Dikunci langsung ke project BMA.
-// Tidak memakai SANITY_API_TOKEN untuk read published.
 // ============================================================
 
 const serverClient = createClient({
@@ -42,10 +39,10 @@ const serverClient = createClient({
 // ============================================================
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
+export const revalidate = 0;
 
 // ============================================================
-// HELPER: PORTABLE TEXT KE PLAIN TEXT
+// PORTABLE TEXT -> PLAIN TEXT
 // ============================================================
 
 function portableTextToPlainText(
@@ -55,15 +52,11 @@ function portableTextToPlainText(
     return '';
   }
 
-  if (
-    typeof content === 'string'
-  ) {
+  if (typeof content === 'string') {
     return content.trim();
   }
 
-  if (
-    !Array.isArray(content)
-  ) {
+  if (!Array.isArray(content)) {
     return '';
   }
 
@@ -72,21 +65,16 @@ function portableTextToPlainText(
       (block: any) =>
         block &&
         block._type === 'block' &&
-        Array.isArray(
-          block.children
-        )
+        Array.isArray(block.children)
     )
-    .map(
-      (block: any) =>
-        block.children
-          .map(
-            (child: any) =>
-              typeof child?.text ===
-              'string'
-                ? child.text
-                : ''
-          )
-          .join('')
+    .map((block: any) =>
+      block.children
+        .map((child: any) =>
+          typeof child?.text === 'string'
+            ? child.text
+            : ''
+        )
+        .join('')
     )
     .join(' ')
     .replace(/\s+/g, ' ')
@@ -94,37 +82,64 @@ function portableTextToPlainText(
 }
 
 // ============================================================
-// HELPER: EXCERPT SEO
+// EXCERPT SEO
 // ============================================================
 
 function makeExcerpt(
   text: string,
   maxLength = 160
 ): string {
-  const clean =
-    text
-      .replace(/\s+/g, ' ')
-      .trim();
+  const clean = String(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   if (!clean) {
     return '';
   }
 
-  if (
-    clean.length <=
-    maxLength
-  ) {
+  if (clean.length <= maxLength) {
     return clean;
   }
 
   return (
     clean
-      .slice(
-        0,
-        maxLength
-      )
+      .slice(0, maxLength)
       .trimEnd() + '...'
   );
+}
+
+// ============================================================
+// NORMALIZE IMAGE
+//
+// PENTING:
+// Untuk gambar Sanity jangan tambahkan:
+// ?w=1200&h=630&fit=crop&fm=jpg
+//
+// URL asset asli diberikan langsung ke WhatsApp.
+// ============================================================
+
+function normalizeImageUrl(
+  value: unknown
+): string {
+  if (
+    typeof value !== 'string' ||
+    !value.trim()
+  ) {
+    return `${SITE_URL}/images/banner.png`;
+  }
+
+  const image = value.trim();
+
+  if (
+    image.startsWith('https://') ||
+    image.startsWith('http://')
+  ) {
+    return image;
+  }
+
+  return `${SITE_URL}${
+    image.startsWith('/') ? '' : '/'
+  }${image}`;
 }
 
 // ============================================================
@@ -134,13 +149,15 @@ function makeExcerpt(
 export async function generateMetadata({
   params,
 }: Props): Promise<Metadata> {
-  const { slug } =
-    await params;
+  const { slug } = await params;
 
   const cleanSlug =
-    decodeURIComponent(
-      slug
-    ).trim();
+    decodeURIComponent(slug).trim();
+
+  const pageUrl =
+    `${SITE_URL}/news/${encodeURIComponent(
+      cleanSlug
+    )}`;
 
   const fallbackImage =
     `${SITE_URL}/images/banner.png`;
@@ -151,8 +168,7 @@ export async function generateMetadata({
   let articleExcerpt =
     `Baca kabar terbaru, laporan program, dan informasi resmi ${SITE_NAME} melalui ${SITE_DOMAIN}.`;
 
-  let imageUrl =
-    fallbackImage;
+  let imageUrl = fallbackImage;
 
   try {
     const article =
@@ -163,37 +179,29 @@ export async function generateMetadata({
             defined(slug.current) &&
             lower(slug.current) == lower($slug)
           ][0] {
-
+            _id,
             title,
-
             excerpt,
-
             description,
-
             summary,
-
             content,
-
             publishedAt,
+            _updatedAt,
 
-            "imageUrl":
-              coalesce(
-                image.asset->url,
-                mainImage.asset->url,
-                thumbnail.asset->url,
-                coverImage.asset->url,
-                banner.asset->url
-              )
+            "imageUrl": coalesce(
+              image.asset->url,
+              mainImage.asset->url,
+              thumbnail.asset->url,
+              coverImage.asset->url,
+              banner.asset->url
+            )
           }
         `,
         {
-          slug:
-            cleanSlug,
+          slug: cleanSlug,
         },
         {
-          next: {
-            revalidate: 60,
-          },
+          cache: 'no-store',
         }
       );
 
@@ -203,8 +211,7 @@ export async function generateMetadata({
       // ======================================================
 
       if (
-        typeof article.title ===
-          'string' &&
+        typeof article.title === 'string' &&
         article.title.trim()
       ) {
         articleTitle =
@@ -212,36 +219,27 @@ export async function generateMetadata({
       }
 
       // ======================================================
-      // DESCRIPTION / EXCERPT
+      // DESCRIPTION
       // ======================================================
 
       if (
-        typeof article.excerpt ===
-          'string' &&
+        typeof article.excerpt === 'string' &&
         article.excerpt.trim()
       ) {
         articleExcerpt =
-          makeExcerpt(
-            article.excerpt
-          );
+          makeExcerpt(article.excerpt);
       } else if (
-        typeof article.description ===
-          'string' &&
+        typeof article.description === 'string' &&
         article.description.trim()
       ) {
         articleExcerpt =
-          makeExcerpt(
-            article.description
-          );
+          makeExcerpt(article.description);
       } else if (
-        typeof article.summary ===
-          'string' &&
+        typeof article.summary === 'string' &&
         article.summary.trim()
       ) {
         articleExcerpt =
-          makeExcerpt(
-            article.summary
-          );
+          makeExcerpt(article.summary);
       } else {
         const plainText =
           portableTextToPlainText(
@@ -250,48 +248,34 @@ export async function generateMetadata({
 
         if (plainText) {
           articleExcerpt =
-            makeExcerpt(
-              plainText
-            );
+            makeExcerpt(plainText);
         }
       }
 
       if (!articleExcerpt) {
         articleExcerpt =
-          `Baca berita lengkap "${articleTitle}" secara resmi melalui ${SITE_DOMAIN}.`;
+          `Baca berita lengkap "${articleTitle}" melalui ${SITE_DOMAIN}.`;
       }
 
       // ======================================================
       // IMAGE
+      //
+      // Gunakan URL ASLI Sanity.
+      // Jangan resize / convert format di URL metadata.
       // ======================================================
 
-      if (
-        typeof article.imageUrl ===
-          'string' &&
-        article.imageUrl.trim()
-      ) {
+      if (article.imageUrl) {
         imageUrl =
-          article.imageUrl.startsWith(
-            'http'
-          )
-            ? article.imageUrl
-            : `${SITE_URL}${
-                article.imageUrl.startsWith(
-                  '/'
-                )
-                  ? ''
-                  : '/'
-              }${article.imageUrl}`;
+          normalizeImageUrl(
+            article.imageUrl
+          );
       }
     }
   } catch (error) {
     console.error(
-      '🔥 BMA metadata news fetch error:',
+      'BMA NEWS METADATA ERROR:',
       error
     );
-
-    articleExcerpt =
-      `Baca kabar terbaru dan informasi resmi ${SITE_NAME} melalui ${SITE_DOMAIN}.`;
   }
 
   // ==========================================================
@@ -299,66 +283,86 @@ export async function generateMetadata({
   // ==========================================================
 
   return {
-    title:
-      articleTitle,
+    metadataBase: new URL(SITE_URL),
 
-    description:
-      articleExcerpt,
+    title: articleTitle,
+
+    description: articleExcerpt,
 
     alternates: {
-      canonical:
-        `/news/${cleanSlug}`,
+      canonical: pageUrl,
     },
 
+    robots: {
+      index: true,
+      follow: true,
+
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-image-preview': 'large',
+      },
+    },
+
+    // ========================================================
+    // OPEN GRAPH
+    //
+    // Sengaja TIDAK menentukan:
+    // width
+    // height
+    // type
+    //
+    // WhatsApp membaca asset asli.
+    // ========================================================
+
     openGraph: {
-      title:
-        articleTitle,
+      type: 'article',
 
-      description:
-        articleExcerpt,
+      url: pageUrl,
 
-      url:
-        `${SITE_URL}/news/${cleanSlug}`,
+      siteName: SITE_NAME,
 
-      siteName:
-        SITE_NAME,
+      locale: 'id_ID',
 
-      locale:
-        'id_ID',
+      title: articleTitle,
 
-      type:
-        'article',
+      description: articleExcerpt,
 
       images: [
         {
-          url:
-            imageUrl,
-
-          width:
-            1200,
-
-          height:
-            630,
-
-          alt:
-            articleTitle,
+          url: imageUrl,
+          secureUrl: imageUrl,
+          alt: articleTitle,
         },
       ],
     },
 
+    // ========================================================
+    // TWITTER / X
+    // ========================================================
+
     twitter: {
-      card:
-        'summary_large_image',
+      card: 'summary_large_image',
 
-      title:
-        articleTitle,
+      title: articleTitle,
 
-      description:
-        articleExcerpt,
+      description: articleExcerpt,
 
       images: [
         imageUrl,
       ],
+    },
+
+    // ========================================================
+    // EXTRA META
+    // ========================================================
+
+    other: {
+      'og:image:secure_url':
+        imageUrl,
+
+      'twitter:image':
+        imageUrl,
     },
   };
 }
@@ -370,13 +374,10 @@ export async function generateMetadata({
 export default async function NewsDetailPage({
   params,
 }: Props) {
-  const { slug } =
-    await params;
+  const { slug } = await params;
 
   const cleanSlug =
-    decodeURIComponent(
-      slug
-    ).trim();
+    decodeURIComponent(slug).trim();
 
   return (
     <BlogDetailClient

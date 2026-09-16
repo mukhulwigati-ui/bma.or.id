@@ -5,8 +5,6 @@ import { createClient } from '@sanity/client';
 
 // ============================================================
 // SANITY BMA
-// Dikunci langsung ke project BMA agar tidak tertukar
-// dengan konfigurasi Sanity website lama.
 // ============================================================
 
 const PROJECT_ID = 'im4qx3kd';
@@ -16,10 +14,12 @@ const client = createClient({
   projectId: PROJECT_ID,
   dataset: DATASET,
   apiVersion: '2026-08-01',
-  useCdn: true,
-  perspective: 'published',
 
-  // Untuk membaca data published tidak perlu token
+  // Penting untuk berita:
+  // baca langsung data published terbaru.
+  useCdn: false,
+
+  perspective: 'published',
 });
 
 // ============================================================
@@ -27,7 +27,7 @@ const client = createClient({
 // ============================================================
 
 export const dynamic = 'force-dynamic';
-export const revalidate = 60;
+export const revalidate = 0;
 
 // ============================================================
 // HELPER TIME AGO
@@ -43,45 +43,34 @@ function timeAgo(
   const now = new Date();
   const past = new Date(dateString);
 
-  if (
-    Number.isNaN(
-      past.getTime()
-    )
-  ) {
+  if (Number.isNaN(past.getTime())) {
     return 'Kabar Terbaru';
   }
 
-  const diffMs =
-    Math.max(
-      0,
-      now.getTime() -
-        past.getTime()
-    );
+  const diffMs = Math.max(
+    0,
+    now.getTime() - past.getTime()
+  );
 
-  const diffMins =
-    Math.floor(
-      diffMs / 60000
-    );
+  const diffMins = Math.floor(
+    diffMs / 60000
+  );
 
-  const diffHours =
-    Math.floor(
-      diffMins / 60
-    );
+  const diffHours = Math.floor(
+    diffMins / 60
+  );
 
-  const diffDays =
-    Math.floor(
-      diffHours / 24
-    );
+  const diffDays = Math.floor(
+    diffHours / 24
+  );
 
-  const diffMonths =
-    Math.floor(
-      diffDays / 30
-    );
+  const diffMonths = Math.floor(
+    diffDays / 30
+  );
 
-  const diffYears =
-    Math.floor(
-      diffDays / 365
-    );
+  const diffYears = Math.floor(
+    diffDays / 365
+  );
 
   if (diffMins < 1) {
     return 'Baru saja';
@@ -114,10 +103,35 @@ interface SanityNewsItem {
   id: string;
   slug?: string;
   title?: string;
+
   image?: string;
+
   category?: string;
+
   publishedAt?: string;
   createdAt?: string;
+  updatedAt?: string;
+}
+
+// ============================================================
+// HELPER IMAGE
+//
+// Jangan resize / convert gambar Sanity di sini.
+// URL asset asli dipertahankan agar sumber gambar daftar berita
+// sama dengan sumber gambar Open Graph / WhatsApp.
+// ============================================================
+
+function normalizeImage(
+  image?: string
+): string {
+  if (
+    typeof image === 'string' &&
+    image.trim()
+  ) {
+    return image.trim();
+  }
+
+  return '/images/placeholder.jpg';
 }
 
 // ============================================================
@@ -127,8 +141,10 @@ interface SanityNewsItem {
 export async function GET() {
   try {
     // ========================================================
-    // QUERY GROQ
-    // Hanya mengambil news published yang punya slug
+    // QUERY
+    //
+    // Urutan sumber gambar HARUS sama dengan:
+    // app/news/[slug]/page.tsx
     // ========================================================
 
     const query = `
@@ -156,7 +172,8 @@ export async function GET() {
             image.asset->url,
             mainImage.asset->url,
             thumbnail.asset->url,
-            coverImage.asset->url
+            coverImage.asset->url,
+            banner.asset->url
           ),
 
         "category":
@@ -169,7 +186,10 @@ export async function GET() {
         publishedAt,
 
         "createdAt":
-          _createdAt
+          _createdAt,
+
+        "updatedAt":
+          _updatedAt
       }
     `;
 
@@ -184,14 +204,12 @@ export async function GET() {
         query,
         {},
         {
-          next: {
-            revalidate: 60,
-          },
+          cache: 'no-store',
         }
       );
 
     // ========================================================
-    // FORMAT DATA
+    // FORMAT
     // ========================================================
 
     const formattedNews =
@@ -209,8 +227,16 @@ export async function GET() {
                 item.publishedAt ||
                 item.createdAt;
 
+              const image =
+                normalizeImage(
+                  item.image
+                );
+
               return {
                 id:
+                  String(item.id),
+
+                _id:
                   String(item.id),
 
                 slug:
@@ -219,12 +245,8 @@ export async function GET() {
                 title:
                   String(item.title),
 
-                image:
-                  typeof item.image ===
-                    'string' &&
-                  item.image.trim()
-                    ? item.image
-                    : '/images/placeholder.jpg',
+                // URL gambar ASLI Sanity.
+                image,
 
                 category:
                   item.category ||
@@ -232,6 +254,14 @@ export async function GET() {
 
                 publishedAt:
                   date || null,
+
+                createdAt:
+                  item.createdAt ||
+                  null,
+
+                updatedAt:
+                  item.updatedAt ||
+                  null,
 
                 timeAgo:
                   timeAgo(date),
@@ -243,7 +273,7 @@ export async function GET() {
         : [];
 
     // ========================================================
-    // DEBUG SERVER
+    // DEBUG
     // ========================================================
 
     console.log(
@@ -255,7 +285,7 @@ export async function GET() {
     );
 
     console.log(
-      'Project ID:',
+      'Project:',
       PROJECT_ID
     );
 
@@ -265,9 +295,16 @@ export async function GET() {
     );
 
     console.log(
-      'Total berita:',
+      'Total:',
       formattedNews.length
     );
+
+    if (formattedNews.length > 0) {
+      console.log(
+        'Contoh gambar:',
+        formattedNews[0].image
+      );
+    }
 
     console.log(
       '======================================'
@@ -281,7 +318,8 @@ export async function GET() {
       {
         success: true,
 
-        source: 'Sanity BMA',
+        source:
+          'Sanity BMA',
 
         projectId:
           PROJECT_ID,
@@ -300,16 +338,23 @@ export async function GET() {
 
         headers: {
           'Content-Type':
-            'application/json',
+            'application/json; charset=utf-8',
 
+          // Jangan simpan response lama.
           'Cache-Control':
-            'public, s-maxage=60, stale-while-revalidate=30',
+            'no-store, no-cache, must-revalidate',
+
+          Pragma:
+            'no-cache',
+
+          Expires:
+            '0',
         },
       }
     );
   } catch (error: any) {
     console.error(
-      '🔥 Fetch BMA News API Error:',
+      '🔥 BMA NEWS API ERROR:',
       error
     );
 
@@ -339,7 +384,7 @@ export async function GET() {
 
         headers: {
           'Cache-Control':
-            'no-store',
+            'no-store, no-cache, must-revalidate',
         },
       }
     );

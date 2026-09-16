@@ -22,7 +22,8 @@ import RelatedNews from '@/components/RelatedNews';
 // ============================================================
 
 const SITE_NAME = 'Baitul Maal Al Muttaqin';
-const SITE_DOMAIN = 'bma.or.id';
+const SITE_DOMAIN = 'www.bma.or.id';
+const SITE_URL = 'https://www.bma.or.id';
 
 // ============================================================
 // PORTABLE TEXT COMPONENTS
@@ -180,6 +181,26 @@ interface DetailResponseData {
   article?: ArticleData;
   allNews?: any[];
   sidebarCampaigns?: any[];
+}
+
+// ============================================================
+// HELPER IMAGE
+// Sinkron dengan /api/news dan metadata app/news/[slug]/page.tsx.
+// Gunakan URL asset Sanity asli, tanpa transformasi.
+// ============================================================
+
+function normalizeImageUrl(value: unknown): string {
+  if (typeof value !== 'string' || !value.trim()) {
+    return `${SITE_URL}/images/placeholder.jpg`;
+  }
+
+  const image = value.trim();
+
+  if (image.startsWith('https://') || image.startsWith('http://')) {
+    return image;
+  }
+
+  return `${SITE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
 }
 
 // ============================================================
@@ -432,11 +453,9 @@ export default function BlogDetailClient({
       : 'Berita Terbaru';
 
   const imageUrl =
-    typeof article.imageUrl ===
-      'string' &&
-    article.imageUrl.trim()
-      ? article.imageUrl
-      : '/images/placeholder.jpg';
+    normalizeImageUrl(
+      article.imageUrl
+    );
 
   // ==========================================================
   // COPY LINK
@@ -453,8 +472,11 @@ export default function BlogDetailClient({
           return;
         }
 
+        const shareUrl =
+          `${SITE_URL}/news/${encodeURIComponent(slug)}`;
+
         await navigator.clipboard.writeText(
-          window.location.href
+          shareUrl
         );
 
         setCopied(true);
