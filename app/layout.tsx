@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://bma.or.id'),
+  metadataBase: new URL('https://wwww.bma.or.id'),
 
   title: {
     default:
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
       name:
         'Baitul Maal Al Muttaqin',
       url:
-        'https://bma.or.id',
+        'https://www.bma.or.id',
     },
   ],
 
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
       'Zakat, infak, sedekah, wakaf, dan berbagai program kebaikan bersama Baitul Maal Al Muttaqin Jepara.',
 
     url:
-      'https://bma.or.id',
+      'https://www.bma.or.id',
 
     siteName:
       'Baitul Maal Al Muttaqin',
@@ -93,7 +93,7 @@ export const metadata: Metadata = {
     images: [
       {
         url:
-          'https://bma.or.id/images/banner.png',
+          'https://www.bma.or.id/images/banner.png',
 
         width:
           1200,
@@ -121,7 +121,7 @@ export const metadata: Metadata = {
       'Platform resmi Baitul Maal Al Muttaqin Jepara.',
 
     images: [
-      'https://bma.or.id/images/banner.png',
+      'https://www.bma.or.id/images/banner.png',
     ],
   },
 
