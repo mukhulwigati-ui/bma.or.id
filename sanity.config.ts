@@ -1,9 +1,19 @@
 // sanity.config.ts
 
-import { defineConfig, buildLegacyTheme } from 'sanity';
-import { structureTool } from 'sanity/structure';
 import React from 'react';
-import { schemaTypes } from './sanity/schemaTypes';
+
+import {
+  defineConfig,
+  buildLegacyTheme,
+} from 'sanity';
+
+import {
+  structureTool,
+} from 'sanity/structure';
+
+import {
+  schemaTypes,
+} from './sanity/schemaTypes';
 
 // ============================================================
 // THEME BMA
@@ -11,12 +21,14 @@ import { schemaTypes } from './sanity/schemaTypes';
 
 const bmaTheme = buildLegacyTheme({
   '--black': '#262626',
+
   '--white': '#ffffff',
 
   // Warna utama BMA
   '--brand-primary': '#facc15',
 
   '--component-bg': '#ffffff',
+
   '--component-text-color': '#262626',
 
   // Focus Sanity
@@ -34,16 +46,24 @@ export default defineConfig([
     // ========================================================
 
     name: 'Baitul-Maal-Al-Muttaqin',
+
     title: 'bma.or.id',
 
     // ========================================================
     // SANITY PROJECT
     // ========================================================
 
-    projectId: 'im4qx3kd',
-    dataset: 'production',
+    projectId:
+      process.env
+        .NEXT_PUBLIC_SANITY_PROJECT_ID ||
+      'im4qx3kd',
 
-    // Studio tersedia di:
+    dataset:
+      process.env
+        .NEXT_PUBLIC_SANITY_DATASET ||
+      'production',
+
+    // Studio:
     // https://bma.or.id/studio
 
     basePath: '/studio',
@@ -53,7 +73,247 @@ export default defineConfig([
     // ========================================================
 
     plugins: [
-      structureTool(),
+      structureTool({
+        structure: (S) => {
+          // ==================================================
+          // MENU DEFAULT
+          // ==================================================
+          //
+          // Semua schema existing tetap muncul otomatis.
+          //
+          // fundraiserWithdrawal dikeluarkan dari menu default
+          // karena dibuatkan menu khusus Penarikan Komisi.
+          //
+          // ==================================================
+
+          const defaultItems =
+            S.documentTypeListItems().filter(
+              (item) =>
+                item.getId() !==
+                'fundraiserWithdrawal'
+            );
+
+          return S.list()
+            .title(
+              'Manajemen BMA'
+            )
+            .items([
+              // ==============================================
+              // MENU SCHEMA YANG SUDAH ADA
+              // ==============================================
+
+              ...defaultItems,
+
+              // ==============================================
+              // PEMBATAS
+              // ==============================================
+
+              S.divider(),
+
+              // ==============================================
+              // PENARIKAN KOMISI
+              // ==============================================
+
+              S.listItem()
+                .title(
+                  '💰 Penarikan Komisi'
+                )
+                .child(
+                  S.list()
+                    .title(
+                      'Penarikan Komisi Fundraiser'
+                    )
+                    .items([
+                      // ======================================
+                      // MENUNGGU
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '⏳ Menunggu'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Menunggu Persetujuan'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal" && status == "pending"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'requestedAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+
+                      // ======================================
+                      // DISETUJUI
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '✅ Disetujui'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Penarikan Disetujui'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal" && status == "approved"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'requestedAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+
+                      // ======================================
+                      // SUDAH DIBAYAR
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '💸 Sudah Dibayar'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Komisi Sudah Dibayar'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal" && status == "paid"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'paidAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+
+                      // ======================================
+                      // DITOLAK
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '❌ Ditolak'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Penarikan Ditolak'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal" && status == "rejected"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'requestedAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+
+                      // ======================================
+                      // DIBATALKAN
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '🚫 Dibatalkan'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Penarikan Dibatalkan'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal" && status == "cancelled"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'requestedAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+
+                      // ======================================
+                      // PEMBATAS
+                      // ======================================
+
+                      S.divider(),
+
+                      // ======================================
+                      // SEMUA PENARIKAN
+                      // ======================================
+
+                      S.listItem()
+                        .title(
+                          '📋 Semua Penarikan'
+                        )
+                        .child(
+                          S.documentList()
+                            .title(
+                              'Semua Riwayat Penarikan'
+                            )
+                            .schemaType(
+                              'fundraiserWithdrawal'
+                            )
+                            .filter(
+                              `_type == "fundraiserWithdrawal"`
+                            )
+                            .defaultOrdering([
+                              {
+                                field:
+                                  'requestedAt',
+
+                                direction:
+                                  'desc',
+                              },
+                            ])
+                        ),
+                    ])
+                ),
+            ]);
+        },
+      }),
     ],
 
     // ========================================================
@@ -61,14 +321,16 @@ export default defineConfig([
     // ========================================================
 
     schema: {
-      types: schemaTypes,
+      types:
+        schemaTypes,
     },
 
     // ========================================================
     // THEME
     // ========================================================
 
-    theme: bmaTheme,
+    theme:
+      bmaTheme,
 
     // ========================================================
     // CUSTOM SANITY STUDIO
@@ -76,14 +338,22 @@ export default defineConfig([
 
     studio: {
       components: {
-        navbar: (props) => {
+        navbar: (
+          props
+        ) => {
           return React.createElement(
             'div',
+
             {
               style: {
-                display: 'flex',
-                flexDirection: 'column',
-                width: '100%',
+                display:
+                  'flex',
+
+                flexDirection:
+                  'column',
+
+                width:
+                  '100%',
               },
             },
 
@@ -93,91 +363,130 @@ export default defineConfig([
 
             React.createElement(
               'div',
+
               {
                 style: {
-                  // KUNING BMA
-                  background: '#facc15',
+                  background:
+                    '#facc15',
 
-                  padding: '16px 24px',
+                  padding:
+                    '16px 24px',
 
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
+                  display:
+                    'flex',
 
-                  // Garis bawah sedikit lebih gelap
-                  borderBottom: '1px solid #eab308',
+                  alignItems:
+                    'center',
 
-                  // Shadow sangat tipis
+                  justifyContent:
+                    'space-between',
+
+                  borderBottom:
+                    '1px solid #eab308',
+
                   boxShadow:
                     '0 2px 6px rgba(0, 0, 0, 0.08)',
                 },
               },
 
-              // ==================================================
+              // ================================================
               // LOGO + IDENTITAS
-              // ==================================================
+              // ================================================
 
               React.createElement(
                 'div',
+
                 {
                   style: {
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    minWidth: 0,
+                    display:
+                      'flex',
+
+                    alignItems:
+                      'center',
+
+                    gap:
+                      '16px',
+
+                    minWidth:
+                      0,
                   },
                 },
 
-                // ==================================================
-                // LOGO BMA
-                // ==================================================
+                // ==============================================
+                // LOGO
+                // ==============================================
 
-                React.createElement('img', {
-                  src: '/images/logo-bma.png',
+                React.createElement(
+                  'img',
+                  {
+                    src:
+                      '/images/logo-bma.png',
 
-                  alt:
-                    'Baitul Maal Al Muttaqin',
+                    alt:
+                      'Baitul Maal Al Muttaqin',
 
-                  style: {
-                    height: '52px',
-                    width: 'auto',
+                    style: {
+                      height:
+                        '52px',
 
-                    objectFit: 'contain',
-                    display: 'block',
+                      width:
+                        'auto',
 
-                    flexShrink: 0,
-                  },
-                }),
+                      objectFit:
+                        'contain',
 
-                // ==================================================
+                      display:
+                        'block',
+
+                      flexShrink:
+                        0,
+                    },
+                  }
+                ),
+
+                // ==============================================
                 // IDENTITAS LEMBAGA
-                // ==================================================
+                // ==============================================
 
                 React.createElement(
                   'div',
+
                   {
                     style: {
-                      display: 'flex',
-                      flexDirection: 'column',
-                      minWidth: 0,
+                      display:
+                        'flex',
+
+                      flexDirection:
+                        'column',
+
+                      minWidth:
+                        0,
                     },
                   },
 
                   // Nama lembaga
                   React.createElement(
                     'span',
+
                     {
                       style: {
-                        // Tidak hitam pekat
-                        color: '#292929',
+                        color:
+                          '#292929',
 
-                        fontSize: '16px',
-                        fontWeight: '800',
+                        fontSize:
+                          '16px',
 
-                        lineHeight: '1.2',
-                        letterSpacing: '-0.01em',
+                        fontWeight:
+                          '800',
 
-                        whiteSpace: 'nowrap',
+                        lineHeight:
+                          '1.2',
+
+                        letterSpacing:
+                          '-0.01em',
+
+                        whiteSpace:
+                          'nowrap',
                       },
                     },
 
@@ -187,15 +496,23 @@ export default defineConfig([
                   // Lokasi + domain
                   React.createElement(
                     'span',
+
                     {
                       style: {
-                        color: '#525252',
+                        color:
+                          '#525252',
 
-                        fontSize: '12px',
-                        fontWeight: '600',
+                        fontSize:
+                          '12px',
 
-                        marginTop: '4px',
-                        lineHeight: '1.2',
+                        fontWeight:
+                          '600',
+
+                        marginTop:
+                          '4px',
+
+                        lineHeight:
+                          '1.2',
                       },
                     },
 
@@ -206,10 +523,12 @@ export default defineConfig([
             ),
 
             // ==================================================
-            // NAVBAR BAWAAN SANITY
+            // NAVBAR DEFAULT SANITY
             // ==================================================
 
-            props.renderDefault(props)
+            props.renderDefault(
+              props
+            )
           );
         },
       },
