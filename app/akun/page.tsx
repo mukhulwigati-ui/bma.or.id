@@ -15,7 +15,7 @@ import {
   LogOut,
   ChevronRight,
   Target,
-  Sparkles,
+  HandCoins,
   X,
   Loader2,
   Eye,
@@ -557,27 +557,37 @@ export default function AkunPage() {
 
             <Link
               href="/referral"
-              className="group flex items-center justify-between px-2.5 py-3 hover:bg-[#f8f8f6] transition border-b border-slate-100/60 last:border-b-0"
+              className="group relative flex items-center justify-between overflow-hidden border-y border-[#eadfca]/70 bg-gradient-to-r from-[#fbf8f0] to-white px-3 py-3.5 transition-all duration-300 hover:from-[#f7f0df] hover:to-[#fffdf8]"
             >
+              <div className="absolute bottom-0 left-0 top-0 w-[3px] bg-gradient-to-b from-[#b08a3d] via-[#dfc27e] to-[#b08a3d]" />
+
               <div className="flex items-center gap-3">
+                <div className="relative flex h-10 w-10 shrink-0 items-center justify-center bg-[#073f2e] shadow-[0_5px_15px_rgba(7,63,46,0.14)] transition-transform duration-300 group-hover:scale-[1.04]">
+                  <HandCoins className="h-[18px] w-[18px] text-[#e2c77f]" />
 
-                <div className="w-8 h-8 bg-[#f7f2e7] flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-[#a37c32]" />
+                  <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full border-2 border-white bg-[#d7b66a]" />
                 </div>
 
-                <div>
-                  <span className="text-[11px] font-semibold text-slate-700 block">
-                    Ajak Teman
-                  </span>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-[#073f2e]">
+                      Fundraiser Center
+                    </span>
 
-                  <span className="text-[8px] text-slate-400">
-                    Program referral & gerakan kebaikan BMA
+                    <span className="bg-[#073f2e] px-1.5 py-0.5 text-[6px] font-bold uppercase tracking-[0.12em] text-[#ead69e]">
+                      BMA
+                    </span>
+                  </div>
+
+                  <span className="mt-0.5 block text-[8px] leading-relaxed text-slate-400">
+                    Kelola referral, donasi & komisi Anda
                   </span>
                 </div>
-
               </div>
 
-              <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-[#073f2e] transition" />
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center border border-[#e6dbc3] bg-white text-[#a37c32] transition-all duration-300 group-hover:border-[#073f2e] group-hover:bg-[#073f2e] group-hover:text-[#e2c77f]">
+                <ChevronRight className="h-3.5 w-3.5" />
+              </div>
             </Link>
 
             <Link
