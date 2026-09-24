@@ -14,7 +14,7 @@
     "@sanity/client": "^8.2.0",
     "@sanity/image-url": "^2.1.1",
     "@supabase/ssr": "^0.12.3",
-    "@supabase/supabase-js": "^2.110.8",
+    "@supabase/supabase-js": "^2.117.1",
     "cheerio": "^1.2.0",
     "googleapis": "^173.0.0",
     "lucide-react": "^1.21.0",

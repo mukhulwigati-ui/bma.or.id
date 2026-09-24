@@ -10,8 +10,10 @@ import {
   Copy,
   Check,
   MessageCircle,
+  Eye,
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
+import { useContentView, formatViews } from '@/lib/useContentView';
 
 // ===================================================================
 // KONFIGURASI CANONICAL SHARE
@@ -594,6 +596,18 @@ export default function CampaignDetailClient({
     useState<'cerita' | 'donatur' | 'laporan'>(
       'cerita'
     );
+
+  // =================================================================
+  // VIEWS SUPABASE
+  // =================================================================
+
+  const {
+    views,
+    loadingViews,
+  } = useContentView(
+    'campaign',
+    slug
+  );
 
   // =================================================================
   // CANONICAL + VERSIONED SHARE URL
@@ -1363,6 +1377,15 @@ export default function CampaignDetailClient({
           <h1 className="text-base sm:text-xl font-bold text-slate-900 leading-snug tracking-tight">
             {program.title}
           </h1>
+
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+            <Eye className="h-3.5 w-3.5" />
+            <span>
+              {loadingViews
+                ? 'Memuat views...'
+                : `${formatViews(views)} kali dilihat`}
+            </span>
+          </div>
 
           <div className="space-y-2 pt-1">
             <p className="text-lg sm:text-xl font-extrabold text-emerald-900">

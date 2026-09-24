@@ -10,6 +10,7 @@ import React, {
 
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
+import { useContentView, formatViews } from "@/lib/useContentView";
 
 import {
   ArrowLeft,
@@ -34,6 +35,7 @@ import {
   CircleDollarSign,
   HandCoins,
   X,
+  Eye,
 } from "lucide-react";
 
 // ============================================================================
@@ -288,6 +290,22 @@ export default function ReferralPage() {
           .NEXT_PUBLIC_SUPABASE_ANON_KEY!
       ),
     []
+  );
+
+  // ==========================================================================
+  // VIEWS SUPABASE
+  //
+  // Referral dashboard dihitung per akun fundraiser menggunakan profile.id,
+  // bukan nomor WhatsApp, supaya identifier sensitif tidak disimpan sebagai slug.
+  // ==========================================================================
+
+  const {
+    views: referralViews,
+    loadingViews: referralViewsLoading,
+  } = useContentView(
+    "referral",
+    profile?.id || null,
+    Boolean(profile?.id)
   );
 
   // ==========================================================================
@@ -982,6 +1000,15 @@ export default function ReferralPage() {
 
               <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#e8d7aa]">
                 Fundraiser islami.or.id
+              </span>
+
+              <span className="h-3 w-px bg-white/20" />
+
+              <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[#e8d7aa]">
+                <Eye className="h-3 w-3" />
+                {referralViewsLoading
+                  ? '...'
+                  : `${formatViews(referralViews)} views`}
               </span>
             </div>
 

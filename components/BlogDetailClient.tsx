@@ -13,9 +13,11 @@ import {
   Copy,
   Newspaper,
   RefreshCw,
+  Eye,
 } from 'lucide-react';
 
 import RelatedNews from '@/components/RelatedNews';
+import { useContentView, formatViews } from '@/lib/useContentView';
 
 // ============================================================
 // IDENTITAS
@@ -223,6 +225,18 @@ export default function BlogDetailClient({
 
   const [copied, setCopied] =
     useState(false);
+
+  // ==========================================================
+  // VIEWS SUPABASE
+  // ==========================================================
+
+  const {
+    views,
+    loadingViews,
+  } = useContentView(
+    'blog',
+    slug
+  );
 
   // ==========================================================
   // FETCH DETAIL NEWS
@@ -570,6 +584,17 @@ export default function BlogDetailClient({
 
               <span className="text-[10px] font-medium text-[#777777]">
                 {SITE_DOMAIN}
+              </span>
+
+              <span className="text-[#bbbbbb]">
+                •
+              </span>
+
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-[#777777]">
+                <Eye className="h-3.5 w-3.5" />
+                {loadingViews
+                  ? '...'
+                  : `${formatViews(views)} views`}
               </span>
 
             </div>
