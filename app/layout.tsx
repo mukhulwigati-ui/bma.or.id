@@ -1,10 +1,12 @@
 // app/layout.tsx
 
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
 import Script from 'next/script';
 
 import LayoutClientWrapper from '@/components/LayoutClientWrapper';
+import ReferralTracker from '@/components/ReferralTracker';
 
 import './globals.css';
 
@@ -141,16 +143,6 @@ export const metadata: Metadata = {
 
   // ==========================================================
   // OPEN GRAPH
-  //
-  // Digunakan oleh:
-  //
-  // - WhatsApp
-  // - Facebook
-  // - Telegram
-  // - LinkedIn
-  // - crawler sosial lainnya
-  //
-  // Campaign dan News dapat menimpa metadata ini.
   // ==========================================================
 
   openGraph: {
@@ -211,19 +203,6 @@ export const metadata: Metadata = {
 
   // ==========================================================
   // META TAMBAHAN UNTUK CRAWLER SOSIAL
-  //
-  // Pola ini sama dengan yang berhasil pada Mukhlasin.
-  //
-  // Selain:
-  //
-  // <meta property="og:image" ...>
-  //
-  // dari openGraph.images, Next.js juga akan menghasilkan:
-  //
-  // <meta name="og:image" ...>
-  // <meta name="og:image:secure_url" ...>
-  //
-  // Ini sengaja dipertahankan untuk kompatibilitas crawler.
   // ==========================================================
 
   other: {
@@ -330,6 +309,26 @@ export default function RootLayout({
           strategy="lazyOnload"
           crossOrigin="anonymous"
         />
+
+        {/* ===================================================
+            REFERRAL TRACKER
+
+            Contoh URL:
+            /?ref=628123456789
+
+            /campaign/sedekah-subuh?ref=628123456789
+
+            Tracker tidak menampilkan UI apa pun.
+            Tugasnya hanya membaca ?ref= kemudian mencatat
+            kunjungan referral ke Supabase melalui /api/views.
+
+            Suspense dipakai karena ReferralTracker menggunakan
+            useSearchParams() dari next/navigation.
+        ==================================================== */}
+
+        <Suspense fallback={null}>
+          <ReferralTracker />
+        </Suspense>
 
         {/* ===================================================
             GLOBAL CLIENT LAYOUT

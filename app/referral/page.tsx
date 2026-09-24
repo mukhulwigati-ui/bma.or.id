@@ -10,7 +10,6 @@ import React, {
 
 import { createBrowserClient } from "@supabase/ssr";
 import Link from "next/link";
-import { useContentView, formatViews } from "@/lib/useContentView";
 
 import {
   ArrowLeft,
@@ -293,20 +292,18 @@ export default function ReferralPage() {
   );
 
   // ==========================================================================
-  // VIEWS SUPABASE
+  // REFERRAL LINK VIEWS
   //
-  // Referral dashboard dihitung per akun fundraiser menggunakan profile.id,
-  // bukan nomor WhatsApp, supaya identifier sensitif tidak disimpan sebagai slug.
+  // Dashboard HANYA membaca total kunjungan link referral.
+  // Penambahan view dilakukan oleh components/ReferralTracker.tsx ketika
+  // pengunjung membuka URL yang memiliki ?ref=...
   // ==========================================================================
 
-  const {
-    views: referralViews,
-    loadingViews: referralViewsLoading,
-  } = useContentView(
-    "referral",
-    profile?.id || null,
-    Boolean(profile?.id)
-  );
+  const [referralViews, setReferralViews] =
+    useState(0);
+
+  const [referralViewsLoading, setReferralViewsLoading] =
+    useState(false);
 
   // ==========================================================================
   // LOAD STATS
@@ -637,6 +634,62 @@ export default function ReferralPage() {
       ? `${baseUrl}/?ref=${cleanedPhone}`
       : "";
 
+  // ==========================================================================
+  // LOAD REFERRAL LINK VIEWS
+  // ==========================================================================
+
+  const loadReferralViews = useCallback(
+    async (referralCode: string) => {
+      if (!referralCode) {
+        setReferralViews(0);
+        return;
+      }
+
+      setReferralViewsLoading(true);
+
+      try {
+        const response = await fetch(
+          `/api/views?type=referral&slug=${encodeURIComponent(
+            referralCode
+          )}&t=${Date.now()}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          }
+        );
+
+        const json = await response.json();
+
+        if (response.ok && json.success) {
+          setReferralViews(
+            Number(json.views || 0)
+          );
+        } else {
+          setReferralViews(0);
+        }
+      } catch (error) {
+        console.error(
+          "[REFERRAL] Gagal mengambil referral views:",
+          error
+        );
+
+        setReferralViews(0);
+      } finally {
+        setReferralViewsLoading(false);
+      }
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!cleanedPhone) {
+      setReferralViews(0);
+      return;
+    }
+
+    void loadReferralViews(cleanedPhone);
+  }, [cleanedPhone, loadReferralViews]);
+
   const filteredPrograms =
     allPrograms.filter(
       (program) =>
@@ -739,6 +792,11 @@ export default function ReferralPage() {
 
       // Kemudian ambil statistik terbaru
       await loadStats(phone);
+
+      // Refresh jumlah kunjungan link referral
+      if (cleanedPhone) {
+        await loadReferralViews(cleanedPhone);
+      }
     } catch (error) {
       console.error(
         "[REFERRAL] Refresh error:",
@@ -1008,7 +1066,7 @@ export default function ReferralPage() {
                 <Eye className="h-3 w-3" />
                 {referralViewsLoading
                   ? '...'
-                  : `${formatViews(referralViews)} views`}
+                  : `${Number(referralViews || 0).toLocaleString("id-ID")} views`}
               </span>
             </div>
 
