@@ -1057,17 +1057,9 @@ export default function ReferralPage() {
               <span className="h-1.5 w-1.5 rounded-full bg-[#d8b76a]" />
 
               <span className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#e8d7aa]">
-                Fundraiser islami.or.id
+                Fundraiser bma.or.id
               </span>
 
-              <span className="h-3 w-px bg-white/20" />
-
-              <span className="inline-flex items-center gap-1 text-[9px] font-bold text-[#e8d7aa]">
-                <Eye className="h-3 w-3" />
-                {referralViewsLoading
-                  ? '...'
-                  : `${Number(referralViews || 0).toLocaleString("id-ID")} views`}
-              </span>
             </div>
 
             <h2 className="mt-5 text-[22px] font-bold leading-[1.2] tracking-tight text-white">
@@ -1178,6 +1170,22 @@ export default function ReferralPage() {
                       rupiah(
                         totalWithdrawn
                       )
+                    }
+                  />
+
+                  <MiniStat
+                    icon={
+                      <Eye className="h-4 w-4" />
+                    }
+                    label="Views Referral"
+                    value={
+                      referralViewsLoading
+                        ? "..."
+                        : Number(
+                            referralViews || 0
+                          ).toLocaleString(
+                            "id-ID"
+                          )
                     }
                   />
                 </section>
