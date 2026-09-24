@@ -3,32 +3,17 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@sanity/client';
 
-// ============================================================
-// NEXT.JS
-// ============================================================
-
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // ============================================================
-// IDENTITAS BMA
+// CONFIG
 // ============================================================
 
-const SITE_URL =
+const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ||
-  'https://bma.or.id';
-
-// ============================================================
-// SANITY BMA
-//
-// JANGAN hardcode token di source code.
-//
-// Vercel Environment Variables:
-//
-// NEXT_PUBLIC_SANITY_PROJECT_ID=im4qx3kd
-// NEXT_PUBLIC_SANITY_DATASET=production
-// SANITY_API_WRITE_TOKEN=skHrEa1F7Gk1tz5okfVRPhSsU1mitr6EtoCOvFUj6fF7sKMbJOmYNaWTyDIpSZFthB67Z7nRudr7BFhmWYOeLftuWHHIlX5GXKzhIOcRhlWAmxxkk6lZgKUivUDpiP1NRB4JVXIhr4LWdqDih9mgDY24RijPmUHRRRmjMtOaYI5fGCw4iK9r
-// ============================================================
+  'https://www.bma.or.id'
+).replace(/\/$/, '');
 
 const sanityProjectId =
   process.env.NEXT_PUBLIC_SANITY_PROJECT_ID ||
@@ -41,195 +26,132 @@ const sanityDataset =
 const sanityWriteToken =
   process.env.SANITY_API_WRITE_TOKEN;
 
-const sanityClient =
-  createClient({
-    projectId:
-      sanityProjectId,
-
-    dataset:
-      sanityDataset,
-
-    apiVersion:
-      '2026-07-18',
-
-    useCdn:
-      false,
-
-    token:
-      sanityWriteToken,
-  });
+const sanityClient = createClient({
+  projectId: sanityProjectId,
+  dataset: sanityDataset,
+  apiVersion: '2026-09-24',
+  useCdn: false,
+  token: sanityWriteToken,
+});
 
 // ============================================================
-// HELPER: NOMOR
+// HELPERS
 // ============================================================
 
-function cleanNumber(
-  value: unknown
-): number {
-  if (
-    typeof value === 'number'
-  ) {
+function cleanNumber(value: unknown): number {
+  if (typeof value === 'number') {
     return Number.isFinite(value)
       ? Math.floor(value)
       : 0;
   }
 
-  const result =
-    String(value || '')
-      .replace(/[^0-9]/g, '');
+  const result = String(value || '').replace(
+    /[^0-9]/g,
+    ''
+  );
 
   return Number(result || 0);
 }
-
-// ============================================================
-// HELPER: STRING
-// ============================================================
 
 function cleanString(
   value: unknown,
   fallback = ''
 ): string {
-  if (
-    typeof value !== 'string'
-  ) {
+  if (typeof value !== 'string') {
     return fallback;
   }
 
-  const result =
-    value.trim();
+  const result = value.trim();
 
   return result || fallback;
 }
 
-// ============================================================
-// HELPER: PHONE
-// ============================================================
-
 function cleanPhoneNumber(
   value: unknown
 ): string {
-  return String(
-    value || ''
-  ).replace(
+  return String(value || '').replace(
     /[^0-9]/g,
     ''
   );
 }
 
 // ============================================================
-// HELPER: PAYMENT METHOD
+// PAYMENT METHOD
+//
+// Frontend BMA masih mengirim pilihan metode.
+// Kita simpan pilihan tersebut sebagai preferredPaymentMethod.
+//
+// Untuk API Pakasir v2 checkout menggunakan payment_link,
+// karena metode inilah yang mengembalikan URL pembayaran.
 // ============================================================
 
 function normalizePaymentMethod(
   value: unknown
 ): string {
-  const method =
-    String(
-      value || 'qris'
-    )
-      .toLowerCase()
-      .trim();
+  const method = String(
+    value || 'qris'
+  )
+    .toLowerCase()
+    .trim();
 
   const allowedMethods = [
     'qris',
-    'cimb_niaga_va',
-    'bni_va',
-    'sampoerna_va',
-    'bnc_va',
-    'maybank_va',
-    'permata_va',
-    'atm_bersama_va',
-    'artha_graha_va',
     'bri_va',
+    'bni_va',
+    'cimb_niaga_va',
+    'permata_va',
+    'maybank_va',
+    'bnc_va',
+    'artha_graha_va',
+    'sampoerna_va',
+    'payment_link',
   ];
 
-  if (
-    allowedMethods.includes(
-      method
-    )
-  ) {
-    return method;
-  }
-
-  return 'qris';
+  return allowedMethods.includes(method)
+    ? method
+    : 'qris';
 }
 
 // ============================================================
-// HELPER: PREFIX INVOICE
+// INVOICE PREFIX
 // ============================================================
 
 function buildInvoicePrefix(
   slug: string
 ): string {
-  const normalized =
-    slug
-      .toUpperCase()
-      .replace(
-        /[^A-Z0-9]+/g,
-        '-'
-      );
+  const normalized = slug
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, '-');
 
-  if (
-    normalized.includes(
-      'BERAS'
-    )
-  ) {
+  if (normalized.includes('BERAS')) {
     return 'BERAS';
   }
 
-  if (
-    normalized.includes(
-      'ZAKAT'
-    )
-  ) {
+  if (normalized.includes('ZAKAT')) {
     return 'ZAKAT';
   }
 
-  if (
-    normalized.includes(
-      'YATIM'
-    )
-  ) {
+  if (normalized.includes('YATIM')) {
     return 'YATIM';
   }
 
-  if (
-    normalized.includes(
-      'DHUAFA'
-    )
-  ) {
+  if (normalized.includes('DHUAFA')) {
     return 'DHUAFA';
   }
 
-  if (
-    normalized.includes(
-      'WAKAF'
-    )
-  ) {
+  if (normalized.includes('WAKAF')) {
     return 'WAKAF';
   }
 
-  if (
-    normalized.includes(
-      'SUBUH'
-    )
-  ) {
+  if (normalized.includes('SUBUH')) {
     return 'SUBUH';
   }
 
-  if (
-    normalized.includes(
-      'FIDYAH'
-    )
-  ) {
+  if (normalized.includes('FIDYAH')) {
     return 'FIDYAH';
   }
 
-  if (
-    normalized.includes(
-      'MUALAF'
-    )
-  ) {
+  if (normalized.includes('MUALAF')) {
     return 'MUALAF';
   }
 
@@ -237,16 +159,14 @@ function buildInvoicePrefix(
 }
 
 // ============================================================
-// HELPER: ORDER ID
+// ORDER ID
 // ============================================================
 
 function generateOrderId(
   slug: string
 ): string {
   const prefix =
-    buildInvoicePrefix(
-      slug
-    );
+    buildInvoicePrefix(slug);
 
   const timestamp =
     Date.now();
@@ -258,10 +178,8 @@ function generateOrderId(
       .toUpperCase();
 
   return (
-    `INV-BMA-` +
-    `${prefix}-` +
-    `${timestamp}-` +
-    `${random}`
+    `INV-BMA-${prefix}-` +
+    `${timestamp}-${random}`
   );
 }
 
@@ -274,113 +192,91 @@ export async function POST(
 ) {
   try {
     // ========================================================
-    // 1. VALIDASI ENVIRONMENT
+    // 1. ENVIRONMENT
     // ========================================================
 
-    if (
-      !sanityWriteToken
-    ) {
+    if (!sanityWriteToken) {
       console.error(
-        '🔥 SANITY_API_WRITE_TOKEN tidak tersedia.'
+        'SANITY_API_WRITE_TOKEN tidak tersedia.'
       );
 
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
             'Konfigurasi server Sanity belum lengkap.',
         },
-        {
-          status:
-            500,
-        }
+        { status: 500 }
       );
     }
 
-    // ========================================================
-    // PAKASIR PROJECT
-    //
-    // SERVER variable utama:
-    //
-    // PAKASIR_PROJECT_SLUG
-    //
-    // Bisa fallback ke NEXT_PUBLIC agar kompatibel
-    // dengan frontend yang sudah ada.
-    // ========================================================
-
     const projectSlug =
-      process.env
-        .PAKASIR_PROJECT_SLUG ||
-      process.env
-        .NEXT_PUBLIC_PAKASIR_PROJECT_SLUG ||
+      process.env.PAKASIR_PROJECT_SLUG ||
       '';
 
-    if (
-      !projectSlug
-    ) {
+    const pakasirApiKey =
+      process.env.PAKASIR_API_KEY ||
+      '';
+
+    if (!projectSlug) {
       console.error(
-        '🔥 PAKASIR_PROJECT_SLUG belum tersedia.'
+        'PAKASIR_PROJECT_SLUG belum tersedia.'
       );
 
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
-            'Konfigurasi project Pakasir BMA belum lengkap.',
+            'Konfigurasi project Pakasir belum lengkap.',
         },
+        { status: 500 }
+      );
+    }
+
+    if (!pakasirApiKey) {
+      console.error(
+        'PAKASIR_API_KEY belum tersedia.'
+      );
+
+      return NextResponse.json(
         {
-          status:
-            500,
-        }
+          success: false,
+          error:
+            'API Key Pakasir belum tersedia.',
+        },
+        { status: 500 }
       );
     }
 
     // ========================================================
-    // 2. READ BODY
+    // 2. BODY
     // ========================================================
 
-    let body:
-      Record<
-        string,
-        any
-      >;
+    let body: Record<string, any>;
 
     try {
-      body =
-        await request.json();
+      body = await request.json();
     } catch {
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
             'Request checkout tidak valid.',
         },
-        {
-          status:
-            400,
-        }
+        { status: 400 }
       );
     }
 
     // ========================================================
-    // 3. NORMALISASI DATA
+    // 3. NORMALISASI
     // ========================================================
 
     const slug =
-      cleanString(
-        body.slug
-      );
+      cleanString(body.slug);
 
     const donorName =
       cleanString(
-        body.donorName ||
-          body.name,
+        body.donorName || body.name,
         'Hamba Allah'
       );
 
@@ -397,7 +293,7 @@ export async function POST(
           body.referral
       );
 
-    const paymentMethod =
+    const preferredPaymentMethod =
       normalizePaymentMethod(
         body.paymentMethod
       );
@@ -409,41 +305,28 @@ export async function POST(
       );
 
     // ========================================================
-    // 4. VALIDASI TRANSAKSI
+    // 4. VALIDASI
     // ========================================================
 
     if (!slug) {
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
             'Program donasi tidak ditemukan.',
         },
-        {
-          status:
-            400,
-        }
+        { status: 400 }
       );
     }
 
-    if (
-      !amount ||
-      amount < 1000
-    ) {
+    if (!amount || amount < 1000) {
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
             'Minimal donasi adalah Rp 1.000.',
         },
-        {
-          status:
-            400,
-        }
+        { status: 400 }
       );
     }
 
@@ -453,95 +336,187 @@ export async function POST(
     ) {
       return NextResponse.json(
         {
-          success:
-            false,
-
+          success: false,
           error:
             'Nomor WhatsApp donatur tidak valid.',
         },
+        { status: 400 }
+      );
+    }
+
+    // ========================================================
+    // 5. ORDER ID
+    // ========================================================
+
+    const orderId =
+      generateOrderId(slug);
+
+    // ========================================================
+    // 6. PAKASIR API V2
+    //
+    // API:
+    // POST /api/v2/create-transaction/{slug}/{order_id}
+    //
+    // Header:
+    // X-Api-Key
+    //
+    // Kita menggunakan payment_link agar frontend BMA
+    // tetap bisa redirect langsung tanpa harus membuat
+    // renderer QR / Virtual Account sendiri.
+    // ========================================================
+
+    const pakasirEndpoint =
+      `https://app.pakasir.com` +
+      `/api/v2/create-transaction/` +
+      `${encodeURIComponent(projectSlug)}/` +
+      `${encodeURIComponent(orderId)}`;
+
+    const pakasirResponse =
+      await fetch(
+        pakasirEndpoint,
+        {
+          method: 'POST',
+
+          headers: {
+            'Content-Type':
+              'application/json',
+
+            'Accept':
+              'application/json',
+
+            'X-Api-Key':
+              pakasirApiKey,
+          },
+
+          body: JSON.stringify({
+            method:
+              'payment_link',
+
+            amount:
+              amount,
+          }),
+
+          cache:
+            'no-store',
+        }
+      );
+
+    // ========================================================
+    // 7. PARSE RESPONSE PAKASIR
+    // ========================================================
+
+    let pakasirData: any = null;
+
+    try {
+      pakasirData =
+        await pakasirResponse.json();
+    } catch {
+      const raw =
+        await pakasirResponse
+          .text()
+          .catch(() => '');
+
+      console.error(
+        'Response Pakasir bukan JSON:',
+        raw
+      );
+    }
+
+    if (
+      !pakasirResponse.ok ||
+      !pakasirData
+    ) {
+      console.error(
+        'Pakasir API v2 error:',
         {
           status:
-            400,
+            pakasirResponse.status,
+
+          data:
+            pakasirData,
+        }
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+
+          error:
+            pakasirData?.message ||
+            pakasirData?.error ||
+            'Gagal membuat transaksi Pakasir.',
+        },
+        {
+          status:
+            pakasirResponse.status >= 400 &&
+            pakasirResponse.status < 500
+              ? 400
+              : 502,
         }
       );
     }
 
-    // ========================================================
-    // 5. GENERATE ORDER ID BMA
-    // ========================================================
-
-    const orderId =
-      generateOrderId(
-        slug
+    const txnId =
+      cleanString(
+        pakasirData.txn_id
       );
 
-    // ========================================================
-    // 6. RETURN URL
-    // ========================================================
+    const paymentUrl =
+      cleanString(
+        pakasirData.payment_link
+      );
 
-    const returnUrl =
-      `${SITE_URL}` +
-      `/thank-you` +
-      `?order_id=${encodeURIComponent(
-        orderId
-      )}`;
+    if (!txnId || !paymentUrl) {
+      console.error(
+        'Response Pakasir v2 tidak lengkap:',
+        pakasirData
+      );
 
-    // ========================================================
-    // 7. BUILD HOSTED PAYMENT URL PAKASIR
-    //
-    // Kita TIDAK memanggil transactioncreate lagi.
-    //
-    // Pakasir mendukung pembayaran langsung via URL:
-    //
-    // /pay/{project}/{amount}?order_id=...
-    // ========================================================
-
-    let paymentUrl =
-      `https://app.pakasir.com/pay/` +
-      `${encodeURIComponent(
-        projectSlug
-      )}/` +
-      `${amount}` +
-      `?order_id=${encodeURIComponent(
-        orderId
-      )}` +
-      `&redirect=${encodeURIComponent(
-        returnUrl
-      )}`;
-
-    // ========================================================
-    // QRIS ONLY
-    // ========================================================
-
-    if (
-      paymentMethod ===
-      'qris'
-    ) {
-      paymentUrl +=
-        '&qris_only=1';
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Pakasir tidak memberikan link pembayaran.',
+        },
+        { status: 502 }
+      );
     }
 
     // ========================================================
-    // 8. SIMPAN TRANSAKSI KE SANITY BMA
+    // 8. RETURN URL BMA
+    //
+    // Disimpan untuk kebutuhan aplikasi.
+    // API payment_link v2 memberikan URL Pakasir sendiri.
     // ========================================================
 
-    const transactionDocument =
-      await sanityClient.create(
-        {
+    const returnUrl =
+      `${SITE_URL}/thank-you` +
+      `?order_id=${encodeURIComponent(
+        orderId
+      )}`;
+
+    // ========================================================
+    // 9. SIMPAN PENDING KE SANITY
+    // ========================================================
+
+    let transactionDocument: any;
+
+    try {
+      transactionDocument =
+        await sanityClient.create({
           _type:
             'donationTransaction',
 
-          orderId:
-            orderId,
+          orderId,
 
-          donorName:
-            donorName,
+          pakasirTxnId:
+            txnId,
 
-          donorPhone:
-            donorPhone,
+          donorName,
 
-          amount:
-            amount,
+          donorPhone,
+
+          amount,
 
           totalAmount:
             amount,
@@ -549,39 +524,65 @@ export async function POST(
           status:
             'pending',
 
-          slug:
-            slug,
+          slug,
 
           programSlug:
             slug,
 
+          // Pilihan yang dipilih user di form BMA.
           paymentMethod:
-            paymentMethod,
+            preferredPaymentMethod,
 
-          paymentUrl:
-            paymentUrl,
+          // Gateway dibuat via payment_link v2.
+          gatewayPaymentMethod:
+            'payment_link',
 
-          fundraiserPhone:
-            fundraiserPhone,
+          paymentUrl,
+
+          returnUrl,
+
+          fundraiserPhone,
 
           source:
             'bma.or.id',
 
           gateway:
-            'pakasir',
+            'pakasir-v2',
 
           createdAt:
             new Date()
               .toISOString(),
-        }
+        });
+    } catch (sanityError) {
+      console.error(
+        'Gagal menyimpan transaksi ke Sanity:',
+        sanityError
       );
 
+      /*
+       * Transaksi Pakasir sudah berhasil dibuat.
+       * Jangan mengarahkan user ke pembayaran jika record
+       * internal gagal dibuat, karena webhook nanti tidak
+       * mempunyai transaksi untuk dicocokkan.
+       */
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Transaksi pembayaran berhasil dibuat tetapi pencatatan internal gagal. Silakan coba kembali.',
+        },
+        { status: 500 }
+      );
+    }
+
     console.log(
-      '✅ TRANSAKSI BMA DICATAT:',
+      'TRANSAKSI BMA PAKASIR V2:',
       {
         sanityId:
-          transactionDocument
-            ?._id,
+          transactionDocument?._id,
+
+        txnId,
 
         orderId,
 
@@ -589,7 +590,7 @@ export async function POST(
 
         amount,
 
-        paymentMethod,
+        preferredPaymentMethod,
 
         fundraiser:
           fundraiserPhone ||
@@ -598,9 +599,7 @@ export async function POST(
     );
 
     // ========================================================
-    // 9. SYNC GOOGLE SHEET
-    //
-    // Kegagalan Sheet TIDAK menggagalkan checkout.
+    // 10. GOOGLE SHEET
     // ========================================================
 
     const googleSheetScriptUrl =
@@ -616,8 +615,7 @@ export async function POST(
           await fetch(
             googleSheetScriptUrl.trim(),
             {
-              method:
-                'POST',
+              method: 'POST',
 
               headers: {
                 'Content-Type':
@@ -625,92 +623,94 @@ export async function POST(
               },
 
               body:
-                JSON.stringify(
-                  {
-                    orderId,
+                JSON.stringify({
+                  orderId,
 
-                    donorName,
+                  txnId,
 
-                    donorPhone:
-                      donorPhone
-                        ? `'${donorPhone}`
-                        : '',
+                  donorName,
 
-                    amount,
+                  donorPhone:
+                    donorPhone
+                      ? `'${donorPhone}`
+                      : '',
 
-                    programSlug:
-                      slug,
+                  amount,
 
-                    paymentMethod,
+                  programSlug:
+                    slug,
 
-                    fundraiserPhone:
-                      fundraiserPhone
-                        ? `'${fundraiserPhone}`
-                        : '-',
+                  paymentMethod:
+                    preferredPaymentMethod,
 
-                    status:
-                      'pending',
+                  gatewayPaymentMethod:
+                    'payment_link',
 
-                    source:
-                      'bma.or.id',
+                  fundraiserPhone:
+                    fundraiserPhone
+                      ? `'${fundraiserPhone}`
+                      : '-',
 
-                    createdAt:
-                      new Date()
-                        .toLocaleString(
-                          'id-ID',
-                          {
-                            timeZone:
-                              'Asia/Jakarta',
-                          }
-                        ),
-                  }
-                ),
+                  status:
+                    'pending',
+
+                  source:
+                    'bma.or.id',
+
+                  gateway:
+                    'pakasir-v2',
+
+                  createdAt:
+                    new Date()
+                      .toLocaleString(
+                        'id-ID',
+                        {
+                          timeZone:
+                            'Asia/Jakarta',
+                        }
+                      ),
+                }),
             }
           );
 
-        if (
-          !sheetResponse.ok
-        ) {
+        if (!sheetResponse.ok) {
           console.warn(
-            '⚠️ Google Sheet merespons:',
+            'Google Sheet merespons:',
             sheetResponse.status
           );
         } else {
           console.log(
-            '📊 GOOGLE SHEET SYNC:',
+            'GOOGLE SHEET SYNC:',
             orderId
           );
         }
-      } catch (
-        sheetError
-      ) {
+      } catch (sheetError) {
         console.error(
-          '⚠️ Google Sheet sync gagal:',
+          'Google Sheet sync gagal:',
           sheetError
         );
       }
     }
 
     // ========================================================
-    // 10. RESPONSE
+    // 11. RESPONSE KE FRONTEND
     // ========================================================
 
     return NextResponse.json(
       {
-        success:
-          true,
+        success: true,
 
-        orderId:
-          orderId,
+        orderId,
 
-        amount:
-          amount,
+        txnId,
+
+        amount,
 
         totalPayment:
           amount,
 
         paymentMethod:
-          paymentMethod,
+          preferredPaymentMethod,
 
         paymentNumber:
           '',
@@ -718,18 +718,15 @@ export async function POST(
         expiredAt:
           '',
 
-        returnUrl:
-          returnUrl,
+        returnUrl,
 
-        paymentUrl:
-          paymentUrl,
+        paymentUrl,
 
         programSlug:
           slug,
       },
       {
-        status:
-          200,
+        status: 200,
 
         headers: {
           'Cache-Control':
@@ -737,26 +734,22 @@ export async function POST(
         },
       }
     );
-  } catch (
-    error: any
-  ) {
+  } catch (error: any) {
     console.error(
-      '🔥 BMA CHECKOUT ERROR:',
+      'BMA CHECKOUT ERROR:',
       error
     );
 
     return NextResponse.json(
       {
-        success:
-          false,
+        success: false,
 
         error:
           error?.message ||
           'Terjadi kesalahan saat membuat transaksi.',
       },
       {
-        status:
-          500,
+        status: 500,
 
         headers: {
           'Cache-Control':
